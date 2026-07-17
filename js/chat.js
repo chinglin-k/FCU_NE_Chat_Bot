@@ -174,7 +174,8 @@ const Chat = (() => {
         _hideTyping();
         addBotMessage(CONFIG.RESPONSES.SETTING);
         _addButtonGroup([
-          { id: 'btn-need-help-setting', icon: '🆘', label: '我需要協助', action: 'need-help' }
+          { id: 'btn-need-help-setting', icon: '🆘', label: '我需要協助', action: 'need-help' },
+          { id: 'btn-back-main-setting', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
         ]);
         break;
 
@@ -184,6 +185,14 @@ const Chat = (() => {
         await _delay(500);
         _hideTyping();
         addBotMessage(CONFIG.RESPONSES.REPORT_TRIGGER);
+        ReportForm.open();
+        _addButtonGroup([
+          { id: 'btn-open-report',      icon: '📝', label: '開啟報修表單', action: 'open-report' },
+          { id: 'btn-back-main-report', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+        ]);
+        break;
+
+      case 'open-report':
         ReportForm.open();
         break;
 

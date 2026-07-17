@@ -26,7 +26,7 @@ const CONFIG = Object.freeze({
   /* ── Chatbot 回覆文字 ── */
   RESPONSES: {
     WELCOME:
-      '您好！我是**逢甲宿舍網路報修助理** 🔧\n' +
+      '您好！我是**逢甲福星宿舍網路報修助理** 🔧\n' +
       '您可以直接輸入問題，或點選下方按鈕選擇服務：',
 
     TEACH_CHOOSE:
