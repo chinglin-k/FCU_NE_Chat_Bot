@@ -1,0 +1,32 @@
+# 機密資訊（絕對不得提交至 Git）
+.env
+*.env.local
+*.env.production
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node（若未來引入）
+node_modules/
+npm-debug.log*
+
+# 暫存
+*.tmp
+*.log
