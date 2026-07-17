@@ -1,6 +1,6 @@
-# 逢甲大學宿舍網路報修 Chatbot
+# 逢甲大學福星宿舍網路報修 Chatbot
 
-> 🔧 逢甲大學宿舍網管專屬智慧客服系統
+> 🔧 @chinglin-k 專屬逢甲大學福星宿舍網路智慧客服系統
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 
@@ -82,4 +82,4 @@ GitHub → Settings → Pages → Source: **main** / **(root)**
 
 ## 授權
 
-逢甲大學宿舍網路管理組 © 2026
+@chinglin-k © 2026
