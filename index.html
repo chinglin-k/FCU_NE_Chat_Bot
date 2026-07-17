@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>逢甲大學宿舍網路報修助理</title>
+  <meta name="description" content="逢甲大學宿舍網路報修 Chatbot，提供網路教學、常見設定問題解答，以及線上報修申請服務。">
+  <meta name="theme-color" content="#0a0e1a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ── Header ── -->
+    <header class="chat-header" role="banner">
+      <div class="header-logo">
+        <div class="logo-icon" aria-hidden="true">🔧</div>
+        <div class="header-text">
+          <h1 class="header-title">逢甲宿舍網路報修助理</h1>
+          <p class="header-subtitle">FCU Network Management Support</p>
+        </div>
+      </div>
+      <div class="header-counter" aria-label="累積服務人數">
+        <span class="counter-label">已協助</span>
+        <span class="counter-value" id="counter-display">---</span>
+        <span class="counter-label">人</span>
+        <span class="counter-star" aria-hidden="true">✨</span>
+      </div>
+    </header>
+
+    <!-- ── Chat Messages Area ── -->
+    <main class="chat-main" role="main">
+      <div class="chat-messages" id="chat-messages" aria-live="polite" aria-label="對話訊息">
+        <!-- 訊息由 JavaScript 動態插入 -->
+      </div>
+    </main>
+
+    <!-- ── Report Form Modal ── -->
+    <div class="modal-overlay" id="report-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+      <div class="modal-container">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title" id="modal-title">🔧 報修通報</h2>
+            <p class="modal-subtitle">請留下資料，網管人員將與您聯絡。</p>
+          </div>
+          <button class="modal-close" id="modal-close-btn" aria-label="關閉報修表單">✕</button>
+        </div>
+
+        <form class="report-form" id="report-form" novalidate>
+          <div class="form-group">
+            <label for="field-name">姓名 <span class="required" aria-label="必填">*</span></label>
+            <input type="text" id="field-name" name="name" placeholder="請輸入您的姓名" required autocomplete="name">
+          </div>
+
+          <div class="form-group">
+            <label for="field-student-id">學號 <span class="required" aria-label="必填">*</span></label>
+            <input type="text" id="field-student-id" name="studentId" placeholder="請輸入學號" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="field-room">房號 <span class="required" aria-label="必填">*</span></label>
+              <input type="text" id="field-room" name="roomNumber" placeholder="例：A123" required>
+            </div>
+            <div class="form-group">
+              <label for="field-bed">床號 <span class="required" aria-label="必填">*</span></label>
+              <input type="text" id="field-bed" name="bedNumber" placeholder="例：1" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="field-phone">手機號碼 <span class="required" aria-label="必填">*</span></label>
+            <input type="tel" id="field-phone" name="phone" placeholder="請輸入手機號碼" required autocomplete="tel">
+          </div>
+
+          <div class="form-group">
+            <label for="field-repair-time">可維修時間 <span class="required" aria-label="必填">*</span></label>
+            <input type="text" id="field-repair-time" name="repairTime" placeholder="例：18:00–19:00" required>
+            <p class="field-hint" id="repair-time-hint">
+              ⏰ 可維修時間請填寫 <strong>18:00–21:00</strong> 之間（本人需在場）。新生入住期間
+              12:00–17:00 網管看到後會盡速前往協助。
+            </p>
+          </div>
+
+          <div class="form-group">
+            <label for="field-description">問題描述 <span class="required" aria-label="必填">*</span></label>
+            <textarea
+              id="field-description"
+              name="description"
+              placeholder="請詳細描述您遇到的網路問題，例如：網路連不上、IP 貼紙缺漏、網路孔故障等..."
+              rows="4"
+              required
+            ></textarea>
+          </div>
+
+          <div id="form-error-msg" class="form-error" role="alert" hidden></div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" id="form-cancel-btn">取消</button>
+            <button type="submit" class="btn-primary" id="form-submit-btn">
+              <span class="btn-text">送出報修</span>
+              <span class="btn-loading" hidden>
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Input Area ── -->
+    <footer class="chat-footer" role="contentinfo">
+      <div class="input-container">
+        <textarea
+          id="chat-input"
+          class="chat-input"
+          placeholder="輸入訊息，或點擊上方按鈕選擇服務..."
+          rows="1"
+          aria-label="輸入訊息"
+          maxlength="500"
+        ></textarea>
+        <button id="send-btn" class="send-btn" aria-label="送出訊息">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <p class="footer-note">本服務由逢甲大學宿舍網管提供 · 僅限宿舍網路相關問題</p>
+    </footer>
+
+  </div><!-- /#app -->
+
+  <!-- Scripts（載入順序：config → counter → intent → report → chat） -->
+  <script src="js/config.js"></script>
+  <script src="js/counter.js"></script>
+  <script src="js/intent.js"></script>
+  <script src="js/report.js"></script>
+  <script src="js/chat.js"></script>
+</body>
+</html>
