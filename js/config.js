@@ -15,7 +15,7 @@ const CONFIG = Object.freeze({
    *      執行身分：我自己 / 誰可以存取：所有人
    *   4. 將產生的 URL 貼到下方
    */
-  GAS_URL: 'YOUR_GAS_WEB_APP_URL_HERE',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbyd286a52padrjQGp1Qm8cb-OPZOuyNQ8ak3-B5cqqHg3HuLXbhd1jPPz2q6QrSl46emw/exec',
 
   /* ── 教學 PDF 文件連結 ── */
   DOCS: {
@@ -26,7 +26,7 @@ const CONFIG = Object.freeze({
   /* ── Chatbot 回覆文字 ── */
   RESPONSES: {
     WELCOME:
-      '您好！我是**逢甲宿舍網路報修助理** 🔧\n' +
+      '您好！我是**逢甲福星宿舍網路報修助理** 🔧\n' +
       '您可以直接輸入問題，或點選下方按鈕選擇服務：',
 
     TEACH_CHOOSE:
