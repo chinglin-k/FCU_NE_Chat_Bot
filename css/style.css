@@ -458,7 +458,7 @@ a:hover {
 
 .input-container {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 10px;
   background: var(--glass-bg);
   border: 1px solid var(--input-border);
@@ -484,6 +484,7 @@ a:hover {
   resize: none;
   max-height: 120px;
   overflow-y: auto;
+  padding: 4px 0;
 }
 
 .chat-input::placeholder {
