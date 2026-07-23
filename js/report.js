@@ -14,13 +14,22 @@ const ReportForm = (() => {
   const btnLoading = () => submitBtn()?.querySelector('.btn-loading');
   const errorMsg   = () => document.getElementById('form-error-msg');
 
-  /* ── 必填欄位清單 ── */
-  const REQUIRED_FIELDS = ['name', 'studentId', 'roomNumber', 'bedNumber', 'phone', 'repairTime', 'description'];
+  /* ── 必填欄位清單（欄位 name、DOM id、錯誤訊息）── */
+  const REQUIRED_FIELDS = [
+    { name: 'name',        id: 'field-name',        msg: '請填寫姓名' },
+    { name: 'studentId',   id: 'field-student-id',  msg: '請填寫學號' },
+    { name: 'roomNumber',  id: 'field-room',         msg: '請填寫房號' },
+    { name: 'bedNumber',   id: 'field-bed',          msg: '請填寫床號' },
+    { name: 'phone',       id: 'field-phone',        msg: '請填寫手機號碼' },
+    { name: 'repairTime',  id: 'field-repair-time',  msg: '請填寫可維修時間' },
+    { name: 'description', id: 'field-description',  msg: '請填寫問題描述' }
+  ];
 
   /** 開啟 Modal */
   function open() {
     const m = modal();
     if (!m) return;
+    if (!m.hidden) return; // 已開啟，不重複處理（修復 M-04）
     m.hidden = false;
     // 聚焦到第一個欄位
     setTimeout(() => {
@@ -74,28 +83,27 @@ const ReportForm = (() => {
       .forEach(f => f.classList.remove('error'));
   }
 
-  /** 表單驗證（前端基本驗證：空值檢查） */
+  /**
+   * 表單驗證（前端基本驗證：空值檢查）
+   * 使用 REQUIRED_FIELDS 統一管理欄位清單（修復 M-05：原先 REQUIRED_FIELDS 定義後從未使用）
+   */
   function _validate(data) {
-    const errors = [];
-
-    if (!data.name?.trim())        errors.push({ field: 'field-name',       msg: '請填寫姓名' });
-    if (!data.studentId?.trim())   errors.push({ field: 'field-student-id', msg: '請填寫學號' });
-    if (!data.roomNumber?.trim())  errors.push({ field: 'field-room',       msg: '請填寫房號' });
-    if (!data.bedNumber?.trim())   errors.push({ field: 'field-bed',        msg: '請填寫床號' });
-    if (!data.phone?.trim())       errors.push({ field: 'field-phone',      msg: '請填寫手機號碼' });
-    if (!data.repairTime?.trim())  errors.push({ field: 'field-repair-time',msg: '請填寫可維修時間' });
-    if (!data.description?.trim()) errors.push({ field: 'field-description',msg: '請填寫問題描述' });
-
-    return errors;
+    return REQUIRED_FIELDS
+      .filter(({ name }) => !data[name]?.trim())
+      .map(({ id, msg }) => ({ field: id, msg }));
   }
 
-  /** 從 GAS 送出報修資料（使用 GET + URL params） */
+  /**
+   * 從 GAS 送出報修資料（使用 POST，避免個資暴露在 URL）
+   * Content-Type 使用 text/plain 以避免 CORS preflight（修復 C-01）
+   */
   async function _submitToGAS(reportData) {
-    const params = new URLSearchParams({
-      action:  'report',
-      payload: JSON.stringify(reportData)
+    const res = await fetch(CONFIG.GAS_URL, {
+      method:   'POST',
+      headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
+      body:     JSON.stringify({ action: 'report', payload: reportData }),
+      redirect: 'follow'
     });
-    const res = await fetch(`${CONFIG.GAS_URL}?${params.toString()}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
   }
@@ -111,10 +119,11 @@ const ReportForm = (() => {
       if (e.target === modal()) close();
     });
 
-    /* ESC 鍵關閉 */
-    document.addEventListener('keydown', (e) => {
+    /* ESC 鍵關閉（使用具名函式，方便日後移除）（改善 L-04） */
+    function _onKeyDown(e) {
       if (e.key === 'Escape' && !modal()?.hidden) close();
-    });
+    }
+    document.addEventListener('keydown', _onKeyDown);
 
     /* 表單送出 */
     form()?.addEventListener('submit', async (e) => {
