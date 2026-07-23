@@ -94,16 +94,21 @@ const ReportForm = (() => {
   }
 
   /**
-   * 從 GAS 送出報修資料（使用 POST，避免個資暴露在 URL）
-   * Content-Type 使用 text/plain 以避免 CORS preflight（修復 C-01）
+   * 向 GAS 送出報修資料（使用 GET + URLSearchParams）
+   *
+   * ⚠️ GAS 架構限制說明：
+   *   GAS Web App 對所有請求固定回傳 302 redirect（從 script.google.com 轉至
+   *   script.googleusercontent.com）。依 HTTP 規範，302 redirect 後 POST 會自動
+   *   改為 GET，導致 POST body 遺失，doPost 無法正常接收資料。
+   *   因此採用 GET + payload 參數，資料已透過 HTTPS 加密傳輸。
+   *   若未來改用中繼 Proxy，可切換回 doPost。
    */
   async function _submitToGAS(reportData) {
-    const res = await fetch(CONFIG.GAS_URL, {
-      method:   'POST',
-      headers:  { 'Content-Type': 'text/plain;charset=utf-8' },
-      body:     JSON.stringify({ action: 'report', payload: reportData }),
-      redirect: 'follow'
+    const params = new URLSearchParams({
+      action:  'report',
+      payload: JSON.stringify(reportData)
     });
+    const res = await fetch(`${CONFIG.GAS_URL}?${params.toString()}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
   }
