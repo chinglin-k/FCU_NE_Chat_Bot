@@ -17,6 +17,9 @@ const Chat = (() => {
   /* ── 當前 session 的按鈕群組（用於停用） ── */
   let activeButtons = [];
 
+  /* ── 並發控制旗標（防止按鈕重複點擊或訊息重複送出） ── */
+  let _isProcessing = false;
+
   /* ══════════════════════════════════════
      Markdown 簡易渲染器
      支援：**bold**、[text](url)、換行
@@ -25,9 +28,11 @@ const Chat = (() => {
     return text
       // 粗體
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      // 連結
-      .replace(/\[(.+?)\]\((.+?)\)/g, (_, label, url) =>
-        `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`)
+      // 連結（僅允許 https:// 或 http:// 協議，防止 javascript: 等惡意連結）
+      .replace(/\[(.+?)\]\((.+?)\)/g, (_, label, url) => {
+        const safeUrl = /^https?:\/\//i.test(url) ? url : '#';
+        return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      })
       // 換行
       .replace(/\n/g, '<br>');
   }
@@ -149,6 +154,10 @@ const Chat = (() => {
   ══════════════════════════════════════ */
 
   async function _handleButtonClick(action, label, clickedBtn) {
+    // 防止並發：處理中時忽略新的點擊
+    if (_isProcessing) return;
+    _isProcessing = true;
+
     // 標記被點擊的按鈕為視覺反饋
     clickedBtn.disabled = true;
     _disableActiveButtons();
@@ -156,81 +165,85 @@ const Chat = (() => {
     // 顯示使用者點了什麼
     addUserMessage(label);
 
-    switch (action) {
-      case 'teach':
-        _showTyping();
-        await _delay(600);
-        _hideTyping();
-        addBotMessage(CONFIG.RESPONSES.TEACH_CHOOSE);
-        _addButtonGroup([
-          { id: 'btn-teach-win', icon: '🪟', label: 'Windows 系統', action: 'teach-windows' },
-          { id: 'btn-teach-mac', icon: '🍎', label: 'Mac 系統',     action: 'teach-mac'    }
-        ]);
-        break;
+    try {
+      switch (action) {
+        case 'teach':
+          _showTyping();
+          await _delay(600);
+          _hideTyping();
+          addBotMessage(CONFIG.RESPONSES.TEACH_CHOOSE);
+          _addButtonGroup([
+            { id: 'btn-teach-win', icon: '🪟', label: 'Windows 系統', action: 'teach-windows' },
+            { id: 'btn-teach-mac', icon: '🍎', label: 'Mac 系統',     action: 'teach-mac'    }
+          ]);
+          break;
 
-      case 'setting':
-        _showTyping();
-        await _delay(900);
-        _hideTyping();
-        addBotMessage(CONFIG.RESPONSES.SETTING);
-        _addButtonGroup([
-          { id: 'btn-need-help-setting', icon: '🆘', label: '我需要協助', action: 'need-help' },
-          { id: 'btn-back-main-setting', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
-        ]);
-        break;
+        case 'setting':
+          _showTyping();
+          await _delay(900);
+          _hideTyping();
+          addBotMessage(CONFIG.RESPONSES.SETTING);
+          _addButtonGroup([
+            { id: 'btn-need-help-setting', icon: '🆘', label: '我需要協助', action: 'need-help' },
+            { id: 'btn-back-main-setting', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+          ]);
+          break;
 
-      case 'report':
-      case 'need-help':
-        _showTyping();
-        await _delay(500);
-        _hideTyping();
-        addBotMessage(CONFIG.RESPONSES.REPORT_TRIGGER);
-        ReportForm.open();
-        _addButtonGroup([
-          { id: 'btn-open-report',      icon: '📝', label: '開啟報修表單', action: 'open-report' },
-          { id: 'btn-back-main-report', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
-        ]);
-        break;
+        case 'report':
+        case 'need-help':
+          _showTyping();
+          await _delay(500);
+          _hideTyping();
+          addBotMessage(CONFIG.RESPONSES.REPORT_TRIGGER);
+          ReportForm.open();
+          _addButtonGroup([
+            { id: 'btn-open-report',      icon: '📝', label: '開啟報修表單', action: 'open-report' },
+            { id: 'btn-back-main-report', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+          ]);
+          break;
 
-      case 'open-report':
-        ReportForm.open();
-        break;
+        case 'open-report':
+          ReportForm.open();
+          break;
 
-      case 'teach-windows': {
-        _showTyping();
-        await _delay(800);
-        _hideTyping();
-        const msg = CONFIG.RESPONSES.TEACH_WINDOWS
-          .replace('{WINDOWS_URL}', CONFIG.DOCS.WINDOWS);
-        addBotMessage(msg);
-        _addButtonGroup([
-          { id: 'btn-need-help-win', icon: '🆘', label: '我需要協助', action: 'need-help' },
-          { id: 'btn-back-main-win', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
-        ]);
-        break;
+        case 'teach-windows': {
+          _showTyping();
+          await _delay(800);
+          _hideTyping();
+          const msgWin = CONFIG.RESPONSES.TEACH_WINDOWS
+            .replace('{WINDOWS_URL}', CONFIG.DOCS.WINDOWS);
+          addBotMessage(msgWin);
+          _addButtonGroup([
+            { id: 'btn-need-help-win', icon: '🆘', label: '我需要協助', action: 'need-help' },
+            { id: 'btn-back-main-win', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+          ]);
+          break;
+        }
+
+        case 'teach-mac': {
+          _showTyping();
+          await _delay(800);
+          _hideTyping();
+          const msgMac = CONFIG.RESPONSES.TEACH_MAC
+            .replace('{MAC_URL}', CONFIG.DOCS.MAC);
+          addBotMessage(msgMac);
+          _addButtonGroup([
+            { id: 'btn-need-help-mac', icon: '🆘', label: '我需要協助', action: 'need-help' },
+            { id: 'btn-back-main-mac', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+          ]);
+          break;
+        }
+
+        case 'back-to-main':
+          _showTyping();
+          await _delay(400);
+          _hideTyping();
+          addBotMessage('還有其他問題嗎？請選擇：');
+          _showMainButtons();
+          break;
       }
-
-      case 'teach-mac': {
-        _showTyping();
-        await _delay(800);
-        _hideTyping();
-        const msg = CONFIG.RESPONSES.TEACH_MAC
-          .replace('{MAC_URL}', CONFIG.DOCS.MAC);
-        addBotMessage(msg);
-        _addButtonGroup([
-          { id: 'btn-need-help-mac', icon: '🆘', label: '我需要協助', action: 'need-help' },
-          { id: 'btn-back-main-mac', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
-        ]);
-        break;
-      }
-
-      case 'back-to-main':
-        _showTyping();
-        await _delay(400);
-        _hideTyping();
-        addBotMessage('還有其他問題嗎？請選擇：');
-        _showMainButtons();
-        break;
+    } finally {
+      _isProcessing = false;
     }
   }
 
@@ -241,7 +254,7 @@ const Chat = (() => {
   function _showMainButtons() {
     _addButtonGroup([
       { id: 'btn-teach',   icon: '📚', label: '教學',                              action: 'teach'   },
-      { id: 'btn-setting', icon: '⚙️', label: '常見設定問題',                       action: 'setting' },
+      { id: 'btn-setting', icon: '⚙️', label: '常見問題',                           action: 'setting' },
       { id: 'btn-report',  icon: '🔧', label: '我要實體協助、報修', action: 'report',  primary: true }
     ]);
   }
@@ -254,70 +267,78 @@ const Chat = (() => {
     message = message.trim();
     if (!message) return;
 
+    // 防止並發：處理中時忽略新的送出
+    if (_isProcessing) return;
+    _isProcessing = true;
+
     // 清空輸入框
     const el = inputEl();
     if (el) { el.value = ''; el.style.height = 'auto'; }
 
     addUserMessage(message);
 
-    // GAS 未設定時
-    if (CONFIG.GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE') {
-      _showTyping();
-      await _delay(500);
-      _hideTyping();
-      addBotMessage(CONFIG.RESPONSES.GAS_NOT_CONFIGURED);
-      _showMainButtons();
-      return;
-    }
-
-    // 顯示打字中
-    _showTyping();
-
-    let intent;
     try {
-      intent = await Intent.classify(message);
-    } catch (e) {
-      intent = Intent.INTENTS.UNKNOWN;
-    }
-
-    _hideTyping();
-    await _delay(200);
-
-    const { INTENTS } = Intent;
-
-    switch (intent) {
-      case INTENTS.BUTTON_TEACH:
-        addBotMessage(CONFIG.RESPONSES.TEACH_CHOOSE);
-        _addButtonGroup([
-          { id: 'btn-teach-win-txt', icon: '🪟', label: 'Windows 系統', action: 'teach-windows' },
-          { id: 'btn-teach-mac-txt', icon: '🍎', label: 'Mac 系統',     action: 'teach-mac'    }
-        ]);
-        break;
-
-      case INTENTS.BUTTON_SETTING:
-        addBotMessage(CONFIG.RESPONSES.SETTING);
-        _addButtonGroup([
-          { id: 'btn-need-help-txt', icon: '🆘', label: '我需要協助', action: 'need-help' }
-        ]);
-        break;
-
-      case INTENTS.BUTTON_REPORT:
-      case INTENTS.STICKER_PORT:
-        addBotMessage(CONFIG.RESPONSES.REPORT_TRIGGER);
-        ReportForm.open();
-        break;
-
-      case INTENTS.NON_NETWORK:
-        addBotMessage(CONFIG.RESPONSES.NON_NETWORK);
-        _addButtonGroup([
-          { id: 'btn-back-main-txt', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
-        ]);
-        break;
-
-      default: // UNKNOWN
-        addBotMessage(CONFIG.RESPONSES.UNKNOWN);
+      // GAS 未設定時
+      if (CONFIG.GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE') {
+        _showTyping();
+        await _delay(500);
+        _hideTyping();
+        addBotMessage(CONFIG.RESPONSES.GAS_NOT_CONFIGURED);
         _showMainButtons();
-        break;
+        return;
+      }
+
+      // 顯示打字中
+      _showTyping();
+
+      let intent;
+      try {
+        intent = await Intent.classify(message);
+      } catch (e) {
+        intent = Intent.INTENTS.UNKNOWN;
+      }
+
+      _hideTyping();
+      await _delay(200);
+
+      const { INTENTS } = Intent;
+
+      switch (intent) {
+        case INTENTS.BUTTON_TEACH:
+          addBotMessage(CONFIG.RESPONSES.TEACH_CHOOSE);
+          _addButtonGroup([
+            { id: 'btn-teach-win-txt', icon: '🪟', label: 'Windows 系統', action: 'teach-windows' },
+            { id: 'btn-teach-mac-txt', icon: '🍎', label: 'Mac 系統',     action: 'teach-mac'    }
+          ]);
+          break;
+
+        case INTENTS.BUTTON_SETTING:
+          addBotMessage(CONFIG.RESPONSES.SETTING);
+          _addButtonGroup([
+            { id: 'btn-need-help-txt', icon: '🆘', label: '我需要協助', action: 'need-help' }
+          ]);
+          break;
+
+        case INTENTS.BUTTON_REPORT:
+        case INTENTS.STICKER_PORT:
+          addBotMessage(CONFIG.RESPONSES.REPORT_TRIGGER);
+          ReportForm.open();
+          break;
+
+        case INTENTS.NON_NETWORK:
+          addBotMessage(CONFIG.RESPONSES.NON_NETWORK);
+          _addButtonGroup([
+            { id: 'btn-back-main-txt', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+          ]);
+          break;
+
+        default: // UNKNOWN
+          addBotMessage(CONFIG.RESPONSES.UNKNOWN);
+          _showMainButtons();
+          break;
+      }
+    } finally {
+      _isProcessing = false;
     }
   }
 

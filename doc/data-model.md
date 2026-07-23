@@ -74,7 +74,7 @@ erDiagram
 | 意圖代碼 | 說明 |
 |---|---|
 | BUTTON_TEACH | 教學相關 |
-| BUTTON_SETTING | 常見設定問題（轉接器） |
+| BUTTON_SETTING | 常見問題（轉接器、WiFi 帳號密碼、寢室 WiFi 等） |
 | BUTTON_REPORT | 主動要求報修 |
 | STICKER_PORT | IP 貼紙缺漏 / 網路孔故障 |
 | NON_NETWORK | 非網管業務 |
