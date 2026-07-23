@@ -15,7 +15,7 @@
 | P1 | LLM 語意分析（Gemini） | ✅ Done | `classifyIntent()` |
 | P1 | 意圖分類串接前端 | ✅ Done | `intent.js` |
 | P1 | 教學文件回覆 | ✅ Done | Windows / Mac PDF 連結 |
-| P1 | 常見設定問題回覆 | ✅ Done | 轉接器韌體建議 |
+| P1 | 常見問題回覆 | ✅ Done | 轉接器韌體建議、WiFi 帳號密碼等常見問題 |
 | P2 | 非網管問題轉介 | ✅ Done | 宿舍服務台 / 行動逢甲 |
 | P2 | 累積使用人數統計 | ✅ Done | `counter.js` + GAS |
 | P3 | GitHub Pages 部署 | 🔲 Todo | PR → main → 啟用 Pages |

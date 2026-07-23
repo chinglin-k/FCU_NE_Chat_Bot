@@ -21,7 +21,7 @@
 1. **禁止**將 API Key、Token、密碼寫入任何程式碼或 Git commit
 2. Gemini API Key 僅存於 **GAS Script Properties**（名稱：`GEMINI_API_KEY`）
 3. `.env` 已加入 `.gitignore`，不得移除此規則
-4. 試算表 ID 可公開（只讀操作需授權），但 GAS 服務帳號資訊不得外露
+4. 試算表 ID 應儲存於 **GAS Script Properties**（名稱：`SPREADSHEET_ID`），不得硬編碼於程式碼中
 
 ---
 
@@ -56,7 +56,8 @@ FCU_NE_Chat_Bot/
 
 ## GAS 開發規範
 
-- 所有請求使用 `doGet(e)` 處理（避免 POST redirect 問題）
+- 報修個資（姓名、學號、手機等）一律透過 **`doPost(e)`** 傳送，不得使用 GET
+- 其餘操作（classify、counter）使用 `doGet(e)` 處理
 - 錯誤一律用 `Logger.log()` 記錄
 - 回傳格式統一：`{ success: boolean, ... }`
 - 部署設定：執行身分「我自己」/ 存取「所有人」
@@ -81,6 +82,7 @@ feature/* → main（透過 Pull Request）
 ## 禁止事項
 
 - ❌ 不得在前端 JS 中硬編碼任何 API Key
+- ❌ 不得將 SPREADSHEET_ID 硬編碼於程式碼中（請存於 GAS Script Properties）
 - ❌ 不得新增外部 CSS 框架（如 Tailwind、Bootstrap）
 - ❌ 不得在未確認需求的情況下自行假設業務規則
 - ❌ 不得刪除或修改 `.gitignore` 中已有的規則

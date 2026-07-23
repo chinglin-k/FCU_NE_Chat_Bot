@@ -25,6 +25,7 @@ const Counter = (() => {
     try {
       const url = `${CONFIG.GAS_URL}?action=counter_get`;
       const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success) return data.count;
     } catch (e) {
@@ -39,6 +40,7 @@ const Counter = (() => {
     try {
       const url = `${CONFIG.GAS_URL}?action=counter_increment`;
       const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success) return data.count;
     } catch (e) {
