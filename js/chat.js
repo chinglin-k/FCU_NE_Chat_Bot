@@ -149,9 +149,24 @@ const Chat = (() => {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  /* ══════════════════════════════════════
+  /* ══════════════════════
+     常見問題 FAQ 顯示輔助函式
+     每個項目各自顯示為一個獨立對話框
+  ══════════════════════ */
+
+  async function _showSettingFAQ() {
+    addBotMessage(CONFIG.RESPONSES.SETTING_HEADER);
+    for (const item of CONFIG.RESPONSES.SETTING_ITEMS) {
+      _showTyping();
+      await _delay(400);
+      _hideTyping();
+      addBotMessage(item);
+    }
+  }
+
+  /* ══════════════════════
      按鈕互動處理
-  ══════════════════════════════════════ */
+  ══════════════════════ */
 
   async function _handleButtonClick(action, label, clickedBtn) {
     // 防止並發：處理中時忽略新的點擊
@@ -180,9 +195,9 @@ const Chat = (() => {
 
         case 'setting':
           _showTyping();
-          await _delay(900);
+          await _delay(700);
           _hideTyping();
-          addBotMessage(CONFIG.RESPONSES.SETTING);
+          await _showSettingFAQ();
           _addButtonGroup([
             { id: 'btn-need-help-setting', icon: '🆘', label: '我需要協助', action: 'need-help' },
             { id: 'btn-back-main-setting', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
@@ -313,7 +328,7 @@ const Chat = (() => {
           break;
 
         case INTENTS.BUTTON_SETTING:
-          addBotMessage(CONFIG.RESPONSES.SETTING);
+          await _showSettingFAQ();
           _addButtonGroup([
             { id: 'btn-need-help-txt', icon: '🆘', label: '我需要協助', action: 'need-help' }
           ]);
