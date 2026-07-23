@@ -9,7 +9,7 @@ const Intent = (() => {
   /** 意圖代碼常數 */
   const INTENTS = Object.freeze({
     BUTTON_TEACH:   'BUTTON_TEACH',    // 教學相關
-    BUTTON_SETTING: 'BUTTON_SETTING',  // 常見設定問題（轉接器）
+    BUTTON_SETTING: 'BUTTON_SETTING',  // 常見問題（轉接器、WiFi 帳號、寢室 WiFi 等）
     BUTTON_REPORT:  'BUTTON_REPORT',   // 明確要報修
     STICKER_PORT:   'STICKER_PORT',    // IP貼紙缺漏 / 網路孔故障
     NON_NETWORK:    'NON_NETWORK',     // 非網管業務（冷氣等）
