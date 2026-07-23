@@ -54,6 +54,25 @@ function doGet(e) {
         result = incrementCounter();
         break;
 
+      // 注意：GAS Web App 會將 POST 302 redirect 轉成 GET，導致 POST body 遺失
+      // 因此 report 仍透過 GET + payload 參數傳送（資料經 HTTPS 加密傳輸）
+      // doPost 保留供未來架構升級或使用 Proxy 時使用
+      case 'report': {
+        if (!e.parameter.payload) {
+          result = { success: false, error: '缺少 payload 參數' };
+          break;
+        }
+        let payload;
+        try {
+          payload = JSON.parse(e.parameter.payload);
+        } catch (_) {
+          result = { success: false, error: 'payload 格式錯誤，請確認為合法 JSON' };
+          break;
+        }
+        result = writeReport(payload);
+        break;
+      }
+
       default:
         result = { success: false, error: `未知的 action: ${action}` };
     }
