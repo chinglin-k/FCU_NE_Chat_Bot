@@ -169,6 +169,12 @@ const Chat = (() => {
   ══════════════════════ */
 
   async function _handleButtonClick(action, label, clickedBtn) {
+    // 「開啟報修表單」特殊處理：只靜默重開 Modal，不停用按鈕群組，不顯示使用者訊息
+    if (action === 'open-report') {
+      ReportForm.open();
+      return;
+    }
+
     // 防止並發：處理中時忽略新的點擊
     if (_isProcessing) return;
     _isProcessing = true;
@@ -217,9 +223,7 @@ const Chat = (() => {
           ]);
           break;
 
-        case 'open-report':
-          ReportForm.open();
-          break;
+        // 'open-report' 已在函式開頭提早處理，此處不應到達
 
         case 'teach-windows': {
           _showTyping();
