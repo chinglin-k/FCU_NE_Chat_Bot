@@ -60,9 +60,8 @@ const ReportForm = (() => {
   /** 重置表單狀態（含還原 success view）*/
   function _resetForm() {
     form()?.reset();
-    form().hidden = false;
-    const sv = successView();
-    if (sv) sv.hidden = true;
+    form()?.classList.remove('is-hidden');   // 還原表單可見
+    successView()?.classList.add('is-hidden'); // 確保 success view 隱藏
     _setLoading(false);
     _clearErrors();
   }
@@ -76,9 +75,8 @@ const ReportForm = (() => {
     _setLoading(false);
 
     // 隱藏表單、顯示成功畫面
-    form().hidden = true;
-    const sv = successView();
-    if (sv) sv.hidden = false;
+    form()?.classList.add('is-hidden');         // 隱藏表單
+    successView()?.classList.remove('is-hidden'); // 顯示 success view
 
     // 播放進度條（CSS transition 從 100% 縮至 0%）
     const bar = progressBar();
