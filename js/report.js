@@ -7,12 +7,17 @@
 const ReportForm = (() => {
 
   /* ── DOM 參照 ── */
-  const modal      = () => document.getElementById('report-modal');
-  const form       = () => document.getElementById('report-form');
-  const submitBtn  = () => document.getElementById('form-submit-btn');
-  const btnText    = () => submitBtn()?.querySelector('.btn-text');
-  const btnLoading = () => submitBtn()?.querySelector('.btn-loading');
-  const errorMsg   = () => document.getElementById('form-error-msg');
+  const modal       = () => document.getElementById('report-modal');
+  const form        = () => document.getElementById('report-form');
+  const submitBtn   = () => document.getElementById('form-submit-btn');
+  const btnText     = () => submitBtn()?.querySelector('.btn-text');
+  const btnLoading  = () => submitBtn()?.querySelector('.btn-loading');
+  const errorMsg    = () => document.getElementById('form-error-msg');
+  const successView = () => document.getElementById('modal-success-view');
+  const progressBar = () => document.getElementById('success-progress-bar');
+
+  /* ── 送出成功旗標（關閉時通知 Chat 顯示成功訊息）── */
+  let _pendingSuccess = false;
 
   /* ── 必填欄位清單（欄位 name、DOM id、錯誤訊息）── */
   const REQUIRED_FIELDS = [
@@ -40,20 +45,57 @@ const ReportForm = (() => {
     document.body.style.overflow = 'hidden';
   }
 
-  /** 關閉 Modal */
+  /** 關閉 Modal（若有 _pendingSuccess 則關閉後通知 Chat）*/
   function close() {
     const m = modal();
     if (!m) return;
     m.hidden = true;
     document.body.style.overflow = '';
+    const shouldNotify = _pendingSuccess;
+    _pendingSuccess = false;
     _resetForm();
+    if (shouldNotify && window.Chat) Chat.onReportSuccess();
   }
 
-  /** 重置表單狀態 */
+  /** 重置表單狀態（含還原 success view）*/
   function _resetForm() {
     form()?.reset();
+    form().hidden = false;
+    const sv = successView();
+    if (sv) sv.hidden = true;
     _setLoading(false);
     _clearErrors();
+  }
+
+  /**
+   * 送出成功後：在 Modal 內顯示成功畫面，2 秒後自動關閉
+   * 同時播放進度條動畫提示剩餘時間
+   */
+  function _showModalSuccess() {
+    _pendingSuccess = true;
+    _setLoading(false);
+
+    // 隱藏表單、顯示成功畫面
+    form().hidden = true;
+    const sv = successView();
+    if (sv) sv.hidden = false;
+
+    // 播放進度條（CSS transition 從 100% 縮至 0%）
+    const bar = progressBar();
+    if (bar) {
+      bar.style.transition = 'none';
+      bar.style.width = '100%';
+      // 強制 reflow 後啟動 transition
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          bar.style.transition = 'width 2s linear';
+          bar.style.width = '0%';
+        });
+      });
+    }
+
+    // 2 秒後自動關閉
+    setTimeout(() => close(), 2000);
   }
 
   /** 切換送出按鈕 loading 狀態 */
@@ -164,16 +206,14 @@ const ReportForm = (() => {
         if (CONFIG.GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE') {
           // GAS 未設定時模擬成功（開發測試用）
           await new Promise(r => setTimeout(r, 1500));
-          close();
-          if (window.Chat) Chat.onReportSuccess();
+          _showModalSuccess();
           return;
         }
 
         const result = await _submitToGAS(reportData);
 
         if (result.success) {
-          close();
-          if (window.Chat) Chat.onReportSuccess();
+          _showModalSuccess();
         } else {
           throw new Error(result.error || '伺服器回傳錯誤');
         }
