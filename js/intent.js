@@ -1,6 +1,6 @@
 /* ============================================================
    intent.js — 意圖分類模組
-   ── 透過 GAS 呼叫 Gemini API，回傳意圖代碼
+   ── 透過 GAS 呼叫 Gemini API，回傳意圖代碼、信心分數與是否需確認
    ============================================================ */
 'use strict';
 
@@ -16,41 +16,69 @@ const Intent = (() => {
     UNKNOWN:        'UNKNOWN'          // 無法判斷
   });
 
+  /** GAS classify 逾時（毫秒）── GAS 本身呼叫外部 API 可能較慢，設 8 秒 */
+  const CLASSIFY_TIMEOUT_MS = 8000;
+
   /**
    * 呼叫 GAS 進行意圖分類
    * @param {string} message - 使用者輸入文字
-   * @returns {Promise<string>} 意圖代碼
+   * @returns {Promise<{intent: string, confidence: number, needsConfirmation: boolean}>}
+   *   - intent: 意圖代碼
+   *   - confidence: 0.0~1.0 信心分數
+   *   - needsConfirmation: confidence < 0.6 時為 true
    */
   async function classify(message) {
-    if (!message || !message.trim()) return INTENTS.UNKNOWN;
+    /** 預設 fallback 回傳值 */
+    const _fallback = { intent: INTENTS.UNKNOWN, confidence: 0, needsConfirmation: false };
+
+    if (!message || !message.trim()) return _fallback;
 
     if (CONFIG.GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE') {
       console.warn('[Intent] GAS URL 尚未設定，回傳 UNKNOWN');
-      return INTENTS.UNKNOWN;
+      return _fallback;
     }
+
+    // ── AbortController 逾時保護 ──
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => {
+      controller.abort();
+      console.warn(`[Intent] classify 逾時（>${CLASSIFY_TIMEOUT_MS}ms），fallback 回 UNKNOWN`);
+    }, CLASSIFY_TIMEOUT_MS);
 
     try {
       const params = new URLSearchParams({
         action: 'classify',
         msg: message.trim()
       });
-      const res = await fetch(`${CONFIG.GAS_URL}?${params.toString()}`);
+      const res = await fetch(`${CONFIG.GAS_URL}?${params.toString()}`, {
+        signal: controller.signal
+      });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
 
       if (data.success && data.intent) {
-        // 確保回傳值為有效的意圖代碼
         const validIntents = Object.values(INTENTS);
-        return validIntents.includes(data.intent) ? data.intent : INTENTS.UNKNOWN;
+        const intent            = validIntents.includes(data.intent) ? data.intent : INTENTS.UNKNOWN;
+        const confidence        = (typeof data.confidence === 'number')
+          ? Math.min(1.0, Math.max(0.0, data.confidence))
+          : 0.5;
+        const needsConfirmation = data.needsConfirmation === true || confidence < 0.6;
+        return { intent, confidence, needsConfirmation };
       } else {
         console.warn('[Intent] GAS 回傳錯誤:', data.error);
-        return INTENTS.UNKNOWN;
+        return _fallback;
       }
     } catch (err) {
-      console.error('[Intent] classify 失敗:', err);
-      return INTENTS.UNKNOWN;
+      if (err.name === 'AbortError') {
+        // 已在 setTimeout 中 console.warn，不重複記錄
+      } else {
+        console.error('[Intent] classify 失敗:', err);
+      }
+      return _fallback;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
