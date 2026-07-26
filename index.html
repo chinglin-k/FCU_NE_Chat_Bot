@@ -23,11 +23,23 @@
           <p class="header-subtitle">FCU Fuxing Dormitory Network Support</p>
         </div>
       </div>
-      <div class="header-counter" aria-label="累積服務人數">
-        <span class="counter-label">已協助</span>
-        <span class="counter-value" id="counter-display">---</span>
-        <span class="counter-label">人</span>
-        <span class="counter-star" aria-hidden="true">✨</span>
+      <div class="header-right">
+        <div class="header-counter" aria-label="累積服務人數">
+          <span class="counter-label">已協助</span>
+          <span class="counter-value" id="counter-display">---</span>
+          <span class="counter-label">人</span>
+          <span class="counter-star" aria-hidden="true">✨</span>
+        </div>
+        <!-- ── Teams 常駐連結 ── -->
+        <button
+          id="teams-header-btn"
+          class="header-teams-link"
+          aria-label="使用 Teams 聯絡真人網管"
+          title="使用 Microsoft Teams 聯絡福星宿舍網路報修平台"
+        >
+          <span class="teams-icon" aria-hidden="true">👤</span>
+          <span class="teams-link-text" id="teams-header-text">聯絡真人</span>
+        </button>
       </div>
     </header>
 
@@ -147,11 +159,12 @@
 
   </div><!-- /#app -->
 
-  <!-- Scripts（載入順序：config → counter → intent → report → chat） -->
+  <!-- Scripts（載入順序：config → counter → intent → report → teams → chat） -->
   <script src="js/config.js"></script>
   <script src="js/counter.js"></script>
   <script src="js/intent.js"></script>
   <script src="js/report.js"></script>
+  <script src="js/teams.js"></script>
   <script src="js/chat.js"></script>
 </body>
 </html>

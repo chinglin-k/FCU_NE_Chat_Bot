@@ -81,7 +81,27 @@ const CONFIG = Object.freeze({
      * 使用方式：將 {INTENT_LABEL} 替換為對應的中文標籤
      */
     CONFIRM_HINT:
-      '🤔 我不太確定，你是不是想要「{INTENT_LABEL}」？\n請選擇或重新描述問題：'
+      '🤔 我不太確定，你是不是想要「{INTENT_LABEL}」？\n請選擇或重新描述問題：',
+
+    /* ── Teams 聯絡 ── */
+
+    /** Header 右上角常駐連結文字 */
+    TEAMS_HEADER_LINK: '聯絡真人',
+
+    /** 點擊 Teams 連結後，在聊天區顯示的備援步驟說明 */
+    TEAMS_FALLBACK:
+      '💬 **Teams 備援步驟**\n\n' +
+      '如果 Teams App 沒有自動開啟，請手動操作：\n\n' +
+      '➡️ 登入學校帳號\n' +
+      '➡️ 點擊上方搜尋框\n' +
+      '➡️ 搜尋「**福星宿舍網路報修平台**」\n\n' +
+      '點擊下方按鈕一鍵複製帳號名稱：',
+
+    /** 複製成功的提示文字 */
+    TEAMS_COPY_SUCCESS: '✅ 已複製！請貼到 Teams 搜尋框',
+
+    /** Teams 帳號搜尋名稱（一鍵複製的內容） */
+    TEAMS_ACCOUNT_NAME: '福星宿舍網路報修平台'
   },
 
   /**
@@ -95,5 +115,24 @@ const CONFIG = Object.freeze({
     STICKER_PORT:   '貼紙/網路孔報修',
     NON_NETWORK:    '非網管問題',
     UNKNOWN:        '其他'
+  }),
+
+  /**
+   * Teams 聯絡設定
+   *
+   * contactEmail：「福星宿舍網路報修平台」Teams 帳號的 Email
+   * 深連結格式：https://teams.microsoft.com/l/chat/0/0?users={contactEmail}
+   *
+   * prefilledMessage：開啟 Teams 聊天時的預填文字（可留空字串）
+   *
+   * App Store / Play Store / 網頁版 URL：
+   *   當裝置未安裝 Teams App 時（2.5 秒偵測不到 App 被喚起），依平台跳轉的備援連結
+   */
+  TEAMS: Object.freeze({
+    contactEmail:     'desk_dorm@o365.fcu.edu.tw',
+    prefilledMessage: '你好，我需要網路報修協助',
+    APP_STORE_URL:    'https://apps.apple.com/app/microsoft-teams/id1113153706',
+    PLAY_STORE_URL:   'https://play.google.com/store/apps/details?id=com.microsoft.teams',
+    WEB_URL:          'https://teams.microsoft.com'
   })
 });
