@@ -1,7 +1,8 @@
 # 架構設計文件
 
-**版本**：1.0  
-**建立日期**：2026-07-17
+**版本**：2.0  
+**建立日期**：2026-07-17  
+**最後更新**：2026-07-27（A輪：信心分數 / B輪：Teams）
 
 ---
 
@@ -39,18 +40,19 @@ graph TD
 
 | 模組 | 職責 |
 |---|---|
-| `config.js` | 集中管理 GAS URL、PDF 連結、回覆文字 |
-| `chat.js` | 對話流程控制、訊息渲染、按鈕互動、打字指示器 |
-| `intent.js` | 呼叫 GAS 進行意圖分類，回傳標準意圖代碼 |
+| `config.js` | 集中管理 GAS URL、PDF 連結、回覆文字、`CONFIG.TEAMS`、`CONFIG.INTENT_LABELS` |
+| `chat.js` | 對話流程控制、訊息渲染、按鈕互動、低信心確認 UI、Teams Header 點擊處理 |
+| `intent.js` | 呼叫 GAS 進行意圖分類，回傳 `{intent, confidence, needsConfirmation}`；含 8 秒 Timeout |
 | `report.js` | 報修表單 Modal 開關、前端驗證、送出至 GAS |
 | `counter.js` | 讀取 / 累加使用人數，更新 Header 數字 |
+| `teams.js` | 開啟 Teams chat 深連結、平台備援跳轉、一鍵複製帳號名稱 |
 
 ### 3.2 後端（`gas/Code.gs`）
 
 | 函式 | 職責 |
 |---|---|
 | `doGet(e)` | 路由 GET 請求至對應功能 |
-| `classifyIntent(msg)` | 呼叫 Gemini API，回傳意圖代碼 |
+| `classifyIntent(msg)` | 呼叫 Gemini API，回傳 `{ intent, confidence, needsConfirmation }` |
 | `writeReport(data)` | 將報修資料附加至試算表 |
 | `getCounter()` | 讀取 Script Properties 中的計數器 |
 | `incrementCounter()` | 累加計數器 |
@@ -74,11 +76,24 @@ graph TD
 使用者輸入
 → chat.js _handleTextInput()
 → 顯示打字指示器
-→ intent.js classify()
+→ intent.js classify()（含 AbortController 8 秒 Timeout）
 → GAS doGet(?action=classify&msg=...)
-→ GAS classifyIntent() → Gemini API
-→ 回傳意圖代碼
-→ chat.js 根據意圖渲染對應回覆
+→ GAS classifyIntent() → Gemini API → 回傳 代碼|信心分數
+→ 解析回傳 { intent, confidence, needsConfirmation }
+→ confidence < 0.6？顯示確認按鈕 : 根據意圖渲染對應回覆
+```
+
+### 4.4 Teams 常駐連結
+
+```
+使用者點擊 Header 「聯絡真人」按鈕
+→ chat.js _handleTeamsClick()
+→ 顯示備援說明水泡 + 一鍵複製按鈕
+→ teams.js open()
+    → 開啟 Teams chat 深連結
+    → 2.5秒後側測 document.hidden
+        → 頁面隱藏（App 被喚起）→ 不做任何事
+        → 頁面仍顯示（App 未安裝）→ 跳轉備援 URL
 ```
 
 ### 4.3 報修送出

@@ -32,11 +32,12 @@ FCU_NE_Chat_Bot/
 ├── index.html          ← 主頁面，不得新增其他 HTML 頁面（SPA）
 ├── css/style.css       ← 所有樣式集中於此
 ├── js/
-│   ├── config.js       ← 設定值集中管理（GAS_URL 等）
+│   ├── config.js       ← 設定值集中管理（GAS_URL、CONFIG.TEAMS 等）
 │   ├── chat.js         ← 主控制器（最後載入）
-│   ├── intent.js       ← 意圖分類（不直接呼叫 Gemini）
+│   ├── intent.js       ← 意圖分類（回傳 {intent, confidence, needsConfirmation}）
 │   ├── report.js       ← 報修表單
-│   └── counter.js      ← 計數器
+│   ├── counter.js      ← 計數器
+│   └── teams.js        ← Teams 聯絡功能（chat 深連結 + 平台備援 + 複製）
 ├── gas/Code.gs         ← GAS 原始碼（不部署至 Pages）
 └── doc/                ← 專案文件
 ```
