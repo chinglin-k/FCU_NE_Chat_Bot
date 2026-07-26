@@ -446,6 +446,48 @@ const Chat = (() => {
       el.style.height = 'auto';
       el.style.height = Math.min(el.scrollHeight, 120) + 'px';
     });
+
+    /* Teams Header 常駐連結 */
+    document.getElementById('teams-header-btn')?.addEventListener('click', () => {
+      _handleTeamsClick();
+    });
+  }
+
+  /**
+   * Teams Header 連結點擊處理
+   *  1. 在聊天區顯示備援步驟說明 + 一鍵複製按鈕
+   *  2. 呼叫 Teams.open() 嘗試開啟深連結
+   */
+  async function _handleTeamsClick() {
+    // 防止並發處理中重複點擊
+    if (_isProcessing) return;
+    _isProcessing = true;
+
+    try {
+      _showTyping();
+      await _delay(400);
+      _hideTyping();
+
+      // 顯示備援說明
+      addBotMessage(CONFIG.RESPONSES.TEAMS_FALLBACK);
+
+      // 顯示一鍵複製按鈕（特殊 DOM 設計，不用 _addButtonGroup）
+      const copyGroup = document.createElement('div');
+      copyGroup.className = 'btn-group';
+      const copyBtn = document.createElement('button');
+      copyBtn.id        = 'teams-copy-btn';
+      copyBtn.className = 'quick-btn teams-copy-btn';
+      copyBtn.innerHTML = '<span aria-hidden="true">📋</span> 複製「福星宿舍網路報修平台」';
+      copyBtn.addEventListener('click', () => Teams.copyAccountName(copyBtn));
+      copyGroup.appendChild(copyBtn);
+      _append(copyGroup);
+      activeButtons.push(copyBtn);
+
+      // 嘗試開啟 Teams
+      Teams.open();
+    } finally {
+      _isProcessing = false;
+    }
   }
 
   return { init, addBotMessage, addUserMessage, onReportSuccess };
