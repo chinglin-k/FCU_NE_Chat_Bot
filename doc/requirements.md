@@ -1,7 +1,8 @@
 # 逢甲大學福星宿舍網路報修 Chatbot — 需求規格書
 
-**版本**：1.0  
+**版本**：2.0  
 **建立日期**：2026-07-17  
+**最後更新**：2026-07-27（A輪：信心分數 / B輪：Teams聯絡）  
 **專案倉庫**：https://github.com/chinglin-k/FCU_NE_Chat_Bot
 
 ---
@@ -25,17 +26,20 @@
 
 ### 3.1 選項按鈕介面
 
-Chatbot 啟動後顯示三個主要選項按鈕：
+Chatbot 啟動後顯示三個主要選項按鈕，Header 右上角另有 Teams 常駐連結：
 
 | 按鈕 | 觸發行為 |
 |---|---|
 | 📚 教學 | 顯示 Windows / Mac 系統選擇，提供 PDF 教學文件連結 |
-| ⚙️ 常見問題 | 常見問題一覽：WiFi 帳號密碼、轉接器馨動程式、寢室 WiFi 訊號、冷氣電費儲値等 |
+| ⚙️ 常見問題 | 常見問題一覽：WiFi 帳號密碼、轉接器驅動程式、寢室 WiFi 訊號、冷氣電費儲值等 |
 | 🔧 我要實體協助、報修 | 開啟報修表單 |
+| 👤 聯絡真人（Header 常駐） | 開啟 Teams chat 深連結，聯絡「福星宿舍網路報修平台」帳號 |
 
 ### 3.2 LLM 語意分析與意圖分類
 
-使用者輸入文字時，透過 Gemini API（由 Google Apps Script 代理）分析語意，分類為以下意圖：
+使用者輸入文字時，透過 Gemini API（由 Google Apps Script 代理）分析語意，分類為以下意圖。
+GAS 同時回傳 **信心分數（0.0~1.0）**；信心值低於 0.6 時前端顯示確認按鈕，讓使用者自行確認。
+前端設有 **8 秒逾時保護**（AbortController），超時 fallback 回 UNKNOWN。
 
 | 意圖代碼 | 判斷條件 | 回覆行為 |
 |---|---|---|
@@ -45,6 +49,8 @@ Chatbot 啟動後顯示三個主要選項按鈕：
 | `STICKER_PORT` | IP 貼紙缺漏或網路孔故障 | 開啟報修表單 |
 | `NON_NETWORK` | 非網管業務（冷氣、洗手台等） | 轉介宿舍服務台或行動逢甲 |
 | `UNKNOWN` | 無法判斷 | 回覆無法提供答案 |
+
+**低信心確認機制**：當 `confidence < 0.6`，顯示推薦按鈕（例：「是，網路教學」）+ 三顆主選單按鈕。
 
 ### 3.3 教學文件回覆
 
@@ -79,6 +85,13 @@ Chatbot 啟動後顯示三個主要選項按鈕：
 
 - 操作介面部署至 **GitHub Pages**（靜態前端）
 - 後端透過 **Google Apps Script Web App** 提供服務
+
+### 3.7 Teams 聯絡功能（B 輪新增）
+
+- Header 右上角常駐「聯絡真人」按鈕
+- 點擊後開啟 Teams chat 深連結（`https://teams.microsoft.com/l/chat/0/0?users=desk_dorm@o365.fcu.edu.tw`）
+- 2.5 秒內若 App 未被喚起，依平台跳轉備援（iOS → App Store / Android → Play Store / 桌面 → Teams 網頁版）
+- 聊天區顯示備援步驟說明 + 一鍵複製「福星宿舍網路報修平台」帳號名稱
 
 ---
 
