@@ -74,6 +74,26 @@ const CONFIG = Object.freeze({
       '⚠️ 送出時發生問題，請稍後再試，或至宿舍服務台直接通報。',
 
     GAS_NOT_CONFIGURED:
-      '⚠️ 系統尚未完成後端設定。\n請使用下方按鈕或聯繫網管人員。'
-  }
+      '⚠️ 系統尚未完成後端設定。\n請使用下方按鈕或聯繫網管人員。',
+
+    /**
+     * 低信心確認提示（needsConfirmation: true 時使用）
+     * 使用方式：將 {INTENT_LABEL} 替換為對應的中文標籤
+     */
+    CONFIRM_HINT:
+      '🤔 我不太確定，你是不是想要「{INTENT_LABEL}」？\n請選擇或重新描述問題：'
+  },
+
+  /**
+   * 意圖代碼 → 中文標籤（供低信心確認提示使用）
+   * key 與 Intent.INTENTS 的常數對應
+   */
+  INTENT_LABELS: Object.freeze({
+    BUTTON_TEACH:   '網路教學',
+    BUTTON_SETTING: '常見問題',
+    BUTTON_REPORT:  '我要協助報修',
+    STICKER_PORT:   '貼紙/網路孔報修',
+    NON_NETWORK:    '非網管問題',
+    UNKNOWN:        '其他'
+  })
 });
