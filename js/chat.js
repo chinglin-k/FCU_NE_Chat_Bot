@@ -310,17 +310,34 @@ const Chat = (() => {
       // 顯示打字中
       _showTyping();
 
-      let intent;
+      // classify() 現在回傳 { intent, confidence, needsConfirmation }
+      let intentResult;
       try {
-        intent = await Intent.classify(message);
+        intentResult = await Intent.classify(message);
       } catch (e) {
-        intent = Intent.INTENTS.UNKNOWN;
+        intentResult = { intent: Intent.INTENTS.UNKNOWN, confidence: 0, needsConfirmation: false };
       }
 
       _hideTyping();
       await _delay(200);
 
       const { INTENTS } = Intent;
+      const { intent, needsConfirmation } = intentResult;
+
+      // ── 低信心：顯示確認提示 ──
+      if (needsConfirmation && intent !== INTENTS.UNKNOWN) {
+        const label    = CONFIG.INTENT_LABELS[intent] || '未知';
+        const hintText = CONFIG.RESPONSES.CONFIRM_HINT.replace('{INTENT_LABEL}', label);
+        addBotMessage(hintText);
+        // 顯示推薦按鈕（依判斷到的意圖）+ 主選單三顆按鈕讓使用者自行選擇
+        _addButtonGroup([
+          { id: 'btn-confirm-intent', icon: '✅', label: `是，${label}`, action: _intentToAction(intent), primary: true },
+          { id: 'btn-confirm-teach',   icon: '📚', label: '教學',                   action: 'teach'   },
+          { id: 'btn-confirm-setting', icon: '⚙️', label: '常見問題',               action: 'setting' },
+          { id: 'btn-confirm-report',  icon: '🔧', label: '我要實體協助、報修',     action: 'report'  }
+        ]);
+        return;
+      }
 
       switch (intent) {
         case INTENTS.BUTTON_TEACH:
@@ -359,6 +376,22 @@ const Chat = (() => {
     } finally {
       _isProcessing = false;
     }
+  }
+
+  /**
+   * 意圖代碼 → 按鈕 action 字串（供低信心確認按鈕使用）
+   * @param {string} intent
+   * @returns {string}
+   */
+  function _intentToAction(intent) {
+    const map = {
+      BUTTON_TEACH:   'teach',
+      BUTTON_SETTING: 'setting',
+      BUTTON_REPORT:  'report',
+      STICKER_PORT:   'report',
+      NON_NETWORK:    'back-to-main'
+    };
+    return map[intent] || 'back-to-main';
   }
 
   /* ══════════════════════════════════════
