@@ -38,10 +38,22 @@
 |---|---|---|
 | CONFIG.TEAMS 設定區塊 | ✅ Done | `config.js`，Email: `desk_dorm@o365.fcu.edu.tw` |
 | teams.js 模組 | ✅ Done | IIFE，`open()` + `copyAccountName()` |
-| Header 常駐「聯絡真人」按鈕 | ✅ Done | `index.html` + `css/style.css` |
+| Header 常駐「聯絡我們」按鈕 | ✅ Done | `index.html` + `css/style.css` |
 | Teams chat 深連結 | ✅ Done | `https://teams.microsoft.com/l/chat/0/0?users=desk_dorm@o365.fcu.edu.tw` |
 | 平台備援跳轉 | ✅ Done | iOS App Store / Android Play Store / 桌面 Teams 網頁版 |
 | 備援步驟說明 + 一鍵複製 | ✅ Done | `chat.js` `_handleTeamsClick()` |
+
+---
+
+## fix：Teams 按鈕 UI 優化（2026-07-27）
+
+| 功能 | 狀態 | 說明 |
+|---|---|---|\
+| 按鈕文字改「聯絡我們」 | ✅ Done | `index.html` + `config.js` `TEAMS_HEADER_LINK` |
+| 換用 Teams 2025 品牌 icon | ✅ Done | 內嵌漸層 SVG（兩人形 + 白T方塊），忠實還原官方圖示 |
+| 按鈕改紫色系 | ✅ Done | `css/style.css` 新增 `--color-teams-purple` 等變數，與 Teams icon 色系一致 |
+| 刪除深連結預填文字 | ✅ Done | `config.js` `prefilledMessage: ''` |
+
 
 ---
 
