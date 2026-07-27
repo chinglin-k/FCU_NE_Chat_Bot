@@ -86,7 +86,7 @@ const CONFIG = Object.freeze({
     /* ── Teams 聯絡 ── */
 
     /** Header 右上角常駐連結文字 */
-    TEAMS_HEADER_LINK: '聯絡真人',
+    TEAMS_HEADER_LINK: '聯絡我們',
 
     /** 點擊 Teams 連結後，在聊天區顯示的備援步驟說明 */
     TEAMS_FALLBACK:
@@ -123,14 +123,14 @@ const CONFIG = Object.freeze({
    * contactEmail：「福星宿舍網路報修平台」Teams 帳號的 Email
    * 深連結格式：https://teams.microsoft.com/l/chat/0/0?users={contactEmail}
    *
-   * prefilledMessage：開啟 Teams 聊天時的預填文字（可留空字串）
+   * prefilledMessage：開啟 Teams 聊天時的預填文字（設為空字串則不預填）
    *
    * App Store / Play Store / 網頁版 URL：
    *   當裝置未安裝 Teams App 時（2.5 秒偵測不到 App 被喚起），依平台跳轉的備援連結
    */
   TEAMS: Object.freeze({
     contactEmail:     'desk_dorm@o365.fcu.edu.tw',
-    prefilledMessage: '你好，我需要網路報修協助',
+    prefilledMessage: '',
     APP_STORE_URL:    'https://apps.apple.com/app/microsoft-teams/id1113153706',
     PLAY_STORE_URL:   'https://play.google.com/store/apps/details?id=com.microsoft.teams',
     WEB_URL:          'https://teams.microsoft.com'

@@ -34,11 +34,35 @@
         <button
           id="teams-header-btn"
           class="header-teams-link"
-          aria-label="使用 Teams 聯絡真人網管"
+          aria-label="使用 Teams 聯絡網管（福星宿舍網路報修平台）"
           title="使用 Microsoft Teams 聯絡福星宿舍網路報修平台"
         >
-          <span class="teams-icon" aria-hidden="true">👤</span>
-          <span class="teams-link-text" id="teams-header-text">聯絡真人</span>
+          <!-- Microsoft Teams 2025 icon：兩人形 + 左下角白T藍紫方塊 -->
+          <svg class="teams-svg-icon" viewBox="0 0 40 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="tg-a" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#7B83EB"/>
+                <stop offset="100%" stop-color="#4B53BC"/>
+              </linearGradient>
+              <linearGradient id="tg-b" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#9EA5F1"/>
+                <stop offset="100%" stop-color="#6264A7"/>
+              </linearGradient>
+            </defs>
+            <!-- 右側小人（頭） -->
+            <circle cx="30" cy="7" r="5" fill="url(#tg-b)" opacity="0.9"/>
+            <!-- 右側小人（身體） -->
+            <path d="M22 20c0-5 3.6-9 8-9s8 4 8 9v2H22v-2z" fill="url(#tg-b)" opacity="0.85"/>
+            <!-- 左側大人（頭） -->
+            <circle cx="17" cy="8" r="7" fill="url(#tg-a)"/>
+            <!-- 左側大人（身體） -->
+            <path d="M3 28c0-7.7 6.3-14 14-14s14 6.3 14 28z" fill="url(#tg-a)"/>
+            <!-- 左下角白T藍紫方塊 -->
+            <rect x="0" y="18" width="18" height="18" rx="4" fill="url(#tg-a)"/>
+            <!-- 白色 T 字 -->
+            <path fill="white" d="M4 22h10v2.5H11v7H7v-7H4z"/>
+          </svg>
+          <span class="teams-link-text" id="teams-header-text">聯絡我們</span>
         </button>
       </div>
     </header>

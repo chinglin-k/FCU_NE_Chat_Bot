@@ -48,6 +48,13 @@
   --shadow-lg:  0 8px 40px rgba(0,0,0,0.5);
   --glow-orange: 0 0 20px rgba(249, 115, 22, 0.3);
   --glow-blue:   0 0 20px rgba(56, 189, 248, 0.2);
+  --glow-blue-strong: 0 0 28px rgba(56, 189, 248, 0.55);
+
+  /* Teams 品牌紫色系（配合 Teams 2025 icon 漸層） */
+  --color-teams-purple:     #7B83EB;
+  --color-teams-purple-dim: rgba(123, 131, 235, 0.18);
+  --glow-teams:             0 0 18px rgba(123, 131, 235, 0.45);
+  --glow-teams-strong:      0 0 28px rgba(123, 131, 235, 0.7);
 
   /* 尺寸 */
   --header-height: 68px;
@@ -218,44 +225,48 @@ a:hover {
   flex-shrink: 0;
 }
 
-/* ── Teams 常駐連結（Header 右上角小圖示按鈕） ── */
+/* ── Teams 常駐連結（Header 右上角圖示按鈕，顯眼設計） ── */
 .header-teams-link {
   display: flex;
   align-items: center;
-  gap: 5px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  gap: 7px;
+  background: var(--color-teams-purple-dim);
+  border: 1.5px solid var(--color-teams-purple);
   border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 12px;
+  padding: 6px 14px;
   font-family: 'Noto Sans TC', 'Inter', sans-serif;
-  color: var(--color-accent-blue);
+  color: var(--color-teams-purple);
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: var(--glow-teams);
   transition: background 0.2s var(--ease-out),
               border-color 0.2s var(--ease-out),
+              box-shadow 0.2s var(--ease-out),
               transform 0.15s var(--ease-spring);
 }
 
 .header-teams-link:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-active);
-  transform: scale(1.04);
+  background: rgba(123, 131, 235, 0.3);
+  border-color: #9EA5F1;
+  box-shadow: var(--glow-teams-strong);
+  transform: scale(1.07);
 }
 
 .header-teams-link:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
+  box-shadow: var(--glow-teams);
 }
 
-.header-teams-link .teams-icon {
-  font-size: 13px;
-  line-height: 1;
+.header-teams-link .teams-svg-icon {
+  width: 22px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .header-teams-link .teams-link-text {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.03em;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 /* ── Teams 複製按鈕（聊天區，繼承 quick-btn 基礎樣式） ── */
