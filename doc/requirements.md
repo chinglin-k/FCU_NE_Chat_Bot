@@ -1,8 +1,8 @@
 # 逢甲大學福星宿舍網路報修 Chatbot — 需求規格書
 
-**版本**：2.0  
+**版本**：2.1  
 **建立日期**：2026-07-17  
-**最後更新**：2026-07-27（A輪：信心分數 / B輪：Teams聯絡）  
+**最後更新**：2026-07-27（fix：Teams 按鈕文字、icon、深連結預填文字）  
 **專案倉庫**：https://github.com/chinglin-k/FCU_NE_Chat_Bot
 
 ---
@@ -33,7 +33,7 @@ Chatbot 啟動後顯示三個主要選項按鈕，Header 右上角另有 Teams �
 | 📚 教學 | 顯示 Windows / Mac 系統選擇，提供 PDF 教學文件連結 |
 | ⚙️ 常見問題 | 常見問題一覽：WiFi 帳號密碼、轉接器驅動程式、寢室 WiFi 訊號、冷氣電費儲值等 |
 | 🔧 我要實體協助、報修 | 開啟報修表單 |
-| 👤 聯絡真人（Header 常駐） | 開啟 Teams chat 深連結，聯絡「福星宿舍網路報修平台」帳號 |
+| 👤 聯絡我們（Header 常駐） | 開啟 Teams chat 深連結，聯絡「福星宿舍網路報修平台」帳號 |
 
 ### 3.2 LLM 語意分析與意圖分類
 
@@ -88,10 +88,11 @@ GAS 同時回傳 **信心分數（0.0~1.0）**；信心值低於 0.6 時前端�
 
 ### 3.7 Teams 聯絡功能（B 輪新增）
 
-- Header 右上角常駐「聯絡真人」按鈕
+- Header 右上角常駐「聯絡我們」按鈕（配 Teams 2025 品牌 icon，紫色系按鈕）
 - 點擊後開啟 Teams chat 深連結（`https://teams.microsoft.com/l/chat/0/0?users=desk_dorm@o365.fcu.edu.tw`）
 - 2.5 秒內若 App 未被喚起，依平台跳轉備援（iOS → App Store / Android → Play Store / 桌面 → Teams 網頁版）
 - 聊天區顯示備援步驟說明 + 一鍵複製「福星宿舍網路報修平台」帳號名稱
+- 深連結不含預填文字（prefilledMessage 設為空字串）
 
 ---
 
