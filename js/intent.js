@@ -16,8 +16,12 @@ const Intent = (() => {
     UNKNOWN:        'UNKNOWN'          // 無法判斷
   });
 
-  /** GAS classify 逾時（毫秒）── GAS 本身呼叫外部 API 可能較慢，設 8 秒 */
-  const CLASSIFY_TIMEOUT_MS = 8000;
+  /**
+   * GAS classify 逾時（毫秒）
+   * GAS 後端採多模型備援（最多 9 個模型，每個最多 2 次重試，每次間隔 1.5s）
+   * 最壞情況：9×2×1.5s ≈ 27s，設 25s 為實務上限（超過此時間通常為網路問題）
+   */
+  const CLASSIFY_TIMEOUT_MS = 25000;
 
   /**
    * 呼叫 GAS 進行意圖分類
