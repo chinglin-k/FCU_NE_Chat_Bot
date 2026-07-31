@@ -310,12 +310,15 @@ const Chat = (() => {
       // 顯示打字中
       _showTyping();
 
-      // classify() 現在回傳 { intent, confidence, needsConfirmation }
+      // classify() 現在回傳 { intent, confidence, needsConfirmation, isSystemError }
       let intentResult;
       try {
         intentResult = await Intent.classify(message);
       } catch (e) {
-        intentResult = { intent: Intent.INTENTS.UNKNOWN, confidence: 0, needsConfirmation: false };
+        // Intent.classify() 本身不應拋出（已有內部 try/catch），
+        // 此處作最後一道保護，標記為系統錯誤
+        console.error('[Chat][系統錯誤] Intent.classify() 拋出未預期例外：', e);
+        intentResult = { intent: Intent.INTENTS.UNKNOWN, confidence: 0, needsConfirmation: false, isSystemError: true };
       }
 
       _hideTyping();
@@ -368,10 +371,19 @@ const Chat = (() => {
           ]);
           break;
 
-        default: // UNKNOWN
-          addBotMessage(CONFIG.RESPONSES.UNKNOWN);
+        default: { // UNKNOWN
+          if (intentResult.isSystemError) {
+            // B. 系統/API 問題：逾時、HTTP 錯誤、GAS 回傳失敗等
+            console.warn('[Chat][系統錯誤] 顯示 SYSTEM_ERROR fallback');
+            addBotMessage(CONFIG.RESPONSES.SYSTEM_ERROR);
+          } else {
+            // A. 理解失敗：意圖辨識信心值過低或無法比對
+            console.log('[Chat][理解失敗] 顯示 UNKNOWN fallback');
+            addBotMessage(CONFIG.RESPONSES.UNKNOWN);
+          }
           _showMainButtons();
           break;
+        }
       }
     } finally {
       _isProcessing = false;
