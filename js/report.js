@@ -21,13 +21,16 @@ const ReportForm = (() => {
 
   /* ── 必填欄位清單（欄位 name、DOM id、錯誤訊息）── */
   const REQUIRED_FIELDS = [
-    { name: 'name',        id: 'field-name',        msg: '請填寫姓名' },
-    { name: 'studentId',   id: 'field-student-id',  msg: '請填寫學號' },
-    { name: 'roomNumber',  id: 'field-room',         msg: '請填寫房號' },
-    { name: 'bedNumber',   id: 'field-bed',          msg: '請填寫床號' },
-    { name: 'phone',       id: 'field-phone',        msg: '請填寫手機號碼' },
-    { name: 'repairTime',  id: 'field-repair-time',  msg: '請填寫可維修時間' },
-    { name: 'description', id: 'field-description',  msg: '請填寫問題描述' }
+    { name: 'name',             id: 'field-name',             msg: '請填寫姓名' },
+    { name: 'studentId',        id: 'field-student-id',       msg: '請填寫學號' },
+    { name: 'roomNumber',       id: 'field-room',             msg: '請填寫房號' },
+    { name: 'bedNumber',        id: 'field-bed',              msg: '請填寫床號' },
+    { name: 'phone',            id: 'field-phone',            msg: '請填寫手機號碼' },
+    { name: 'repairHourStart',  id: 'field-repair-hour-start',msg: '請填寫可維修時間（開始）' },
+    { name: 'repairMinStart',   id: 'field-repair-min-start', msg: '請填寫可維修時間（引始分鐘）' },
+    { name: 'repairHourEnd',    id: 'field-repair-hour-end',  msg: '請填寫可維修時間（結束）' },
+    { name: 'repairMinEnd',     id: 'field-repair-min-end',   msg: '請填寫可維修時間（結束分鐘）' },
+    { name: 'description',      id: 'field-description',      msg: '請填寫問題描述' }
   ];
 
   /** 開啟 Modal */
@@ -124,13 +127,45 @@ const ReportForm = (() => {
   }
 
   /**
-   * 表單驗證（前端基本驗證：空值檢查）
-   * 使用 REQUIRED_FIELDS 統一管理欄位清單（修復 M-05：原先 REQUIRED_FIELDS 定義後從未使用）
+   * 表單驗證（前端基本驗證：空値檢查 + 數字範圍檢查）
+   * 使用 REQUIRED_FIELDS 統一管理欄位清單
    */
   function _validate(data) {
-    return REQUIRED_FIELDS
+    const errors = REQUIRED_FIELDS
       .filter(({ name }) => !data[name]?.trim())
       .map(({ id, msg }) => ({ field: id, msg }));
+
+    // 床號必須為 1-3 位數字
+    if (data.bedNumber && !/^[0-9]{1,3}$/.test(data.bedNumber.trim())) {
+      errors.push({ field: 'field-bed', msg: '床號必須為 1−3 位數字' });
+    }
+
+    // 手機號碼必須為 10 位數字
+    if (data.phone && !/^[0-9]{10}$/.test(data.phone.trim())) {
+      errors.push({ field: 'field-phone', msg: '手機號碼必須為 10 位數字' });
+    }
+
+    // 小時範圍驗證（0–23）
+    const hStart = parseInt(data.repairHourStart, 10);
+    const hEnd   = parseInt(data.repairHourEnd, 10);
+    if (data.repairHourStart && (isNaN(hStart) || hStart < 0 || hStart > 23)) {
+      errors.push({ field: 'field-repair-hour-start', msg: '小時必須在 0–23 之間' });
+    }
+    if (data.repairHourEnd && (isNaN(hEnd) || hEnd < 0 || hEnd > 23)) {
+      errors.push({ field: 'field-repair-hour-end', msg: '小時必須在 0–23 之間' });
+    }
+
+    // 分鐘範圍驗證（0–59）
+    const mStart = parseInt(data.repairMinStart, 10);
+    const mEnd   = parseInt(data.repairMinEnd, 10);
+    if (data.repairMinStart && (isNaN(mStart) || mStart < 0 || mStart > 59)) {
+      errors.push({ field: 'field-repair-min-start', msg: '分鐘必須在 0–59 之間' });
+    }
+    if (data.repairMinEnd && (isNaN(mEnd) || mEnd < 0 || mEnd > 59)) {
+      errors.push({ field: 'field-repair-min-end', msg: '分鐘必須在 0–59 之間' });
+    }
+
+    return errors;
   }
 
   /**
@@ -177,14 +212,24 @@ const ReportForm = (() => {
 
       /* 收集表單資料 */
       const fd = new FormData(form());
+      // 組合維修時間字串（紓文本格式，避免試算表轉換日期）
+      const repairHourStart = (fd.get('repairHourStart') || '').trim().padStart(2, '0');
+      const repairMinStart  = (fd.get('repairMinStart')  || '').trim().padStart(2, '0');
+      const repairHourEnd   = (fd.get('repairHourEnd')   || '').trim().padStart(2, '0');
+      const repairMinEnd    = (fd.get('repairMinEnd')     || '').trim().padStart(2, '0');
+      const repairTime = `${repairHourStart}:${repairMinStart}–${repairHourEnd}:${repairMinEnd}`;
       const reportData = {
-        name:        fd.get('name')?.trim(),
-        studentId:   fd.get('studentId')?.trim(),
-        roomNumber:  fd.get('roomNumber')?.trim(),
-        bedNumber:   fd.get('bedNumber')?.trim(),
-        phone:       fd.get('phone')?.trim(),
-        repairTime:  fd.get('repairTime')?.trim(),
-        description: fd.get('description')?.trim()
+        name:             fd.get('name')?.trim(),
+        studentId:        fd.get('studentId')?.trim(),
+        roomNumber:       fd.get('roomNumber')?.trim(),
+        bedNumber:        fd.get('bedNumber')?.trim(),
+        phone:            fd.get('phone')?.trim(),
+        repairHourStart:  (fd.get('repairHourStart') || '').trim(),
+        repairMinStart:   (fd.get('repairMinStart')  || '').trim(),
+        repairHourEnd:    (fd.get('repairHourEnd')   || '').trim(),
+        repairMinEnd:     (fd.get('repairMinEnd')    || '').trim(),
+        repairTime,
+        description:      fd.get('description')?.trim()
       };
 
       /* 前端驗證 */
