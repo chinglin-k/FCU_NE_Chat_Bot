@@ -10,7 +10,7 @@
 |---|---|
 | 前端 | HTML5 + Vanilla CSS + Vanilla JS |
 | 部署 | GitHub Pages（靜態，root 目錄） |
-| LLM | Gemini 1.5 Flash（透過 GAS 代理） |
+| LLM | Gemini API 多模型自動備援（透過 GAS 代理） |
 | 後端 | Google Apps Script（`gas/Code.gs`） |
 | 資料儲存 | Google 試算表 + Script Properties |
 
