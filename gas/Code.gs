@@ -297,7 +297,6 @@ function writeReport(reportData) {
       String(reportData.name        || ''),
       String(reportData.roomNumber  || ''),
       String(reportData.bedNumber   || ''),
-      // 手機先轉字串，避免試算表將導首「0」吃掉
       String(reportData.phone       || ''),
       String(reportData.repairTime  || ''),
       String(reportData.description || ''),
@@ -305,11 +304,13 @@ function writeReport(reportData) {
       '',   // 是否完成（網管填寫）
       ''    // 備註（網管填寫）
     ];
-    sheet.appendRow(rowValues);
 
-    // 設定新行純文字格式（防止試算表自動將手機號碼轉數字、時間轉日期）
-    const newRow = sheet.getLastRow();
-    sheet.getRange(newRow, 1, 1, rowValues.length).setNumberFormat('@STRING@');
+    // 關鍵：必須先設格式「再」寫入就能保留開頭 0
+    // 若先 appendRow() 再設 NumberFormat，Sheets 已在寫入時把 '0912345678' 解析為整數，之後再改格式也救不回來
+    const targetRow = sheet.getLastRow() + 1;
+    const targetRange = sheet.getRange(targetRow, 1, 1, rowValues.length);
+    targetRange.setNumberFormat('@');     // ① 先設成純文字格式
+    targetRange.setValues([rowValues]);   // ② 再寫入（取代 appendRow）
 
     Logger.log(`[writeReport] 新增報修：${reportData.name} ${reportData.roomNumber}-${reportData.bedNumber}`);
     return { success: true, message: '報修資料已成功寫入試算表' };
