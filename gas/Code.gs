@@ -290,20 +290,26 @@ function writeReport(reportData) {
     const date = Utilities.formatDate(now, 'Asia/Taipei', 'yyyy/MM/dd');
     const time = Utilities.formatDate(now, 'Asia/Taipei', 'HH:mm:ss');
 
-    sheet.appendRow([
+    const rowValues = [
       date,
       time,
-      reportData.studentId   || '',
-      reportData.name        || '',
-      reportData.roomNumber  || '',
-      reportData.bedNumber   || '',
-      reportData.phone       || '',
-      reportData.repairTime  || '',
-      reportData.description || '',
+      String(reportData.studentId   || ''),
+      String(reportData.name        || ''),
+      String(reportData.roomNumber  || ''),
+      String(reportData.bedNumber   || ''),
+      // 手機先轉字串，避免試算表將導首「0」吃掉
+      String(reportData.phone       || ''),
+      String(reportData.repairTime  || ''),
+      String(reportData.description || ''),
       '',   // 是否派人（網管填寫）
       '',   // 是否完成（網管填寫）
       ''    // 備註（網管填寫）
-    ]);
+    ];
+    sheet.appendRow(rowValues);
+
+    // 設定新行純文字格式（防止試算表自動將手機號碼轉數字、時間轉日期）
+    const newRow = sheet.getLastRow();
+    sheet.getRange(newRow, 1, 1, rowValues.length).setNumberFormat('@STRING@');
 
     Logger.log(`[writeReport] 新增報修：${reportData.name} ${reportData.roomNumber}-${reportData.bedNumber}`);
     return { success: true, message: '報修資料已成功寫入試算表' };

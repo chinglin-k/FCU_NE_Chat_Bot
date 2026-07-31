@@ -9,9 +9,9 @@
 ## 功能特色
 
 - 📚 **網路教學**：提供 Windows / Mac 宿舍網路設定 PDF 教學
-- ⚙️ **常見問題**：轉接器馨動程式、WiFi 帳號密碼、寢室 WiFi 訊號等常見問題解答
+- ⚙️ **常見問題**：轉接器驅動程式、WiFi 帳號密碼、寢室 WiFi 訊號等常見問題解答
 - 🔧 **線上報修通報**：填寫報修表單自動寫入 Google 試算表
-- 🤖 **LLM 語意分析**：透過 Gemini API 智慧判斷使用者意圖
+- 🤖 **LLM 語意分析**：透過 Gemini API 多模型自動備援機制判斷使用者意圖
 - 📊 **累積使用人數**：顯示系統累積服務人數
 
 ---
@@ -22,7 +22,7 @@
 |---|---|
 | 前端 | HTML5 + Vanilla CSS + Vanilla JS |
 | 部署 | GitHub Pages |
-| LLM | Gemini 1.5 Flash（Google Apps Script 代理） |
+| LLM | Gemini API 多模型自動備援（透過 Google Apps Script 代理） |
 | 資料 | Google 試算表 |
 
 ---
