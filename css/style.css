@@ -144,6 +144,10 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 12px;
+  /* 讓 flex-item 能正確縮小，防止最小寬度限制 */
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
 }
 
 .logo-icon {
@@ -171,6 +175,16 @@ a:hover {
   color: var(--color-text-primary);
   letter-spacing: 0.02em;
   line-height: 1.2;
+  /* 單行顯示 + 超出省略號，防止窄屏幕上進行招行 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* header-text 需要 overflow:hidden 才能讓 text-overflow 生效 */
+.header-text {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .header-subtitle {
@@ -763,6 +777,34 @@ a:hover {
   min-height: 90px;
 }
 
+/* ── 可維修時間：時/分 輸入列 ── */
+.repair-time-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.repair-time-input {
+  width: 52px;
+  text-align: center;
+  padding: 10px 6px !important;
+}
+
+.repair-time-sep {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.repair-time-dash {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
 /* 時間提示文字 */
 .field-hint {
   font-size: 12px;
@@ -876,6 +918,10 @@ a:hover {
   .header-subtitle { display: none; }
   .header-counter { padding: 4px 10px; }
   .counter-value { font-size: 13px; }
+  /* 在 480px 以下隱藏「已協助」「人」文字，只展示數字 + 星星（如 23✨）
+  /* aria-label 保留，螢幕閱讀器仍能讀到「已協助 X 人」*/
+  .counter-label-prefix,
+  .counter-label-suffix { display: none; }
 
   .chat-messages { padding: 14px 12px; gap: 10px; }
 
@@ -893,6 +939,15 @@ a:hover {
 
   .form-actions { flex-direction: column; }
   .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+}
+
+/* ── 極窄手機（iPhone SE 等，≤360px）── */
+@media (max-width: 360px) {
+  /* Teams 按鈕只顕示 icon，隱藏文字 */
+  .teams-link-text { display: none; }
+  /* 縮小 padding ，降低按鈕占用寬度 */
+  .header-teams-link { padding: 5px 8px; gap: 4px; }
+  /* aria-label 最已保留，無障礙不受影響 */
 }
 
 @media (min-width: 760px) {
