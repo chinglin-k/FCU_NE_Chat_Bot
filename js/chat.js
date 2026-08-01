@@ -154,13 +154,25 @@ const Chat = (() => {
      每個項目各自顯示為一個獨立對話框
   ══════════════════════ */
 
-  async function _showSettingFAQ() {
+  /**
+   * 顯示常見問題 FAQ 卡片
+   * @param {string} [topic='ALL'] - 子主題代碼
+   *   'ALL' ｜不存在的 key → 顯示全部 4 則
+   *   'ACCOUNT'|'ADAPTER'|'WIFI_SIGNAL'|'AC_BILLING' → 只顯示對應那一則
+   */
+  async function _showSettingFAQ(topic = 'ALL') {
     addBotMessage(CONFIG.RESPONSES.SETTING_HEADER);
-    for (const item of CONFIG.RESPONSES.SETTING_ITEMS) {
+    const items = CONFIG.RESPONSES.SETTING_ITEMS;
+
+    // 若 topic 指定了存在的單一子項目 key，只顯示那一則
+    const isSingleTopic = (topic !== 'ALL') && Object.prototype.hasOwnProperty.call(items, topic);
+    const keys = isSingleTopic ? [topic] : Object.keys(items);
+
+    for (const key of keys) {
       _showTyping();
       await _delay(400);
       _hideTyping();
-      addBotMessage(item);
+      addBotMessage(items[key]);
     }
   }
 
@@ -351,12 +363,21 @@ const Chat = (() => {
           ]);
           break;
 
-        case INTENTS.BUTTON_SETTING:
-          await _showSettingFAQ();
-          _addButtonGroup([
+        case INTENTS.BUTTON_SETTING: {
+          const topic = intentResult.topic || 'ALL';
+          await _showSettingFAQ(topic);
+          // 如果只顯示單一子項目，額外加一顆「查看所有常見問題」按鈕
+          const isSingleTopic = (topic !== 'ALL') &&
+            Object.prototype.hasOwnProperty.call(CONFIG.RESPONSES.SETTING_ITEMS, topic);
+          const buttons = [
             { id: 'btn-need-help-txt', icon: '🆘', label: '我需要協助', action: 'need-help' }
-          ]);
+          ];
+          if (isSingleTopic) {
+            buttons.push({ id: 'btn-view-all-setting', icon: '📋', label: '查看所有常見問題', action: 'setting' });
+          }
+          _addButtonGroup(buttons);
           break;
+        }
 
         case INTENTS.BUTTON_REPORT:
         case INTENTS.STICKER_PORT:
