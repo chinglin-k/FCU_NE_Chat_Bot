@@ -375,6 +375,7 @@ const Chat = (() => {
           if (isSingleTopic) {
             buttons.push({ id: 'btn-view-all-setting', icon: '📋', label: '查看所有常見問題', action: 'setting' });
           }
+          buttons.push({ id: 'btn-back-main-setting-txt', icon: '🏠', label: '回到主選單', action: 'back-to-main' });
           _addButtonGroup(buttons);
           break;
         }
