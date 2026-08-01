@@ -10,8 +10,10 @@
 
 - 📚 **網路教學**：提供 Windows / Mac 宿舍網路設定 PDF 教學
 - ⚙️ **常見問題**：轉接器驅動程式、WiFi 帳號密碼、寢室 WiFi 訊號等常見問題解答
+  - 🎯 支援「子主題精準回覆」：問轉接器只顯示轉接器卡片、問帳密只顯示帳密卡片
 - 🔧 **線上報修通報**：填寫報修表單自動寫入 Google 試算表
 - 🤖 **LLM 語意分析**：透過 Gemini API 多模型自動備援機制判斷使用者意圖
+  - 支援「理解失敗」 vs 「系統錯誤」兩層 fallback 訊息區分
 - 📊 **累積使用人數**：顯示系統累積服務人數
 
 ---
@@ -77,6 +79,18 @@ GitHub → Settings → Pages → Source: **main** / **(root)**
 - [資料模型](doc/data-model.md)
 - [開發待辦](doc/todo.md)
 - [專案決策記錄](doc/project-memory.md)
+
+---
+
+## 已知安全性說明
+
+| 項目 | 說明 |
+|---|---|
+| Gemini API Key | 僅儲存於 GAS Script Properties，不写入程式碼 |
+| 報修個資傳輸 | 經 HTTPS 加密，但因 GAS 302 redirect 架構限制，目前瀏覽器 URL 會包含表單資料；未來可加設 Proxy 改善 |
+| Prompt Injection | 輸入截斷 500 字、移除控制字元、Zero-Width 字元、引號隔離輸入 |
+| XSS | 使用者輸入經 `_escapeHTML` 處理；Bot 訊息來自內部常數，不包含外部輸入 |
+| 後端欄位長度 | GAS writeReport 已經後端截斷，對齊前端驗證視同一標準 |
 
 ---
 
