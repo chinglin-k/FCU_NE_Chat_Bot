@@ -151,10 +151,11 @@ function classifyIntent(message) {
     return { success: false, error: '訊息不得為空' };
   }
 
-  // Prompt Injection 防護：截斷過長輸入、移除控制字元
+  // Prompt Injection 防護：截斷過長輸入、移除控制字元、移除 Unicode Zero-Width 字元
   const sanitized = message.trim()
     .slice(0, MAX_MSG_LEN)
-    .replace(/[\x00-\x1F\x7F]/g, ' ');
+    .replace(/[\x00-\x1F\x7F]/g, ' ')           // ASCII 控制字元
+    .replace(/[\u200B-\u200D\uFEFF\u2060]/g, ''); // Zero-Width 隱藏字元
 
   const apiKey = (PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY') || '').trim();
   if (!apiKey) {
@@ -306,16 +307,28 @@ function writeReport(reportData) {
     const date = Utilities.formatDate(now, 'Asia/Taipei', 'yyyy/MM/dd');
     const time = Utilities.formatDate(now, 'Asia/Taipei', 'HH:mm:ss');
 
+    // S-07: 後端欄位長度截斷（對比兩者工程同步）
+    // 目的：防止攻擊者繞過前端驗證寫入超長字串
+    const safe = {
+      studentId:   String(reportData.studentId   || '').slice(0, 8),
+      name:        String(reportData.name        || '').slice(0, 50),
+      roomNumber:  String(reportData.roomNumber  || '').slice(0, 8),
+      bedNumber:   String(reportData.bedNumber   || '').slice(0, 3),
+      phone:       String(reportData.phone       || '').slice(0, 10),
+      repairTime:  String(reportData.repairTime  || '').slice(0, 20),
+      description: String(reportData.description || '').slice(0, 200)
+    };
+
     const rowValues = [
       date,
       time,
-      String(reportData.studentId   || ''),
-      String(reportData.name        || ''),
-      String(reportData.roomNumber  || ''),
-      String(reportData.bedNumber   || ''),
-      String(reportData.phone       || ''),
-      String(reportData.repairTime  || ''),
-      String(reportData.description || ''),
+      safe.studentId,
+      safe.name,
+      safe.roomNumber,
+      safe.bedNumber,
+      safe.phone,
+      safe.repairTime,
+      safe.description,
       '',   // 是否派人（網管填寫）
       '',   // 是否完成（網管填寫）
       ''    // 備註（網管填寫）
