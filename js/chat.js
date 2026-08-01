@@ -322,7 +322,7 @@ const Chat = (() => {
       // 顯示打字中
       _showTyping();
 
-      // classify() 現在回傳 { intent, confidence, needsConfirmation, isSystemError }
+      // classify() 現在回傳 { intent, confidence, needsConfirmation, isSystemError, topic }
       let intentResult;
       try {
         intentResult = await Intent.classify(message);
@@ -384,6 +384,10 @@ const Chat = (() => {
         case INTENTS.STICKER_PORT:
           addBotMessage(CONFIG.RESPONSES.REPORT_TRIGGER);
           ReportForm.open();
+          _addButtonGroup([
+            { id: 'btn-open-report-txt',      icon: '📝', label: '開啟報修表單', action: 'open-report'   },
+            { id: 'btn-back-main-report-txt', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+          ]);
           break;
 
         case INTENTS.NON_NETWORK:

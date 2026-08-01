@@ -27,7 +27,7 @@ const ReportForm = (() => {
     { name: 'bedNumber',        id: 'field-bed',              msg: '請填寫床號' },
     { name: 'phone',            id: 'field-phone',            msg: '請填寫手機號碼' },
     { name: 'repairHourStart',  id: 'field-repair-hour-start',msg: '請填寫可維修時間（開始）' },
-    { name: 'repairMinStart',   id: 'field-repair-min-start', msg: '請填寫可維修時間（引始分鐘）' },
+    { name: 'repairMinStart',   id: 'field-repair-min-start', msg: '請填寫可維修時間（開始分鐘）' },
     { name: 'repairHourEnd',    id: 'field-repair-hour-end',  msg: '請填寫可維修時間（結束）' },
     { name: 'repairMinEnd',     id: 'field-repair-min-end',   msg: '請填寫可維修時間（結束分鐘）' },
     { name: 'description',      id: 'field-description',      msg: '請填寫問題描述' }
