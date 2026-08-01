@@ -47,12 +47,18 @@ const CONFIG = Object.freeze({
     SETTING_HEADER:
       '📋 **常見問題**',
 
-    SETTING_ITEMS: [
-      '**fcu、fcu auto 帳號與密碼**\n帳號 = 你的學號　密碼 = 你的 NID 密碼',
-      '**使用 USB 轉接器（RJ45 to USB-A 或 RJ45 to USB-C）沒有網路？**\n請上網搜尋您的**轉接器型號**，下載並安裝最新驅動程式或韌體。\n大多數轉接器問題可透過更新驅動程式解決。',
-      '**寢室收不到學校 WiFi 訊號**\n學校 WiFi 只在公共區域提供，故寢室無法接收到訊號。',
-      '**冷氣電費儲值相關問題**\n冷氣電費儲值相關問題請洽服務台詢問，謝謝。'
-    ],
+    // 子主題對應的常見問題卡片（key = topic 代碼）
+    // 顯示全部時用 Object.values()；精準顯示時用對應 key 直接取值
+    SETTING_ITEMS: Object.freeze({
+      ACCOUNT:
+        '**fcu、fcu auto 帳號與密碼**\n帳號 = 你的學號　密碼 = 你的 NID 密碼',
+      ADAPTER:
+        '**使用 USB 轉接器（RJ45 to USB-A 或 RJ45 to USB-C）沒有網路？**\n請上網搜尋您的**轉接器型號**，下載並安裝最新驅動程式或韌體。\n大多數轉接器問題可透過更新驅動程式解決。',
+      WIFI_SIGNAL:
+        '**寢室收不到學校 WiFi 訊號**\n學校 WiFi 只在公共區域提供，故寢室無法接收到訊號。',
+      AC_BILLING:
+        '**冷氣電費儲值相關問題**\n冷氣電費儲值相關問題請洽服務台詢問，謝謝。'
+    }),
 
     REPORT_TRIGGER:
       '好的，我來協助您填寫報修單 🔧\n請填寫以下資料，網管人員收到後會與您聯絡。',

@@ -144,7 +144,7 @@ function doPost(e) {
  * 已加入 Prompt Injection 防護：截斷長度、移除控制字元、用引號隔離輸入
  *
  * @param {string} message - 使用者輸入文字
- * @returns {{ success: boolean, intent: string, confidence: number, needsConfirmation: boolean }}
+ * @returns {{ success: boolean, intent: string, confidence: number, needsConfirmation: boolean, topic: string }}
  */
 function classifyIntent(message) {
   if (!message || !message.trim()) {
@@ -234,18 +234,25 @@ function classifyIntent(message) {
     const rawText = responseData.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const trimmed = rawText.trim();
 
-    // 解析「代碼|信心分數」格式
+    // 解析「代碼|信心分數|子主題」格式
     const parts      = trimmed.split('|');
     const rawIntent  = (parts[0] || '').trim().toUpperCase();
     const rawConf    = parseFloat(parts[1]);
     const confidence = isNaN(rawConf) ? 0.5 : Math.min(1.0, Math.max(0.0, rawConf));
+    const rawTopic   = (parts[2] || '').trim().toUpperCase();
 
     const VALID_INTENTS = ['BUTTON_TEACH', 'BUTTON_SETTING', 'BUTTON_REPORT', 'STICKER_PORT', 'NON_NETWORK', 'UNKNOWN'];
+    const VALID_TOPICS  = ['ACCOUNT', 'ADAPTER', 'WIFI_SIGNAL', 'AC_BILLING', 'ALL', 'NONE'];
+
     const intent            = VALID_INTENTS.includes(rawIntent) ? rawIntent : 'UNKNOWN';
     const needsConfirmation = confidence < 0.6;
+    // 子主題白名單驗證：無效或缺漏一律 fallback 為 'ALL'
+    const topic = (intent === 'BUTTON_SETTING')
+      ? (VALID_TOPICS.includes(rawTopic) ? rawTopic : 'ALL')
+      : 'NONE';
 
-    Logger.log(`[classifyIntent] 輸入="${message}" → 原始回覆="${trimmed}" → 意圖="${intent}" 信心度=${confidence} needsConfirmation=${needsConfirmation}`);
-    return { success: true, intent, confidence, needsConfirmation };
+    Logger.log(`[classifyIntent] 輸入="${message}" → 原始回覆="${trimmed}" → 意圖="${intent}" 信心度=${confidence} needsConfirmation=${needsConfirmation} topic="${topic}"`);
+    return { success: true, intent, confidence, needsConfirmation, topic };
 
   } catch (err) {
     Logger.log('[classifyIntent] 例外: ' + err.toString());
@@ -365,36 +372,49 @@ function incrementCounter() {
  * 當 Gemini API 配額用盡或網路異常時，確保 Chatbot 仍能 100% 精準回應常見意圖
  *
  * @param {string} msg - 清理後的使用者輸入
- * @returns {{ success: boolean, intent: string, confidence: number, needsConfirmation: boolean }}
+ * @returns {{ success: boolean, intent: string, confidence: number, needsConfirmation: boolean, topic: string }}
  */
 function _ruleBasedClassify(msg) {
   const text = msg.toLowerCase();
 
   // 1. 報修意圖
   if (/(報修|修復|幫我修|派人|實體協助|故障|壞掉|無法連線|斷線|網路壞了|網路問題)/.test(text)) {
-    return { success: true, intent: 'BUTTON_REPORT', confidence: 0.95, needsConfirmation: false };
+    return { success: true, intent: 'BUTTON_REPORT', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 
   // 2. IP 貼紙 / 網路孔問題
   if (/(貼紙|ip貼紙|網路孔|插孔|牆上|牆孔|牆壁|插座)/.test(text)) {
-    return { success: true, intent: 'STICKER_PORT', confidence: 0.95, needsConfirmation: false };
+    return { success: true, intent: 'STICKER_PORT', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 
-  // 3. 轉接器 / 帳密 / 常見設定問題
-  if (/(轉接器|轉接頭|轉換器|轉換頭|rj45|驅動|驅動程式|wifi帳號|wifi密碼|fcu帳號|nid|密碼)/.test(text)) {
-    return { success: true, intent: 'BUTTON_SETTING', confidence: 0.95, needsConfirmation: false };
+  // 3. BUTTON_SETTING 子主題細分
+  // 3a. 轉接器類（ADAPTER）
+  if (/(轉接器|轉接頭|轉換器|轉換頭|rj45|驅動|驅動程式)/.test(text)) {
+    return { success: true, intent: 'BUTTON_SETTING', confidence: 0.95, needsConfirmation: false, topic: 'ADAPTER' };
+  }
+  // 3b. 帳號密碼類（ACCOUNT）
+  if (/(wifi帳號|wifi密碼|fcu帳號|nid|密碼|帳號)/.test(text)) {
+    return { success: true, intent: 'BUTTON_SETTING', confidence: 0.95, needsConfirmation: false, topic: 'ACCOUNT' };
+  }
+  // 3c. WiFi 訊號類（WIFI_SIGNAL）
+  if (/(寢室wifi|寢室收不到|收不到wifi|收不到訊號|寢室沒有wifi|寢室無wifi)/.test(text)) {
+    return { success: true, intent: 'BUTTON_SETTING', confidence: 0.95, needsConfirmation: false, topic: 'WIFI_SIGNAL' };
+  }
+  // 3d. 其他常見問題（ALL）
+  if (/(常見問題|常見設定|常見)/.test(text)) {
+    return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'ALL' };
   }
 
   // 4. 網路教學 / 設定步驟
   if (/(教學|怎麼設|如何設|連線教學|設定步驟|不會連|教我|上網教學|教學文件)/.test(text)) {
-    return { success: true, intent: 'BUTTON_TEACH', confidence: 0.95, needsConfirmation: false };
+    return { success: true, intent: 'BUTTON_TEACH', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 
   // 5. 非網管業務（冷氣、水電等）
   if (/(冷氣|電費|洗手台|熱水|電燈|燈泡|浴室|寢室設施|宿舍設施|床位|電器)/.test(text)) {
-    return { success: true, intent: 'NON_NETWORK', confidence: 0.95, needsConfirmation: false };
+    return { success: true, intent: 'NON_NETWORK', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 
   // 預設無法匹配時降級為 UNKNOWN
-  return { success: true, intent: 'UNKNOWN', confidence: 0.3, needsConfirmation: true };
+  return { success: true, intent: 'UNKNOWN', confidence: 0.3, needsConfirmation: true, topic: 'NONE' };
 }

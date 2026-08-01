@@ -3,9 +3,11 @@
    ── 透過 GAS 呼叫 Gemini API，回傳意圖代碼、信心分數與是否需確認
    ──
    回傳格式：
-     { intent, confidence, needsConfirmation, isSystemError }
+     { intent, confidence, needsConfirmation, isSystemError, topic }
      isSystemError: true  → 系統/API 問題（逾時、HTTP 錯誤、GAS 失敗等）
      isSystemError: false → 正常分類結果（包含 UNKNOWN 意圖）
+     topic: 'ACCOUNT'|'ADAPTER'|'WIFI_SIGNAL'|'AC_BILLING'|'ALL'|'NONE'
+            — 僅 BUTTON_SETTING 時有意義；其他意圖為 'NONE'
    ============================================================ */
 'use strict';
 
@@ -35,24 +37,26 @@ const Intent = (() => {
    *   intent: string,
    *   confidence: number,
    *   needsConfirmation: boolean,
-   *   isSystemError: boolean
+   *   isSystemError: boolean,
+   *   topic: string
    * }>}
    *   - intent:            意圖代碼
    *   - confidence:        0.0~1.0 信心分數
    *   - needsConfirmation: confidence < 0.6 時為 true
    *   - isSystemError:     true = 系統/API 問題；false = 正常分類（含 UNKNOWN）
+   *   - topic:             BUTTON_SETTING 的子主題（ACCOUNT/ADAPTER/WIFI_SIGNAL/AC_BILLING/ALL）；其他意圖為 'NONE'
    */
   async function classify(message) {
     /** A. 理解失敗 fallback（NLU 正常運作但無法辨識意圖） */
     const _unknownFallback = {
       intent: INTENTS.UNKNOWN, confidence: 0,
-      needsConfirmation: false, isSystemError: false
+      needsConfirmation: false, isSystemError: false, topic: 'ALL'
     };
 
     /** B. 系統錯誤 fallback（逾時、HTTP 錯誤、GAS 失敗等） */
     const _systemErrorFallback = {
       intent: INTENTS.UNKNOWN, confidence: 0,
-      needsConfirmation: false, isSystemError: true
+      needsConfirmation: false, isSystemError: true, topic: 'ALL'
     };
 
     if (!message || !message.trim()) return _unknownFallback;
@@ -94,19 +98,25 @@ const Intent = (() => {
 
       // 正常分類結果
       const validIntents = Object.values(INTENTS);
+      const VALID_TOPICS  = ['ACCOUNT', 'ADAPTER', 'WIFI_SIGNAL', 'AC_BILLING', 'ALL', 'NONE'];
       const intent            = validIntents.includes(data.intent) ? data.intent : INTENTS.UNKNOWN;
       const confidence        = (typeof data.confidence === 'number')
         ? Math.min(1.0, Math.max(0.0, data.confidence))
         : 0.5;
       const needsConfirmation = data.needsConfirmation === true || confidence < 0.6;
+      // topic: 僅 BUTTON_SETTING 有意義；白名單驗證，無效則 fallback 'ALL'
+      const rawTopic = (typeof data.topic === 'string') ? data.topic.trim().toUpperCase() : '';
+      const topic    = (intent === INTENTS.BUTTON_SETTING)
+        ? (VALID_TOPICS.includes(rawTopic) ? rawTopic : 'ALL')
+        : 'NONE';
 
       if (intent === INTENTS.UNKNOWN) {
         console.log(`[Intent][理解失敗] 意圖 UNKNOWN，信心分數=${confidence.toFixed(2)}，輸入="${message}"`);
       } else {
-        console.log(`[Intent] 分類成功：intent=${intent}，confidence=${confidence.toFixed(2)}`);
+        console.log(`[Intent] 分類成功：intent=${intent}，confidence=${confidence.toFixed(2)}，topic=${topic}`);
       }
 
-      return { intent, confidence, needsConfirmation, isSystemError: false };
+      return { intent, confidence, needsConfirmation, isSystemError: false, topic };
 
     } catch (err) {
       if (err.name === 'AbortError') {
