@@ -34,7 +34,7 @@ FCU_NE_Chat_Bot/
 ├── js/
 │   ├── config.js       ← 設定值集中管理（GAS_URL、CONFIG.TEAMS 等）
 │   ├── chat.js         ← 主控制器（最後載入）
-│   ├── intent.js       ← 意圖分類（回傳 {intent, confidence, needsConfirmation}）
+│   ├── intent.js       ← 意圖分類（回傳 {intent, confidence, needsConfirmation, isSystemError, topic})）
 │   ├── report.js       ← 報修表單
 │   ├── counter.js      ← 計數器
 │   └── teams.js        ← Teams 聯絡功能（chat 深連結 + 平台備援 + 複製）
@@ -57,7 +57,9 @@ FCU_NE_Chat_Bot/
 
 ## GAS 開發規範
 
-- 報修個資（姓名、學號、手機等）一律透過 **`doPost(e)`** 傳送，不得使用 GET
+- 報修個資（姓名、學號、手機等）目前透過 **`doGet(e)` + `?payload=JSON`** 傳送
+  > ⚠️ **架構限制說明**：GAS Web App 固定回傳 302 redirect，HTTP 規範要求 POST 後改為 GET，導致 `doPost` body 遙失。因此改用 GET + payload。
+  > 資料經 HTTPS 加密傳輸，但 URL 會留存於服務器 Access Log、瀏覽器歷史記錄與 Proxy。**本專案已知暂接受此風陽；若未來加設 Proxy層，可切回 doPost。**
 - 其餘操作（classify、counter）使用 `doGet(e)` 處理
 - 錯誤一律用 `Logger.log()` 記錄
 - 回傳格式統一：`{ success: boolean, ... }`
