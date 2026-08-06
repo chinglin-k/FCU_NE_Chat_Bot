@@ -1,6 +1,6 @@
 # 開發待辦清單（todo.md）
 
-**更新日期**：2026-07-27
+**更新日期**：2026-08-06
 
 ---
 
@@ -57,6 +57,16 @@
 
 ---
 
+## D 輪：手機優化（2026-08-06）
+
+| 功能 | 狀態 | 說明 |
+|---|---|---|
+| viewport maximum-scale=1.0 | ✅ Done | 防止 iOS 打字時自動放大（`index.html` meta 標籤） |
+| input/textarea font-size 16px | ✅ Done | iOS 觸發自動縮放實際規則，手機下強制 16px（`css/style.css`） |
+| 窄螢幕隱藏計數器 | ✅ Done | 寬度 ≤480px 時 `.header-counter { display:none }`，JS 仍照常計數（`css/style.css`） |
+
+---
+
 ## 部署後續任務
 
 | 功能 | 狀態 | 說明 |
@@ -72,8 +82,13 @@
 
 | 項目 | 狀態 | 說明 |
 |---|---|---|
-| 安全審查報告輸出 | 🔲 Todo | 依 整合prompt.md C輪 prompt 執行，先出報告不動程式碼 |
-| 高風險項目修補 | 🔲 Todo | 待報告後決定 |
+| 安全審查報告輸出 | ✅ Done | 完整審間完成，聖啊投影計畫图檔 |
+| `_escapeHTML` 補強 | ✅ Done | 補上 `"` `'` 轉義（`chat.js`） |
+| `_addButtonGroup` icon XSS 修復 | ✅ Done | 改用 DOM `textContent` 方式，移除 `innerHTML` 風險（`chat.js`） |
+| Teams 複製 fallback 改善 | ✅ Done | `window.prompt()` 改為 inline 文字提示（`teams.js`） |
+| 文件對齊程式碼現況 | ✅ Done | architecture.md / project-memory.md 更新 |
+| GAS_URL 公開風險言明 | ✅ Done | README.md 已加入警告 |
+| 高風險項目修補 | ✅ Done | 見上方各項 |
 
 ---
 
