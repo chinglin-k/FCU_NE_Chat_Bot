@@ -12,9 +12,9 @@
 | 2026-07-17 | 前端使用純 HTML+CSS+JS，不用框架 | GitHub Pages 免費托管無需 build 流程，維護門檻低 | 全站 |
 | 2026-07-17 | LLM API 呼叫透過 GAS 代理 | API Key 不得出現在前端或 Git | `gas/Code.gs`、`js/intent.js` |
 | 2026-07-17 | GAS 使用 GET 請求（非 POST） | POST redirect 會遺失 body，GET + URL params 最可靠 | 所有 GAS 呼叫 |
-| 2026-07-17 | 可維修時間不做時間格式驗證 | 簡化使用者操作，以純文字提示即可 | `js/report.js`、`index.html` |
+| 2026-07-17 | 可維修時間實作時/分範圍驗證（ 0-23 / 0-59 ） | 防止無效數字寫入試算表；編碼方式改為純文字時間欄，儲存 `HH:MM–HH:MM` 格式 | `js/report.js`、`index.html` |
 | 2026-07-17 | 累積人數用 sessionStorage 防重複計數 | 避免同一使用者重整頁面時重複累加 | `js/counter.js` |
-| 2026-07-17 | Gemini 1.5 Flash 模型 | 速度快、免費額度充足，適合分類任務 | `gas/Code.gs` |
+| 2026-07-17 | Gemini 2.0 Flash 模型（多模型備援） | 速度快、免費額度充足，適合分類任務；多模型備援機制提升可用性 | `gas/Code.gs` |
 
 ---
 
