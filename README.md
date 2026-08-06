@@ -15,6 +15,7 @@
 - 🤖 **LLM 語意分析**：透過 Gemini API 多模型自動備援機制判斷使用者意圖
   - 支援「理解失敗」 vs 「系統錯誤」兩層 fallback 訊息區分
 - 📊 **累積使用人數**：顯示系統累積服務人數
+- 📱 **手機友善**：防止 iOS 打字自動放大；窄螢幕計數器自動隱藏，計數持續運作
 
 ---
 
@@ -86,11 +87,12 @@ GitHub → Settings → Pages → Source: **main** / **(root)**
 
 | 項目 | 說明 |
 |---|---|
-| Gemini API Key | 僅儲存於 GAS Script Properties，不写入程式碼 |
+| Gemini API Key | 僅儲存於 GAS Script Properties，不寫入程式碼 |
+| GAS Web App URL | ⚠️ **注意**：`js/config.js` 中的 GAS_URL 已提交至 Git 歷史，任何可存取倉庫者均可呼叫後端（counter increment / 送出報修）。如需撤銷，請至 GAS 重新部署取得新 URL 並更新 `config.js`。 |
 | 報修個資傳輸 | 經 HTTPS 加密，但因 GAS 302 redirect 架構限制，目前瀏覽器 URL 會包含表單資料；未來可加設 Proxy 改善 |
 | Prompt Injection | 輸入截斷 500 字、移除控制字元、Zero-Width 字元、引號隔離輸入 |
-| XSS | 使用者輸入經 `_escapeHTML` 處理；Bot 訊息來自內部常數，不包含外部輸入 |
-| 後端欄位長度 | GAS writeReport 已經後端截斷，對齊前端驗證視同一標準 |
+| XSS | 使用者輸入經 `_escapeHTML` 處理（涵蓋 `&` `<` `>` `"` `'`）；Bot 訊息來自內部常數，不包含外部輸入；按鈕 icon 改用 DOM `textContent` 組合 |
+| 後端欄位長度 | GAS writeReport 已經後端截斷，對齊前端驗證至同一標準 |
 
 ---
 
