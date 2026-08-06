@@ -92,8 +92,15 @@ const Teams = (() => {
       }
     } catch (err) {
       console.error('[Teams] copyAccountName 失敗:', err);
-      // fallback：prompt 讓使用者手動複製
-      window.prompt('請手動複製以下文字：', text);
+      // fallback：在按鈕下方顯示 inline 文字框（避免 popup blocker 攔截 window.prompt）
+      if (btnEl && !btnEl.parentElement.querySelector('.teams-copy-fallback')) {
+        const fallback = document.createElement('p');
+        fallback.className = 'teams-copy-fallback';
+        fallback.style.cssText =
+          'margin-top:6px;font-size:12px;color:#94a3b8;word-break:break-all;user-select:all;';
+        fallback.textContent = '請手動複製：' + text;
+        btnEl.parentElement.appendChild(fallback);
+      }
     }
   }
 

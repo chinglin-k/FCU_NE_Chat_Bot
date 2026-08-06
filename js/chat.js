@@ -79,8 +79,15 @@ const Chat = (() => {
       const btn = document.createElement('button');
       btn.id        = id;
       btn.className = `quick-btn${primary ? ' primary' : ''}`;
-      btn.innerHTML = `<span aria-hidden="true">${icon}</span> ${label}`;
       btn.setAttribute('data-action', action);
+
+      // 安全組合 icon + label：用 DOM 操作避免 innerHTML XSS
+      const iconSpan = document.createElement('span');
+      iconSpan.setAttribute('aria-hidden', 'true');
+      iconSpan.textContent = icon;          // textContent 自動轉義
+      btn.appendChild(iconSpan);
+      btn.appendChild(document.createTextNode('\u00a0' + label)); // \u00a0 = &nbsp;
+
       btn.addEventListener('click', () => _handleButtonClick(action, label, btn));
       group.appendChild(btn);
       activeButtons.push(btn);
@@ -110,9 +117,14 @@ const Chat = (() => {
     activeButtons = [];
   }
 
-  /** HTML 轉義（避免 XSS） */
+  /** HTML 轉義（避免 XSS）— 涵蓋 &、<、>、"、' 五種字元 */
   function _escapeHTML(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return str
+      .replace(/&/g,  '&amp;')
+      .replace(/</g,  '&lt;')
+      .replace(/>/g,  '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g,  '&#39;');
   }
 
   /* ══════════════════════════════════════
