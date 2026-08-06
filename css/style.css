@@ -916,12 +916,9 @@ a:hover {
 
   .header-title { font-size: 13px; }
   .header-subtitle { display: none; }
-  .header-counter { padding: 4px 10px; }
-  .counter-value { font-size: 13px; }
-  /* 在 480px 以下隱藏「已協助」「人」文字，只展示數字 + 星星（如 23✨）
-  /* aria-label 保留，螢幕閱讀器仍能讀到「已協助 X 人」*/
-  .counter-label-prefix,
-  .counter-label-suffix { display: none; }
+
+  /* ── 窄螢幕隱藏計數器（JS 仍照常計數，只是不顯示） ── */
+  .header-counter { display: none; }
 
   .chat-messages { padding: 14px 12px; gap: 10px; }
 
@@ -936,6 +933,13 @@ a:hover {
   .report-form { padding: 16px 18px 28px; }
 
   .form-row { grid-template-columns: 1fr; gap: 16px; }
+
+  /* iOS Safari：input font-size < 16px 會觸發自動縮放，強制設為 16px */
+  .form-group input,
+  .form-group textarea,
+  .chat-input {
+    font-size: 16px;
+  }
 
   .form-actions { flex-direction: column; }
   .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
