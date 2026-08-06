@@ -82,7 +82,7 @@
 
 | 項目 | 狀態 | 說明 |
 |---|---|---|
-| 安全審查報告輸出 | ✅ Done | 完整審間完成，聖啊投影計畫图檔 |
+| 安全審查報告輸出 | ✅ Done | 完整審查完成，見實作計畫文件 |
 | `_escapeHTML` 補強 | ✅ Done | 補上 `"` `'` 轉義（`chat.js`） |
 | `_addButtonGroup` icon XSS 修復 | ✅ Done | 改用 DOM `textContent` 方式，移除 `innerHTML` 風險（`chat.js`） |
 | Teams 複製 fallback 改善 | ✅ Done | `window.prompt()` 改為 inline 文字提示（`teams.js`） |
