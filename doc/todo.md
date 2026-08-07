@@ -57,13 +57,14 @@
 
 ---
 
-## D 輪：手機優化（2026-08-06）
+## D 輪：手機優化（2026-08-07）
 
 | 功能 | 狀態 | 說明 |
 |---|---|---|
 | viewport maximum-scale=1.0 | ✅ Done | 防止 iOS 打字時自動放大（`index.html` meta 標籤） |
 | input/textarea font-size 16px | ✅ Done | iOS 觸發自動縮放實際規則，手機下強制 16px（`css/style.css`） |
-| 窄螢幕隱藏計數器 | ✅ Done | 寬度 ≤480px 時 `.header-counter { display:none }`，JS 仍照常計數（`css/style.css`） |
+| 窄螢幕完全隱藏計數器 | ✅ Done | 寬度 ≤640px 時 `.header-counter { display: none }`，JS 仍照常計數（`css/style.css`） |
+| GitHub Pages CDN 快取清除 | ✅ Done | 舊版 CSS（480px 斷點）被 CDN 快取，更新 CSS 頂部時間戳記強制重新部署 |
 
 ---
 
