@@ -221,8 +221,11 @@ const Chat = (() => {
   }
 
   /* ── 主選單按鈕 ── */
-  function _showMainButtons() {
+  function _showMainButtons(showPrompt = false) {
     currentMenuState = 'main';
+    if (showPrompt) {
+      addBotMessage(_R().BACK_TO_MAIN);
+    }
     _addButtonGroup([
       { label: _B().TEACH, icon: '📚', action: 'teach' },
       { label: _B().SETTING, icon: '⚙️', action: 'setting' },
@@ -256,7 +259,7 @@ const Chat = (() => {
         _handleTeachDoc('mac');
         break;
       case 'back-to-main':
-        _showMainButtons();
+        _showMainButtons(true);
         break;
       case 'need-help':
         _handleReportFlow();
@@ -344,18 +347,7 @@ const Chat = (() => {
   function _handleReportFlow() {
     currentMenuState = 'report';
     addBotMessage(_R().REPORT_TRIGGER);
-    _addButtonGroup([
-      { label: _B().OPEN_REPORT, icon: '📝', action: 'open_modal', className: 'primary' },
-      { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
-    ]);
-
-    const modalBtn = document.querySelector('[data-action="open_modal"]');
-    if (modalBtn) {
-      modalBtn.addEventListener('click', () => {
-        _removeActiveButtons();
-        ReportForm.open();
-      });
-    }
+    ReportForm.open();
   }
 
   function _handleConfirmedIntent(intent) {
@@ -498,17 +490,7 @@ const Chat = (() => {
             { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
           ]);
         } else if (currentMenuState === 'report') {
-          _addButtonGroup([
-            { label: _B().OPEN_REPORT, icon: '📝', action: 'open_modal', className: 'primary' },
-            { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
-          ]);
-          const modalBtn = document.querySelector('[data-action="open_modal"]');
-          if (modalBtn) {
-            modalBtn.addEventListener('click', () => {
-              _removeActiveButtons();
-              ReportForm.open();
-            });
-          }
+          // 不做多餘按鈕重繪
         } else if (currentMenuState === 'sub_action') {
           _addButtonGroup([
             { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
