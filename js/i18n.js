@@ -2,8 +2,7 @@
    i18n.js — 雙語（中/英）介面切換模組
    - 管理靜態 UI 外殼文字（header / footer / modal / form 標籤與 aria-label）
    - 語言偏好存於 localStorage，key: fcu_ne_lang
-   - 動態聊天內容（CONFIG.RESPONSES）由 config.js 自行依 I18N.getLang() 取值，
-     不透過本模組的 STRINGS 字典
+   - 動態聊天內容（CONFIG.RESPONSES）由 config.js 自行依 I18N.getLang() 取值
    ============================================================ */
 'use strict';
 
@@ -14,9 +13,13 @@ const I18N = (() => {
 
   let currentLang = DEFAULT_LANG;
 
-  /* ── 靜態 UI 外殼文字字典 ── */
+  /* ── 靜態 UI 外殼與歡迎訊息文字字典 ── */
   const STRINGS = {
     zh: {
+      'welcome':
+        '您好！我是逢甲福星宿舍網路報修助理 🔧\n' +
+        '您可以直接輸入問題，或點選下方按鈕選擇服務：\n' +
+        '_💡 您的訊息將用於 AI 意圖辨識，以便提供精準回覆，不會用於其他用途。_',
       'header.title': '逢甲福星宿舍網路報修助理',
       'header.subtitle': 'FCU Fuxing Dormitory Network Support',
       'header.counter.prefix': '已協助',
@@ -62,6 +65,10 @@ const I18N = (() => {
       'typing.aria': '正在輸入'
     },
     en: {
+      'welcome':
+        'Hello! I\'m the FCU Fuxing Dormitory Network Repair Assistant 🔧\n' +
+        'Type your question or tap a button below to get started.\n' +
+        '_💡 Your messages are used only for AI intent recognition and not for any other purpose._',
       'header.title': 'FCU Fuxing Dormitory Network Repair Assistant',
       'header.subtitle': 'FCU Fuxing Dormitory Network Support',
       'header.counter.prefix': 'Served',
@@ -113,12 +120,38 @@ const I18N = (() => {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved && SUPPORTED.includes(saved)) return saved;
     } catch (e) {
-      /* localStorage 被封鎖（無痕模式等）：忽略，改用預設語言 */
+      /* localStorage 被封鎖：忽略 */
     }
     return DEFAULT_LANG;
   }
 
-  /** 取得目前語言的字串（找不到 key 時 fallback 回中文，再 fallback 回 key 本身） */
+  function _escapeHTML(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function parseMarkdown(text) {
+    if (!text) return '';
+    let html = _escapeHTML(text);
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+      const escapedUrl = _escapeHTML(url);
+      if (escapedUrl.startsWith('http://') || escapedUrl.startsWith('https://')) {
+        return `<a href="${escapedUrl}" target="_blank" rel="noopener noreferrer" class="chat-link">${linkText}</a>`;
+      }
+      return linkText;
+    });
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\_([^_]+)\_/g, '<em>$1</em>');
+    html = html.replace(/\n/g, '<br>');
+    return html;
+  }
+
+  /** 取得目前語言的字串 */
   function t(key) {
     return (STRINGS[currentLang] && STRINGS[currentLang][key]) || STRINGS[DEFAULT_LANG][key] || key;
   }
@@ -131,6 +164,11 @@ const I18N = (() => {
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
       el.innerHTML = t(el.getAttribute('data-i18n'));
+    });
+
+    document.querySelectorAll('[data-i18n-markdown]').forEach(el => {
+      const key = el.getAttribute('data-i18n-markdown');
+      el.innerHTML = parseMarkdown(t(key));
     });
 
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
@@ -153,7 +191,6 @@ const I18N = (() => {
       if (labelEl) labelEl.textContent = t('langToggle.label');
     }
 
-    // 讓 chat.js / report.js 等模組知道語言已變更，可重繪「目前這一輪」的動態文字
     document.dispatchEvent(new CustomEvent('i18n:changed', { detail: { lang: currentLang } }));
   }
 
@@ -174,7 +211,7 @@ const I18N = (() => {
     document.getElementById('lang-toggle-btn')?.addEventListener('click', toggle);
   }
 
-  return { init, t, getLang, setLang, toggle };
+  return { init, t, parseMarkdown, getLang, setLang, toggle };
 })();
 
 document.addEventListener('DOMContentLoaded', () => I18N.init());

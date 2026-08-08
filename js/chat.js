@@ -13,6 +13,7 @@ const Chat = (() => {
   let sessionToken = null;
   let clientId = null;
   let activeButtons = [];
+  let currentMenuState = 'main'; // 'main', 'teach', 'setting', 'report', 'teams'
   let isWaitingForResponse = false;
 
   /** 取得 Client ID（持久化於 localStorage，用於依使用者計數限流） */
@@ -93,14 +94,17 @@ const Chat = (() => {
   }
 
   /* ── 訊息操作 ── */
-  function addMessage(text, isUser = false, isHtml = false) {
+  function addMessage(text, isUser = false, isHtml = false, i18nMarkdownKey = null) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
 
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
 
-    if (isHtml) {
+    if (i18nMarkdownKey) {
+      contentDiv.setAttribute('data-i18n-markdown', i18nMarkdownKey);
+      contentDiv.innerHTML = _parseMarkdown(I18N.t(i18nMarkdownKey));
+    } else if (isHtml) {
       contentDiv.innerHTML = text;
     } else if (isUser) {
       contentDiv.textContent = text;
@@ -119,8 +123,8 @@ const Chat = (() => {
     _scrollToBottom();
   }
 
-  function addBotMessage(text, isHtml = false) {
-    addMessage(text, false, isHtml);
+  function addBotMessage(text, isHtml = false, i18nMarkdownKey = null) {
+    addMessage(text, false, isHtml, i18nMarkdownKey);
   }
 
   function addUserMessage(text) {
@@ -205,6 +209,7 @@ const Chat = (() => {
 
   /* ── 主選單按鈕 ── */
   function _showMainButtons() {
+    currentMenuState = 'main';
     _addButtonGroup([
       { label: _B().TEACH, icon: '📚', action: 'teach' },
       { label: _B().SETTING, icon: '⚙️', action: 'setting' },
@@ -256,6 +261,7 @@ const Chat = (() => {
 
   /* ── 流程處理 ── */
   function _handleTeachFlow() {
+    currentMenuState = 'teach';
     addBotMessage(_R().TEACH_CHOOSE);
     _addButtonGroup([
       { label: _B().TEACH_WIN, icon: '💻', action: 'teach_win' },
@@ -265,6 +271,7 @@ const Chat = (() => {
   }
 
   function _handleTeachDoc(sys) {
+    currentMenuState = 'sub_action';
     const isWin = sys === 'win';
     const rawTemplate = isWin ? _R().TEACH_WINDOWS : _R().TEACH_MAC;
     const url = isWin ? CONFIG.DOCS.WINDOWS : CONFIG.DOCS.MAC;
@@ -278,6 +285,7 @@ const Chat = (() => {
   }
 
   function _handleSettingFlow() {
+    currentMenuState = 'sub_action';
     const items = _R().SETTING_ITEMS;
     let text = `${_R().SETTING_HEADER}\n\n`;
     text += `${items.ACCOUNT}\n\n`;
@@ -293,6 +301,7 @@ const Chat = (() => {
   }
 
   function _handleSettingSubtopic(topic) {
+    currentMenuState = 'sub_action';
     const items = _R().SETTING_ITEMS;
     let text = `${_R().SETTING_HEADER}\n\n`;
     switch (topic) {
@@ -320,6 +329,7 @@ const Chat = (() => {
   }
 
   function _handleReportFlow() {
+    currentMenuState = 'report';
     addBotMessage(_R().REPORT_TRIGGER);
     _addButtonGroup([
       { label: _B().OPEN_REPORT, icon: '📝', action: 'open_modal', className: 'btn-highlight' },
@@ -353,8 +363,8 @@ const Chat = (() => {
   }
 
   function _handleTeamsClick() {
+    currentMenuState = 'teams';
     addBotMessage(_R().TEAMS_FALLBACK);
-    const copyBtnText = `<span aria-hidden="true">📋</span> ${_B().TEAMS_COPY}`;
 
     _addButtonGroup([
       { label: _B().TEAMS_COPY, icon: '📋', action: 'copy_teams_account', className: 'btn-highlight' },
@@ -462,12 +472,36 @@ const Chat = (() => {
       });
     }
 
-    // 語言變更時更新全域按鈕
+    // 語言變更時，重繪 activeButtons
     document.addEventListener('i18n:changed', () => {
-      // 若目前為無狀態空背景，重繪主選單
       const group = document.getElementById('active-button-group');
-      if (group && activeButtons.length === 3 && activeButtons[0].dataset.action === 'teach') {
-        _showMainButtons();
+      if (group && activeButtons.length > 0) {
+        if (currentMenuState === 'main') {
+          _showMainButtons();
+        } else if (currentMenuState === 'teach') {
+          _addButtonGroup([
+            { label: _B().TEACH_WIN, icon: '💻', action: 'teach_win' },
+            { label: _B().TEACH_MAC, icon: '🍎', action: 'teach_mac' },
+            { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
+          ]);
+        } else if (currentMenuState === 'report') {
+          _addButtonGroup([
+            { label: _B().OPEN_REPORT, icon: '📝', action: 'open_modal', className: 'btn-highlight' },
+            { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
+          ]);
+          const modalBtn = document.querySelector('[data-action="open_modal"]');
+          if (modalBtn) {
+            modalBtn.addEventListener('click', () => {
+              _removeActiveButtons();
+              ReportForm.open();
+            });
+          }
+        } else if (currentMenuState === 'sub_action') {
+          _addButtonGroup([
+            { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'btn-highlight' },
+            { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
+          ]);
+        }
       }
     });
   }
@@ -478,7 +512,8 @@ const Chat = (() => {
     if (CONFIG.GAS_URL && CONFIG.GAS_URL !== 'YOUR_GAS_WEB_APP_URL_HERE') {
       _fetchToken();
     }
-    addBotMessage(_R().WELCOME);
+    // 歡迎訊息使用 data-i18n-markdown="welcome" 支援即時語言切換
+    addBotMessage('', false, 'welcome');
     _showMainButtons();
     _bindEvents();
   }
