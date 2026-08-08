@@ -51,6 +51,50 @@ const Chat = (() => {
   async function refreshToken() { await _fetchToken(); return _token; }
 
   /* ══════════════════════════════════════
+     Client ID 管理（依使用者區分頻率限制用）
+     與上方的一次性 Token 不同：Token 每次請求後即失效、故意不落地儲存；
+     Client ID 則需要「跨頁面重整仍保持穩定」才能讓後端的每使用者限流生效，
+     否則使用者只要重新整理頁面就能無限繞過限制，因此改存在 localStorage。
+
+     ⚠️ 這不是身分驗證，僅是一組隨機亂數，前端可被使用者自行清除或偽造；
+        後端仍會搭配「全域上限」作為第二層防護，兩者合併使用。
+        內容不含任何個資，也未回傳給第三方。
+  ══════════════════════════════════════ */
+  const CLIENT_ID_STORAGE_KEY = 'fcu_client_id';
+
+  function _generateUuid() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+      return window.crypto.randomUUID();
+    }
+    // 舊瀏覽器 fallback（不需要密碼學等級亂數，僅作限流用途的識別碼）
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
+  function _getOrCreateClientId() {
+    try {
+      let id = window.localStorage.getItem(CLIENT_ID_STORAGE_KEY);
+      if (!id) {
+        id = _generateUuid();
+        window.localStorage.setItem(CLIENT_ID_STORAGE_KEY, id);
+      }
+      return id;
+    } catch (e) {
+      // localStorage 被封鎖（無痕模式等）：退回單次 session 用的隨機值
+      console.warn('[Chat][ClientId] localStorage 無法使用，改用單次 session 識別碼:', e);
+      return _generateUuid();
+    }
+  }
+
+  const _clientId = _getOrCreateClientId();
+
+  /** 供 intent.js / report.js 呼叫：取得裝置識別碼（供後端依使用者區分限流） */
+  function getClientId() { return _clientId; }
+
+  /* ══════════════════════════════════════
      Markdown 簡易渲染器
      支援：**bold**、[text](url)、換行
   ══════════════════════════════════════ */
@@ -586,7 +630,7 @@ const Chat = (() => {
     }
   }
 
-  return { init, addBotMessage, addUserMessage, onReportSuccess, getToken, refreshToken };
+  return { init, addBotMessage, addUserMessage, onReportSuccess, getToken, refreshToken, getClientId };
 })();
 
 /* ── 啟動 ── */

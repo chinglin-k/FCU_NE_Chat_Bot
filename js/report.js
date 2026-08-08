@@ -176,33 +176,73 @@ const ReportForm = (() => {
   }
 
   /**
+   * 取得 reCAPTCHA v3 一次性 token
+   * grecaptcha.execute() 為隱形驗證（無需使用者互動），失敗時回傳空字串，
+   * 讓後端明確拒絕該次請求（GAS_URL 外洩後的濫用防線由後端強制把關，
+   * 前端這裡失敗不擋住 UI，只是最終一定會被後端拒絕）
+   * @param {string} action - 需與後端 _verifyRecaptcha() 的 expectedAction 一致
+   * @returns {Promise<string>}
+   */
+  async function _getRecaptchaToken(action) {
+    const siteKey = CONFIG.RECAPTCHA_SITE_KEY;
+    if (!siteKey || typeof grecaptcha === 'undefined') {
+      console.warn('[ReportForm][reCAPTCHA] 尚未載入 grecaptcha 或未設定 RECAPTCHA_SITE_KEY，後端將拒絕本次送出');
+      return '';
+    }
+    try {
+      return await new Promise((resolve) => {
+        grecaptcha.ready(() => {
+          grecaptcha.execute(siteKey, { action })
+            .then(resolve)
+            .catch((err) => {
+              console.warn('[ReportForm][reCAPTCHA] 取得 token 失敗:', err);
+              resolve('');
+            });
+        });
+      });
+    } catch (err) {
+      console.warn('[ReportForm][reCAPTCHA] 例外:', err);
+      return '';
+    }
+  }
+
+  /**
    * 向 GAS 送出報修資料（POST body，中性 MIME 防止 CORS preflight）
    * Content-Type: text/plain;charset=utf-8 不觸發 OPTIONS preflight
    * GAS 的 302 redirect 後 fetch() 會自動跟隨且保留 POST 方法
    */
   const REPORT_TIMEOUT_MS = 30000; // 30 秒途時保護
+  const RECAPTCHA_ACTION  = 'submit_report';
 
   async function _submitToGAS(reportData) {
     const controller = new AbortController();
     const timeoutId  = setTimeout(() => controller.abort(), REPORT_TIMEOUT_MS);
 
-    const _doFetch = async (token) => fetch(CONFIG.GAS_URL, {
+    const _doFetch = async (token, recaptchaToken) => fetch(CONFIG.GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'report', payload: reportData, token }),
+      body: JSON.stringify({
+        action: 'report',
+        payload: reportData,
+        token,
+        clientId: Chat.getClientId(),
+        recaptchaToken
+      }),
       signal: controller.signal
     });
 
     try {
-      let res = await _doFetch(Chat.getToken());
+      const recaptchaToken = await _getRecaptchaToken(RECAPTCHA_ACTION);
+      let res = await _doFetch(Chat.getToken(), recaptchaToken);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       let data = await res.json();
 
-      // Token 失效：自動重取後重試一次
+      // Token 失效：自動重取後重試一次（reCAPTCHA token 為一次性，需重新取得）
       if (data.error === 'INVALID_TOKEN') {
         console.warn('[ReportForm][Token] INVALID_TOKEN，重取後重試...');
         const newToken = await Chat.refreshToken();
-        res = await _doFetch(newToken);
+        const freshRecaptchaToken = await _getRecaptchaToken(RECAPTCHA_ACTION);
+        res = await _doFetch(newToken, freshRecaptchaToken);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         data = await res.json();
       }
