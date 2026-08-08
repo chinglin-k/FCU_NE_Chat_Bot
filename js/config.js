@@ -17,6 +17,14 @@ const CONFIG = Object.freeze({
    */
   GAS_URL: 'https://script.google.com/macros/s/AKfycbw9EUOHrcSvlAA72gAeq7Mz3HsBWqIR0BjeoFeWbIs7FpilYjgb2vCF0iOwA1NL_8sbjw/exec',
 
+  /**
+   * reCAPTCHA v3 網站金鑰（Site Key）
+   * 這是公開金鑰，設計上就是要放在前端程式碼中，可安全提交至 Git。
+   * ⚠️ 對應的 Secret Key 絕對不可放在這裡或任何前端檔案，
+   *    必須只存在 GAS 專案設定 → 指令碼屬性 → RECAPTCHA_SECRET_KEY 中。
+   */
+  RECAPTCHA_SITE_KEY: '6LehknstAAAAAPmlQlfjbI5nnbLY2fBrnmkXOcqI',
+
   /* ── 教學 PDF 文件連結 ── */
   DOCS: {
     WINDOWS: 'https://drive.google.com/file/d/11IYN9LHEiNRf1gf496jfv83ikd_GxIsd/view?usp=sharing',

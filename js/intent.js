@@ -81,7 +81,7 @@ const Intent = (() => {
         return fetch(CONFIG.GAS_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'classify', msg: message.trim(), token }),
+          body: JSON.stringify({ action: 'classify', msg: message.trim(), token, clientId: Chat.getClientId() }),
           signal: controller.signal
         });
       };
