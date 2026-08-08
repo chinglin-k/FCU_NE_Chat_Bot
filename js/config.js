@@ -26,11 +26,11 @@ const CONFIG = Object.freeze({
   /* ── Chatbot 回覆文字 ── */
   RESPONSES: {
     WELCOME:
-      '您好！我是**逢甲福星宿舍網路報修助理** 🔧\n' +
-      '您可以直接輸入問題，或點選下方按鈕選擇服務：\n\n' +
-      '_💡 您的訊息將用於 AI 意圖辨識，以便提供精準回覆，不會用於其他用途。_\n' +
-      '*Hello! I\'m the **FCU Fuxing Dormitory Network Repair Assistant** 🔧\n' +
-      'Type your question or tap a button below to get started.\n\n' +
+      '您好！我是逢甲福星宿舍網路報修助理 🔧\n' +
+      '您可以直接輸入問題，或點選下方按鈕選擇服務：\n' +
+      '_💡 您的訊息將用於 AI 意圖辨識，以便提供精準回覆，不會用於其他用途。_\n\n' +
+      '*Hello! I\'m the FCU Fuxing Dormitory Network Repair Assistant 🔧\n' +
+      'Type your question or tap a button below to get started.\n' +
       '💡 Your messages are used only for AI intent recognition and not for any other purpose.*',
 
     TEACH_CHOOSE:
