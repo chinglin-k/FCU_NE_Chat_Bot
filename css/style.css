@@ -1,19 +1,19 @@
 /* ============================================================
-   FCU å®¿è?ç¶²è·¯?±ä¿® Chatbot ???¨ç?æ¨??
-   è¨­è?ï¼šæ·±?²ç³» ? ?»ç??¬æ? ? ?•æ??ˆæ?
-   ?€å¾Œæ›´?°ï?2026-08-07ï¼ˆä¿®æ­???¢å?è¨ˆæ•¸?¨éš±?æ–·é»è‡³ 640pxï¼?
+   FCU å®¿ï¿½?ç¶²è·¯?ï¿½ä¿® Chatbot ???ï¿½ï¿½?ï¿½??
+   è¨­ï¿½?ï¼šæ·±?ï¿½ç³» ? ?ï¿½ï¿½??ï¿½ï¿½? ? ?ï¿½ï¿½??ï¿½ï¿½?
+   ?ï¿½å¾Œæ›´?ï¿½ï¿½?2026-08-07ï¼ˆä¿®ï¿½???ï¿½ï¿½?è¨ˆæ•¸?ï¿½éš±?ï¿½æ–·é»è‡³ 640pxï¿½?
    ============================================================ */
 
-/* ?€?€ Google Fonts ?è¨­å·²ç”± HTML è¼‰å…¥ ?€?€ */
+/* ?ï¿½?ï¿½ Google Fonts ?ï¿½è¨­å·²ç”± HTML è¼‰å…¥ ?ï¿½?ï¿½ */
 
-/* ?€?€ CSS è¨­è?è®Šæ•¸ ?€?€ */
+/* ?ï¿½?ï¿½ CSS è¨­ï¿½?è®Šæ•¸ ?ï¿½?ï¿½ */
 :root {
-  /* ä¸»è‰²èª?*/
+  /* ä¸»è‰²ï¿½?*/
   --color-bg-primary:    #0a0e1a;
   --color-bg-secondary:  #0d1730;
   --color-bg-tertiary:   #111d3a;
 
-  /* ?»ç??ˆæ? */
+  /* ?ï¿½ï¿½??ï¿½ï¿½? */
   --glass-bg:            rgba(255, 255, 255, 0.04);
   --glass-bg-hover:      rgba(255, 255, 255, 0.07);
   --glass-border:        rgba(255, 255, 255, 0.08);
@@ -26,7 +26,7 @@
   --color-accent-blue:   #38bdf8;
   --color-accent-blue-dim: rgba(56, 189, 248, 0.15);
 
-  /* ?‡å? */
+  /* ?ï¿½ï¿½? */
   --color-text-primary:  #e2e8f0;
   --color-text-secondary:#94a3b8;
   --color-text-muted:    #64748b;
@@ -43,7 +43,7 @@
   --input-border-focus:  rgba(249, 115, 22, 0.6);
   --input-text:          #e2e8f0;
 
-  /* ?°å½± */
+  /* ?ï¿½å½± */
   --shadow-sm:  0 2px 8px rgba(0,0,0,0.3);
   --shadow-md:  0 4px 20px rgba(0,0,0,0.4);
   --shadow-lg:  0 8px 40px rgba(0,0,0,0.5);
@@ -51,7 +51,7 @@
   --glow-blue:   0 0 20px rgba(56, 189, 248, 0.2);
   --glow-blue-strong: 0 0 28px rgba(56, 189, 248, 0.55);
 
-  /* Teams ?ç?ç´«è‰²ç³»ï??å? Teams 2025 icon æ¼¸å±¤ï¼?*/
+  /* Teams ?ï¿½ï¿½?ç´«è‰²ç³»ï¿½??ï¿½ï¿½? Teams 2025 icon æ¼¸å±¤ï¿½?*/
   --color-teams-purple:     #7B83EB;
   --color-teams-purple-dim: rgba(123, 131, 235, 0.18);
   --glow-teams:             0 0 18px rgba(123, 131, 235, 0.45);
@@ -65,12 +65,12 @@
   --radius-lg:  20px;
   --radius-xl:  28px;
 
-  /* ?•ç•« */
+  /* ?ï¿½ç•« */
   --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ?€?€ Reset ?€?€ */
+/* ?ï¿½?ï¿½ Reset ?ï¿½?ï¿½ */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -104,7 +104,7 @@ a:hover {
   text-decoration: underline;
 }
 
-/* ?€?€ App å®¹å™¨ ?€?€ */
+/* ?ï¿½?ï¿½ App å®¹å™¨ ?ï¿½?ï¿½ */
 #app {
   display: flex;
   flex-direction: column;
@@ -114,7 +114,7 @@ a:hover {
   position: relative;
 }
 
-/* ?€?€ Header ?€?€ */
+/* ?ï¿½?ï¿½ Header ?ï¿½?ï¿½ */
 .chat-header {
   flex-shrink: 0;
   height: var(--header-height);
@@ -145,7 +145,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-  /* è®?flex-item ?½æ­£ç¢ºç¸®å°ï??²æ­¢?€å°å¯¬åº¦é???*/
+  /* ï¿½?flex-item ?ï¿½æ­£ç¢ºç¸®å°ï¿½??ï¿½æ­¢?ï¿½å°å¯¬åº¦ï¿½???*/
   min-width: 0;
   flex-shrink: 1;
   overflow: hidden;
@@ -176,13 +176,13 @@ a:hover {
   color: var(--color-text-primary);
   letter-spacing: 0.02em;
   line-height: 1.2;
-  /* ?®è?é¡¯ç¤º + è¶…å‡º?ç•¥?Ÿï??²æ­¢çª„å?å¹•ä??²è??›è? */
+  /* ?ï¿½ï¿½?é¡¯ç¤º + è¶…å‡º?ï¿½ç•¥?ï¿½ï¿½??ï¿½æ­¢çª„ï¿½?å¹•ï¿½??ï¿½ï¿½??ï¿½ï¿½? */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* header-text ?€è¦?overflow:hidden ?èƒ½è®?text-overflow ?Ÿæ? */
+/* header-text ?ï¿½ï¿½?overflow:hidden ?ï¿½èƒ½ï¿½?text-overflow ?ï¿½ï¿½? */
 .header-text {
   min-width: 0;
   overflow: hidden;
@@ -232,7 +232,7 @@ a:hover {
   font-size: 12px;
 }
 
-/* ?€?€ Header ?³å´ç¾¤ç?ï¼ˆè??¸å™¨ + Teams ???ï¼??€?€ */
+/* ?ï¿½?ï¿½ Header ?ï¿½å´ç¾¤ï¿½?ï¼ˆï¿½??ï¿½å™¨ + Teams ???ï¿½??ï¿½?ï¿½ */
 .header-right {
   display: flex;
   align-items: center;
@@ -240,7 +240,7 @@ a:hover {
   flex-shrink: 0;
 }
 
-/* ?€?€ Teams å¸¸é????ï¼ˆHeader ?³ä?è§’å?ç¤ºæ??•ï?é¡¯çœ¼è¨­è?ï¼??€?€ */
+/* ?ï¿½?ï¿½ Teams å¸¸ï¿½????ï¼ˆHeader ?ï¿½ï¿½?è§’ï¿½?ç¤ºï¿½??ï¿½ï¿½?é¡¯çœ¼è¨­ï¿½?ï¿½??ï¿½?ï¿½ */
 .header-teams-link {
   display: flex;
   align-items: center;
@@ -284,7 +284,7 @@ a:hover {
   letter-spacing: 0.04em;
 }
 
-/* ?€?€ Teams è¤‡è£½?‰é?ï¼ˆè?å¤©å?ï¼Œç¹¼??quick-btn ?ºç?æ¨??ï¼??€?€ */
+/* ?ï¿½?ï¿½ Teams è¤‡è£½?ï¿½ï¿½?ï¼ˆï¿½?å¤©ï¿½?ï¼Œç¹¼??quick-btn ?ï¿½ï¿½?ï¿½??ï¿½??ï¿½?ï¿½ */
 .quick-btn.teams-copy-btn {
   border-color: var(--glass-border-active);
   color: var(--color-accent-blue);
@@ -295,7 +295,7 @@ a:hover {
   border-color: var(--color-accent-blue);
 }
 
-/* ?€?€ Chat Main Area ?€?€ */
+/* ?ï¿½?ï¿½ Chat Main Area ?ï¿½?ï¿½ */
 .chat-main {
   flex: 1;
   overflow: hidden;
@@ -323,7 +323,7 @@ a:hover {
   border-radius: 2px;
 }
 
-/* ?€?€ Message Wrappers ?€?€ */
+/* ?ï¿½?ï¿½ Message Wrappers ?ï¿½?ï¿½ */
 .msg-wrapper {
   display: flex;
   gap: 10px;
@@ -350,7 +350,7 @@ a:hover {
   flex-direction: row-reverse;
 }
 
-/* ?€?€ Avatars ?€?€ */
+/* ?ï¿½?ï¿½ Avatars ?ï¿½?ï¿½ */
 .msg-avatar {
   width: 34px;
   height: 34px;
@@ -373,7 +373,7 @@ a:hover {
   border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
-/* ?€?€ Message Content ?€?€ */
+/* ?ï¿½?ï¿½ Message Content ?ï¿½?ï¿½ */
 .msg-content {
   display: flex;
   flex-direction: column;
@@ -381,7 +381,7 @@ a:hover {
   max-width: calc(100% - 60px);
 }
 
-/* ?€?€ Bubble ?€?€ */
+/* ?ï¿½?ï¿½ Bubble ?ï¿½?ï¿½ */
 .msg-bubble {
   padding: 12px 16px;
   border-radius: var(--radius-lg);
@@ -420,7 +420,7 @@ a:hover {
   color: rgba(255,255,255,0.9);
 }
 
-/* ?€?€ Button Group (quick-reply buttons) ?€?€ */
+/* ?ï¿½?ï¿½ Button Group (quick-reply buttons) ?ï¿½?ï¿½ */
 .btn-group {
   display: flex;
   flex-wrap: wrap;
@@ -478,7 +478,7 @@ a:hover {
   box-shadow: none !important;
 }
 
-/* ?€?€ Typing Indicator ?€?€ */
+/* ?ï¿½?ï¿½ Typing Indicator ?ï¿½?ï¿½ */
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -506,7 +506,7 @@ a:hover {
   30% { transform: translateY(-6px); opacity: 1; }
 }
 
-/* ?€?€ Link Button in bubble ?€?€ */
+/* ?ï¿½?ï¿½ Link Button in bubble ?ï¿½?ï¿½ */
 .doc-link-btn {
   display: inline-flex;
   align-items: center;
@@ -531,7 +531,7 @@ a:hover {
   transform: translateX(2px);
 }
 
-/* ?€?€ Footer / Input Area ?€?€ */
+/* ?ï¿½?ï¿½ Footer / Input Area ?ï¿½?ï¿½ */
 .chat-footer {
   flex-shrink: 0;
   padding: 12px 16px 10px;
@@ -619,9 +619,9 @@ a:hover {
   letter-spacing: 0.03em;
 }
 
-/* ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
-   MODAL ???±ä¿®è¡¨å–®
-?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â? */
+/* ?ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½?
+   MODAL ???ï¿½ä¿®è¡¨å–®
+?ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½? */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -712,7 +712,7 @@ a:hover {
   color: #ef4444;
 }
 
-/* ?€?€ Report Form ?€?€ */
+/* ?ï¿½?ï¿½ Report Form ?ï¿½?ï¿½ */
 .report-form {
   padding: 20px 24px 32px;
   display: flex;
@@ -778,7 +778,7 @@ a:hover {
   min-height: 90px;
 }
 
-/* ?€?€ ?¯ç¶­ä¿®æ??“ï?????è¼¸å…¥???€?€ */
+/* ?ï¿½?ï¿½ ?ï¿½ç¶­ä¿®ï¿½??ï¿½ï¿½?????è¼¸å…¥???ï¿½?ï¿½ */
 .repair-time-row {
   display: flex;
   align-items: center;
@@ -806,7 +806,7 @@ a:hover {
   flex-shrink: 0;
 }
 
-/* ?‚é??ç¤º?‡å? */
+/* ?ï¿½ï¿½??ï¿½ç¤º?ï¿½ï¿½? */
 .field-hint {
   font-size: 12px;
   color: var(--color-text-secondary);
@@ -821,7 +821,7 @@ a:hover {
   color: var(--color-accent-orange);
 }
 
-/* è¡¨å–®?¯èª¤è¨Šæ¯ */
+/* è¡¨å–®?ï¿½èª¤è¨Šæ¯ */
 .form-error {
   font-size: 13px;
   color: #f87171;
@@ -901,15 +901,15 @@ a:hover {
 .loading-dot:nth-child(2) { animation-delay: 0.2s; }
 .loading-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* ?€?€ Success State ?€?€ */
+/* ?ï¿½?ï¿½ Success State ?ï¿½?ï¿½ */
 .msg-wrapper.success .msg-bubble {
   background: rgba(34, 197, 94, 0.1);
   border-color: rgba(34, 197, 94, 0.25);
 }
 
-/* ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
-   RESPONSIVE ???‹æ??ªå?
-?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â? */
+/* ?ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½?
+   RESPONSIVE ???ï¿½ï¿½??ï¿½ï¿½?
+?ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½? */
 @media (max-width: 640px) {
   :root {
     --header-height: 60px;
@@ -918,7 +918,7 @@ a:hover {
   .header-title { font-size: 13px; }
   .header-subtitle { display: none; }
 
-  /* ?€?€ çª„è¢å¹•éš±?è??¸å™¨ï¼ˆJS ä»ç…§å¸¸è??¸ï??ªæ˜¯ä¸é¡¯ç¤ºï? ?€?€ */
+  /* ?ï¿½?ï¿½ çª„è¢å¹•éš±?ï¿½ï¿½??ï¿½å™¨ï¼ˆJS ä»ç…§å¸¸ï¿½??ï¿½ï¿½??ï¿½æ˜¯ä¸é¡¯ç¤ºï¿½? ?ï¿½?ï¿½ */
   .header-counter { display: none; }
 
   .chat-messages { padding: 14px 12px; gap: 10px; }
@@ -935,7 +935,7 @@ a:hover {
 
   .form-row { grid-template-columns: 1fr; gap: 16px; }
 
-  /* iOS Safariï¼šinput font-size < 16px ?ƒè§¸?¼è‡ª?•ç¸®?¾ï?å¼·åˆ¶è¨­ç‚º 16px */
+  /* iOS Safariï¼šinput font-size < 16px ?ï¿½è§¸?ï¿½è‡ª?ï¿½ç¸®?ï¿½ï¿½?å¼·åˆ¶è¨­ç‚º 16px */
   .form-group input,
   .form-group textarea,
   .chat-input {
@@ -946,13 +946,13 @@ a:hover {
   .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
 }
 
-/* ?€?€ æ¥µç??‹æ?ï¼ˆiPhone SE ç­‰ï???60pxï¼‰â??€ */
+/* ?ï¿½?ï¿½ æ¥µï¿½??ï¿½ï¿½?ï¼ˆiPhone SE ç­‰ï¿½???60pxï¼‰ï¿½??ï¿½ */
 @media (max-width: 360px) {
-  /* Teams ?‰é??ªé?ç¤?iconï¼Œéš±?æ?å­?*/
+  /* Teams ?ï¿½ï¿½??ï¿½ï¿½?ï¿½?iconï¼Œéš±?ï¿½ï¿½?ï¿½?*/
   .teams-link-text { display: none; }
-  /* ç¸®å? padding ï¼Œé?ä½æ??•å??¨å¯¬åº?*/
+  /* ç¸®ï¿½? padding ï¼Œï¿½?ä½ï¿½??ï¿½ï¿½??ï¿½å¯¬ï¿½?*/
   .header-teams-link { padding: 5px 8px; gap: 4px; }
-  /* aria-label ?€å·²ä??™ï??¡é?ç¤™ä??—å½±??*/
+  /* aria-label ?ï¿½å·²ï¿½??ï¿½ï¿½??ï¿½ï¿½?ç¤™ï¿½??ï¿½å½±??*/
 }
 
 @media (min-width: 760px) {
@@ -969,7 +969,7 @@ a:hover {
   }
 }
 
-/* ?€?€ Accessibility ?€?€ */
+/* ?ï¿½?ï¿½ Accessibility ?ï¿½?ï¿½ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -977,11 +977,11 @@ a:hover {
   }
 }
 
-/* ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
-   ?±ä¿®?å??«é¢ï¼ˆModal ??success viewï¼?
-?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â? */
+/* ?ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½?
+   ?ï¿½ä¿®?ï¿½ï¿½??ï¿½é¢ï¼ˆModal ??success viewï¿½?
+?ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½??ï¿½ï¿½? */
 
-/* .is-hiddenï¼šé€šç”¨?±è?å·¥å…· classï¼Œå„ª?ˆç?é«˜æ–¼?€??display è¨­å? */
+/* .is-hiddenï¼šé€šç”¨?ï¿½ï¿½?å·¥å…· classï¼Œå„ª?ï¿½ï¿½?é«˜æ–¼?ï¿½??display è¨­ï¿½? */
 .is-hidden {
   display: none !important;
 }
@@ -1019,7 +1019,7 @@ a:hover {
   margin: 0 0 20px;
 }
 
-/* ?’æ•¸?²åº¦æ¢?*/
+/* ?ï¿½æ•¸?ï¿½åº¦ï¿½?*/
 .success-bar-wrap {
   width: 100%;
   max-width: 260px;
@@ -1037,7 +1037,7 @@ a:hover {
   transform-origin: left;
 }
 
-/* ?•ç•« */
+/* ?ï¿½ç•« */
 @keyframes successPop {
   0%   { transform: scale(0.3); opacity: 0; }
   70%  { transform: scale(1.15); }
@@ -1049,10 +1049,10 @@ a:hover {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ¢w¢w Âù»y¤Æ¡G­^¤åÂ½Ä¶»²§U¼Ë¦¡ | Bilingual: English translation helper ¢w¢w */
+/* ï¿½wï¿½w ï¿½ï¿½ï¿½yï¿½Æ¡Gï¿½^ï¿½ï¿½Â½Ä¶ï¿½ï¿½ï¿½Uï¿½Ë¦ï¿½ | Bilingual: English translation helper ï¿½wï¿½w */
 .text-en { font-size: 0.82em; color: #94a3b8; font-style: italic; font-weight: 400; opacity: 0.85; letter-spacing: 0.015em; line-height: 1.35; }
 
-/* ¦b block ¤¸¯À¡]¦p <span class="text-en"> ¿W¥ß¦¨¦æ®É¡^±j¨î´«¦æ */
+/* ï¿½b block ï¿½ï¿½ï¿½ï¿½ï¿½]ï¿½p <span class="text-en"> ï¿½Wï¿½ß¦ï¿½ï¿½ï¿½É¡^ï¿½jï¿½î´«ï¿½ï¿½ */
 span.text-en:not([aria-hidden]) {
   display: block;
   margin-top: 2px;

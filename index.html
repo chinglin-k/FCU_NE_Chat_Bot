@@ -40,6 +40,19 @@
           <span class="counter-label counter-label-suffix" data-i18n="header.counter.suffix">人</span>
           <span class="counter-star" aria-hidden="true">✨</span>
         </div>
+
+        <!-- ── 語言切換懸浮膠囊按鈕（移入 Header 右側，不與聊天訊息重疊） ── -->
+        <button
+          id="lang-toggle-btn"
+          class="lang-toggle-btn"
+          type="button"
+          aria-pressed="false"
+          data-i18n-aria-label="langToggle.aria"
+          aria-label="切換語言 / Switch Language"
+        >
+          <span class="lang-toggle-label" aria-hidden="true">中 / EN</span>
+        </button>
+
         <!-- ── Teams 常駐連結 ── -->
         <button
           id="teams-header-btn"
@@ -49,7 +62,7 @@
           data-i18n-title="teams.title"
           title="使用 Microsoft Teams 聯絡福星宿舍網路報修平台"
         >
-          <!-- Microsoft Teams 2025 icon：兩人形 + 左下角白T藍紫方塊 -->
+          <!-- Microsoft Teams 2025 icon -->
           <svg class="teams-svg-icon" viewBox="0 0 40 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <linearGradient id="tg-a" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -61,17 +74,11 @@
                 <stop offset="100%" stop-color="#6264A7"/>
               </linearGradient>
             </defs>
-            <!-- 右側小人（頭） -->
             <circle cx="30" cy="7" r="5" fill="url(#tg-b)" opacity="0.9"/>
-            <!-- 右側小人（身體） -->
             <path d="M22 20c0-5 3.6-9 8-9s8 4 8 9v2H22v-2z" fill="url(#tg-b)" opacity="0.85"/>
-            <!-- 左側大人（頭） -->
             <circle cx="17" cy="8" r="7" fill="url(#tg-a)"/>
-            <!-- 左側大人（身體） -->
             <path d="M3 28c0-7.7 6.3-14 14-14s14 6.3 14 28z" fill="url(#tg-a)"/>
-            <!-- 左下角白T藍紫方塊 -->
             <rect x="0" y="18" width="18" height="18" rx="4" fill="url(#tg-a)"/>
-            <!-- 白色 T 字 -->
             <path fill="white" d="M4 22h10v2.5H11v7H7v-7H4z"/>
           </svg>
           <span class="teams-link-text" id="teams-header-text" data-i18n="teams.button">聯絡我們</span>
@@ -81,18 +88,6 @@
 
     <!-- ── Chat Messages Area ── -->
     <main class="chat-main" role="main">
-      <!-- ── 語言切換懸浮按鈕 ── -->
-      <button
-        id="lang-toggle-btn"
-        class="lang-toggle-btn"
-        type="button"
-        aria-pressed="false"
-        data-i18n-aria-label="langToggle.aria"
-        aria-label="切換語言 / Switch Language"
-      >
-        <span class="lang-toggle-label" aria-hidden="true">中 / EN</span>
-      </button>
-
       <div class="chat-messages" id="chat-messages" aria-live="polite" aria-label="對話訊息">
         <!-- 訊息由 JavaScript 動態插入 -->
       </div>
@@ -190,7 +185,7 @@
           </div>
         </form>
 
-        <!-- ── 送出成功畫面（送出後顯示，取代表單）── -->
+        <!-- ── 送出成功畫面 ── -->
         <div id="modal-success-view" class="modal-success-view is-hidden">
           <div class="success-icon-wrap" aria-hidden="true">✅</div>
           <h3 class="success-title" data-i18n="success.title">報修成功！</h3>
@@ -232,7 +227,7 @@
 
   </div><!-- /#app -->
 
-  <!-- Scripts（載入順序：i18n → config → counter → intent → report → teams → chat） -->
+  <!-- Scripts -->
   <script src="js/i18n.js"></script>
   <script src="js/config.js"></script>
   <script src="js/counter.js"></script>
