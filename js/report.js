@@ -196,8 +196,7 @@ const ReportForm = (() => {
     _setLoading(false);
     
     // 清除表單輸入內容
-    form.reset();
-    _resetRepairTime();
+    _resetForm();
 
     // 立刻關閉 Modal
     close();
