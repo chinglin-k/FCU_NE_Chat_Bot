@@ -1,6 +1,6 @@
 # 開發待辦清單（todo.md）
 
-**版本 / Version**：v1.1.0 (Spec v3.1)  
+**版本 / Version**：v1.2.0 (Spec v3.2)  
 **最後更新 / Last Updated**：2026-08-08
 
 ---
@@ -20,6 +20,19 @@
 | P2 | 非網管問題轉介 | ✅ Done | 宿舍服務台 / 行動逢甲 |
 | P2 | 累積使用人數統計 | ✅ Done | `counter.js` + GAS |
 | P3 | GitHub Pages 部署 | ✅ Done | PR → main → Pages 已上線 |
+
+---
+
+## F 輪：中英文介面分離與 reCAPTCHA 合規揭露（2026-08-08）
+
+| 功能 | 狀態 | 說明 |
+|---|---|---|
+| 中/英文介面分離與懸浮切換按鈕 | ✅ Done | 建立 `js/i18n.js`，於 `.chat-main` 右上角新增懸浮按鈕 (`#lang-toggle-btn`) |
+| 雙語鏡像結構重構 (`js/config.js`) | ✅ Done | `RESPONSES`、`SETTING_ITEMS`、`INTENT_LABELS`、`BUTTON_LABELS` 重構為 `{ zh, en }` 結構 |
+| DOM 靜態外殼掃描器 | ✅ Done | `index.html` 移除 `text-en` 合併寫法，全面套用 `data-i18n*` 屬性 |
+| 隱藏 reCAPTCHA 徽章與合規揭露 | ✅ Done | CSS 隱藏 `.grecaptcha-badge`，於頁尾新增雙語揭露段落 `.recaptcha-disclosure` |
+| 語言偏好持久化與 CustomEvent | ✅ Done | 語言存於 `localStorage` (`fcu_ne_lang`)，切換時發送 `i18n:changed` 事件 |
+| 單元測試擴充與對齊 | ✅ Done | 建立 `test/i18n.test.js`，39/39 單元測試項目 Passing |
 
 ---
 
