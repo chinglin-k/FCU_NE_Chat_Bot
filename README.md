@@ -19,6 +19,32 @@
 
 ---
 
+## 🌐 多國語言備援分類器支援 (Multilingual Fallback Classifier)
+
+當 Gemini API 達到配額限制或網路異常時，系統會自動切換至 GAS 本地 **Rule-based 關鍵字備援分類器**。該分類器支援多達 **16 種語言與地區語言** 的精準意圖辨識：
+
+| 編號 | 語言 / 地區 | 程式碼標記 / Code | 支援範例關鍵字 (Sample Keywords) |
+|---|---|---|---|
+| 1 | 繁體中文 (Traditional Chinese) | `zh-TW` | 報修, 網路孔, 轉接器, WiFi密碼, 教學 |
+| 2 | 英文 (English) | `en` | repair, broken port, adapter, wifi password, tutorial |
+| 3 | 日文 (Japanese) | `ja` | 報修, 壁のポート, 変換アダプタ, パスワード, マニュアル |
+| 4 | 馬來文 (Malay) | `ms` | baiki, port dinding, penyesuai, kata laluan, panduan |
+| 5 | 韓文 (Korean) | `ko` | 수리, 랜선 포트, 어댑터, 비밀번호, 매뉴얼 |
+| 6 | 印尼文 (Indonesian) | `id` | perbaiki, port dinding, adaptor, kata sandi, panduan |
+| 7 | 菲律賓文 / 他加祿文 (Filipino / Tagalog) | `tl` | ayusin, port sa pader, converter, password, gabay |
+| 8 | 泰文 (Thai) | `th` | ซ่อม, พอร์ตผนัง, อะแดปเตอร์, รหัสผ่าน, คู่มือ |
+| 9 | 南非荷蘭文 (Afrikaans) | `af` (南非) | herstel, muurpoort, drywer, wagwoord, gids |
+| 10 | 法文 (French) | `fr` (法國 / 布吉納法索) | réparer, prise murale, adaptateur, mot de passe, manuel |
+| 11 | 史瓦帝尼文 (siSwati / Swati) | `ss` (史瓦帝尼) | kulungisa, libhothi, adaptha, iphasiwedi, sihlahlo |
+| 12 | 越南文 (Vietnamese) | `vi` | sửa, cổng mạng, bộ chuyển đổi, mật khẩu, hướng dẫn |
+| 13 | 墨西哥西班牙文 (Spanish - Mexico) | `es-MX` (墨西哥) | reparar, puerto de pared, adaptador, contraseña, manual |
+| 14 | 摩西文 / 法文 (Mooré / French) | `mos` (布吉納法索) | maane, prise murale, adaptateur, compte, manuel |
+| 15 | 蒙古文 (Mongolian) | `mn` | засвар, ханын порт, адаптер, нууц үг, заавар |
+| 16 | 埃及阿拉伯文 (Egyptian Arabic) | `ar-EG` (埃及) | تصليح, منفذ حائط, محول, كلمة السر, دليل |
+| 17 | 厄瓜多西班牙文 (Spanish - Ecuador) | `es-EC` (厄瓜多) | arreglar, toma de red, convertidor, clave, guía |
+
+---
+
 ## 技術架構
 
 | 層次 | 技術 |
