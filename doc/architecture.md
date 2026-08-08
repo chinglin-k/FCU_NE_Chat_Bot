@@ -1,7 +1,7 @@
 # 架構設計文件 (Architecture Design Document)
 
-**版本 / Version**：v1.2.0 (Spec v3.2)  
-**最後更新 / Last Updated**：2026-08-08
+**版本 / Version**：v3.1.0  
+**最後更新 / Last Updated**：2026-08-08（Security Hardening: reCAPTCHA v3, Dual-Tier Rate Limiting, 9-Model Gemini Fallback Matrix, Client ID & Token Validation）
 
 ---
 
@@ -47,9 +47,8 @@ graph TD
 
 | 模組 / Module | 職責 / Responsibilities |
 |---|---|
-| `config.js` | 集中管理 GAS URL、RECAPTCHA_SITE_KEY、PDF 連結、雙語鏡像回覆與按鈕文字 (`CONFIG.RESPONSES.{zh,en}`, `CONFIG.BUTTON_LABELS.{zh,en}`) |
-| `i18n.js` | 輕量語系切換模組（早於 config.js 載入），維護 DOM 靜態 UI 掃描機制 (`data-i18n*`)、`localStorage` 語言持久化與 `i18n:changed` 事件 |
-| `chat.js` | 對話流程控制、Token 初始化管理 (`_fetchToken`, `getToken`, `refreshToken`)、Client ID 管理 (`getClientId`)，依據 `I18N.getLang()` 即時渲染回應 |
+| `config.js` | 集中管理 GAS URL、RECAPTCHA_SITE_KEY、PDF 連結、雙語回覆文字 (`CONFIG.RESPONSES`)、`CONFIG.TEAMS` |
+| `chat.js` | 對話流程控制、Token 初始化管理 (`_fetchToken`, `getToken`, `refreshToken`)、Client ID 管理 (`getClientId`) |
 | `intent.js` | 發送 POST Body (含 Token + Client ID) 呼叫 GAS 進行意圖分類，支援 25s Timeout 與 Token 重試 |
 | `report.js` | 報修表單 Modal 開關、學號/電話/床號前端格式強驗證、reCAPTCHA token 取得、POST Body 送出 |
 | `counter.js` | 讀取 / 累加使用人數，更新 Header 雙語數字 |
