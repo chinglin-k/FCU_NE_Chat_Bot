@@ -194,24 +194,20 @@ const ReportForm = (() => {
 
   function _handleSuccess() {
     _setLoading(false);
-    form.setAttribute('hidden', '');
-    successView.classList.remove('is-hidden');
-    modal.classList.add('has-success');
+    
+    // 清除表單輸入內容
+    form.reset();
+    _resetRepairTime();
 
-    const progressBar = document.getElementById('success-progress-bar');
-    if (progressBar) {
-      progressBar.style.transition = 'none';
-      progressBar.style.width = '0%';
-      requestAnimationFrame(() => {
-        progressBar.style.transition = 'width 2s linear';
-        progressBar.style.width = '100%';
-      });
-    }
+    // 立刻關閉 Modal
+    close();
 
-    setTimeout(() => {
-      close();
+    // 呼叫 chat.js 提供的方法來渲染成功訊息與主按鈕
+    if (typeof Chat.onReportSuccess === 'function') {
+      Chat.onReportSuccess();
+    } else {
       Chat.addBotMessage(_R().REPORT_SUCCESS);
-    }, 2000);
+    }
   }
 
   /* ── 事件綁定 ── */
