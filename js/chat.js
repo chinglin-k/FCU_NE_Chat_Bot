@@ -21,11 +21,16 @@ const Chat = (() => {
   let _isProcessing = false;
 
   /* ══════════════════════════════════════
-     一次性 Token 管理
-     Token 存在記憶體變數（不存 localStorage/sessionStorage）
-     頁面重整後會重取，是可接受的行為
+     一次性 Token 與 ClientID 管理
   ══════════════════════════════════════ */
   let _token = null;
+
+  let _clientId = localStorage.getItem('fcu_chat_client_id');
+  if (!_clientId) {
+    _clientId = 'C_' + Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('fcu_chat_client_id', _clientId);
+  }
+  function getClientId() { return _clientId; }
 
   /** 取得目前語言的回應字典（縮寫存取） */
   function _R() { return CONFIG.RESPONSES[I18N.getLang()]; }
@@ -595,7 +600,7 @@ const Chat = (() => {
     }
   }
 
-  return { init, addBotMessage, addUserMessage, onReportSuccess, getToken, refreshToken };
+  return { init, addBotMessage, addUserMessage, onReportSuccess, getToken, refreshToken, getClientId };
 })();
 
 /* ── 啟動 ── */
