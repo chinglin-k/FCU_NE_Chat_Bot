@@ -133,22 +133,22 @@
             <label><span data-i18n="form.repairTime.label">可維修時間</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
             <div class="repair-time-row" role="group" data-i18n-aria-label="form.repairTime.range" aria-label="可維修時間範圍">
               <input type="text" id="field-repair-hour-start" name="repairHourStart"
-                placeholder="時" required inputmode="numeric" pattern="([0-9]|1[0-9]|2[0-3])"
+                placeholder="時" data-i18n-placeholder="form.repairTime.hour.placeholder" required inputmode="numeric" pattern="([0-9]|1[0-9]|2[0-3])"
                 maxlength="2" data-i18n-aria-label="form.repairTime.startHour" aria-label="開始小時（0-23）" class="repair-time-input">
-              <span class="repair-time-sep" aria-hidden="true">時</span>
+              <span class="repair-time-sep" aria-hidden="true" data-i18n="form.repairTime.hour.placeholder">時</span>
               <input type="text" id="field-repair-min-start" name="repairMinStart"
-                placeholder="分" required inputmode="numeric" pattern="([0-9]|[1-5][0-9])"
+                placeholder="分" data-i18n-placeholder="form.repairTime.min.placeholder" required inputmode="numeric" pattern="([0-9]|[1-5][0-9])"
                 maxlength="2" data-i18n-aria-label="form.repairTime.startMin" aria-label="開始分鐘（0-59）" class="repair-time-input">
-              <span class="repair-time-sep" aria-hidden="true">分</span>
-              <span class="repair-time-dash" aria-hidden="true">─</span>
+              <span class="repair-time-sep" aria-hidden="true" data-i18n="form.repairTime.min.placeholder">分</span>
+              <span class="repair-time-dash" aria-hidden="true" data-i18n="form.repairTime.sep">─</span>
               <input type="text" id="field-repair-hour-end" name="repairHourEnd"
-                placeholder="時" required inputmode="numeric" pattern="([0-9]|1[0-9]|2[0-3])"
+                placeholder="時" data-i18n-placeholder="form.repairTime.hour.placeholder" required inputmode="numeric" pattern="([0-9]|1[0-9]|2[0-3])"
                 maxlength="2" data-i18n-aria-label="form.repairTime.endHour" aria-label="結束小時（0-23）" class="repair-time-input">
-              <span class="repair-time-sep" aria-hidden="true">時</span>
+              <span class="repair-time-sep" aria-hidden="true" data-i18n="form.repairTime.hour.placeholder">時</span>
               <input type="text" id="field-repair-min-end" name="repairMinEnd"
-                placeholder="分" required inputmode="numeric" pattern="([0-9]|[1-5][0-9])"
+                placeholder="分" data-i18n-placeholder="form.repairTime.min.placeholder" required inputmode="numeric" pattern="([0-9]|[1-5][0-9])"
                 maxlength="2" data-i18n-aria-label="form.repairTime.endMin" aria-label="結束分鐘（0-59）" class="repair-time-input">
-              <span class="repair-time-sep" aria-hidden="true">分</span>
+              <span class="repair-time-sep" aria-hidden="true" data-i18n="form.repairTime.min.placeholder">分</span>
             </div>
             <p class="field-hint" id="repair-time-hint" data-i18n="form.repairTime.hint">
               ⏰ 可維修時間請填寫 <strong>18:00–21:00</strong> 之間（本人需在場）。新生入住期間 12:00–17:00 收到後會盡速前往協助。

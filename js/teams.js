@@ -72,18 +72,13 @@ const Teams = (() => {
     }, 2500);
   }
 
-  /**
-   * 一鍵複製 Teams 帳號名稱
-   * 複製 CONFIG.RESPONSES.TEAMS_ACCOUNT_NAME 的文字
-   * @param {HTMLButtonElement} [btnEl] - 點擊的按鈕元素（可選，複製後提示文字用）
-   */
   async function copyAccountName(btnEl) {
-    const text = CONFIG.RESPONSES.TEAMS_ACCOUNT_NAME;
+    const text = CONFIG.RESPONSES[I18N.getLang()].TEAMS_ACCOUNT_NAME;
     try {
       await navigator.clipboard.writeText(text);
       if (btnEl) {
         const original = btnEl.textContent;
-        btnEl.textContent = CONFIG.RESPONSES.TEAMS_COPY_SUCCESS;
+        btnEl.textContent = CONFIG.RESPONSES[I18N.getLang()].TEAMS_COPY_SUCCESS;
         btnEl.disabled = true;
         setTimeout(() => {
           btnEl.textContent = original;

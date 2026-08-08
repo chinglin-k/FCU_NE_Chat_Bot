@@ -43,6 +43,9 @@ const I18N = (() => {
       'form.repairTime.startMin.aria': '開始分鐘（0-59）',
       'form.repairTime.endHour.aria': '結束小時（0-23）',
       'form.repairTime.endMin.aria': '結束分鐘（0-59）',
+      'form.repairTime.hour.placeholder': '時',
+      'form.repairTime.min.placeholder': '分',
+      'form.repairTime.sep': '─',
       'form.repairTime.hint':
         '⏰ 可維修時間請填寫 <strong>18:00–21:00</strong> 之間（本人需在場）。新生入住期間 12:00–17:00 收到後會盡速前往協助。',
       'form.description.label': '問題描述',
@@ -88,6 +91,9 @@ const I18N = (() => {
       'form.repairTime.startMin.aria': 'Start Minute (0-59)',
       'form.repairTime.endHour.aria': 'End Hour (0-23)',
       'form.repairTime.endMin.aria': 'End Minute (0-59)',
+      'form.repairTime.hour.placeholder': 'hh',
+      'form.repairTime.min.placeholder': 'mm',
+      'form.repairTime.sep': 'to',
       'form.repairTime.hint':
         '⏰ Please indicate availability between <strong>18:00–21:00</strong> (you must be present). During freshman move-in, 12:00–17:00 requests will be attended to ASAP.',
       'form.description.label': 'Issue Description',
