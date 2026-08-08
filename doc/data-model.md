@@ -42,7 +42,7 @@ erDiagram
 
 ### 2.1 報修案件（REPORT_CASE）
 
-儲存於 Google 試算表（Spreadsheet ID: `REDACTED_SPREADSHEET_ID`）
+儲存於 Google 試算表（Spreadsheet ID: `<SPREADSHEET_ID_見_GAS_Script_Properties>`）
 
 | 欄位 | 資料型別 | 來源 | 說明 |
 |---|---|---|---|
