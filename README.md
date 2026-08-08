@@ -5,6 +5,9 @@
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 [![Run Validation Unit Tests](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml/badge.svg)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml)
 
+**版本 / Version**：v1.1.0 (Spec v3.1)  
+**最後更新 / Last Updated**：2026-08-08
+
 ---
 
 ## 功能特色
