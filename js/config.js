@@ -15,7 +15,7 @@ const CONFIG = Object.freeze({
    *      執行身分：我自己 / 誰可以存取：所有人
    *   4. 將產生的 URL 貼到下方
    */
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbx-7SbbfxQtJ9UXAdAMvdbeMjyeKcw64yIYYNg6Td-dp43jDnpA0Iv_CGXjjDqqWC8C4Q/exec',
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbw9EUOHrcSvlAA72gAeq7Mz3HsBWqIR0BjeoFeWbIs7FpilYjgb2vCF0iOwA1NL_8sbjw/exec',
 
   /* ── 教學 PDF 文件連結 ── */
   DOCS: {
