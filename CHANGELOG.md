@@ -2,6 +2,9 @@
 
 所有本專案的重要變更皆將記錄於此文件中。
 
+**版本 / Version**：v1.1.0 (Spec v3.1)  
+**最後更新 / Last Updated**：2026-08-08
+
 ---
 
 ## [v1.1.0] - 2026-08-08 (Security Hardening & Full Documentation Alignment)
