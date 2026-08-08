@@ -33,18 +33,6 @@
           <span class="counter-star" aria-hidden="true">✨</span>
         </div>
 
-        <!-- ── 語言切換懸浮膠囊按鈕 ── -->
-        <button
-          id="lang-toggle-btn"
-          class="lang-toggle-btn"
-          type="button"
-          aria-pressed="false"
-          data-i18n-aria-label="langToggle.aria"
-          aria-label="切換語言 / Switch Language"
-        >
-          <span class="lang-toggle-label" aria-hidden="true">中 / EN</span>
-        </button>
-
         <!-- ── Teams 常駐連結 ── -->
         <button
           id="teams-header-btn"
@@ -79,6 +67,18 @@
 
     <!-- ── Chat Messages Area ── -->
     <main class="chat-main" role="main">
+      <!-- ── 語言切換懸浮圓形按鈕 ── -->
+      <button
+        id="lang-toggle-btn"
+        class="lang-toggle-btn"
+        type="button"
+        aria-pressed="false"
+        data-i18n-aria-label="langToggle.aria"
+        aria-label="切換語言為 English"
+      >
+        <span class="lang-toggle-label" aria-hidden="true">EN</span>
+      </button>
+
       <div class="chat-messages" id="chat-messages" aria-live="polite" aria-label="對話訊息">
         <!-- 訊息由 JavaScript 動態插入 -->
       </div>
