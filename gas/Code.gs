@@ -45,9 +45,49 @@ function _getSpreadsheetId() {
   return id;
 }
 
+// ──────────────────────────────────────────────
+// 濫用防護：全域頻率限制
+// 使用 CacheService 在每分鐘時間窗口內計數
+// @param {string} action   - 操作名稱（用於 cache key）
+// @param {number} limitPerMinute - 每分鐘上限次數
+// @returns {boolean} true = 允許通過；false = 超出限制
+// ──────────────────────────────────────────────
+function _checkRateLimit(action, limitPerMinute) {
+  const cache = CacheService.getScriptCache();
+  const key   = `rl_${action}_${Math.floor(Date.now() / 60000)}`;
+  const count = parseInt(cache.get(key) || '0', 10);
+  if (count >= limitPerMinute) return false;
+  cache.put(key, (count + 1).toString(), 60);
+  return true;
+}
+
+// ──────────────────────────────────────────────
+// 一次性 Token：產生並存入 CacheService（有效期 120 秒）
+// 呼叫方式：GET ?action=get_token
+// ──────────────────────────────────────────────
+function _generateToken() {
+  const token = Utilities.getUuid();
+  CacheService.getScriptCache().put('token_' + token, '1', 120);
+  return token;
+}
+
+// ──────────────────────────────────────────────
+// 一次性 Token：驗證並消耗（用過即失效）
+// @param {string} token
+// @returns {boolean}
+// ──────────────────────────────────────────────
+function _consumeToken(token) {
+  if (!token) return false;
+  const cache = CacheService.getScriptCache();
+  const key   = 'token_' + token;
+  const valid = cache.get(key) === '1';
+  if (valid) cache.remove(key);
+  return valid;
+}
+
 /**
- * doGet：處理 classify / counter_get / counter_increment 操作
- * （報修個資改由 doPost 處理，不暴露於 URL）
+ * doGet：處理 get_token / counter_get / counter_increment 操作
+ * ⚠️ classify 與 report（含個資）已移至 doPost，不得在此路由
  *
  * @param {GoogleAppsScript.Events.DoGet} e
  * @returns {GoogleAppsScript.Content.TextOutput}
@@ -59,8 +99,10 @@ function doGet(e) {
     const action = e.parameter.action || '';
 
     switch (action) {
-      case 'classify':
-        result = classifyIntent(e.parameter.msg || '');
+
+      // 一次性 Token 發放（不含敏感資料，GET 可接受）
+      case 'get_token':
+        result = { success: true, token: _generateToken() };
         break;
 
       case 'counter_get':
@@ -71,24 +113,11 @@ function doGet(e) {
         result = incrementCounter();
         break;
 
-      // 注意：GAS Web App 會將 POST 302 redirect 轉成 GET，導致 POST body 遺失
-      // 因此 report 仍透過 GET + payload 參數傳送（資料經 HTTPS 加密傳輸）
-      // doPost 保留供未來架構升級或使用 Proxy 時使用
-      case 'report': {
-        if (!e.parameter.payload) {
-          result = { success: false, error: '缺少 payload 參數' };
-          break;
-        }
-        let payload;
-        try {
-          payload = JSON.parse(e.parameter.payload);
-        } catch (_) {
-          result = { success: false, error: 'payload 格式錯誤，請確認為合法 JSON' };
-          break;
-        }
-        result = writeReport(payload);
+      // classify 與 report 已移至 doPost，此處明確拒絕
+      case 'classify':
+      case 'report':
+        result = { success: false, error: `action "${action}" 已改為 POST，請使用 doPost 路由。` };
         break;
-      }
 
       default:
         result = { success: false, error: `未知的 action: ${action}` };
@@ -105,8 +134,12 @@ function doGet(e) {
 }
 
 /**
- * doPost：處理報修資料送出
- * 個資（姓名、學號、手機等）透過 POST body 傳送，不暴露於 URL
+ * doPost：處理 classify（意圖分類）與 report（報修送出）
+ * 個資與使用者輸入文字透過 POST body 傳送，不暴露於 URL
+ *
+ * POST body 格式（Content-Type: text/plain;charset=utf-8）：
+ *   { "action": "classify", "msg": "...", "token": "uuid" }
+ *   { "action": "report",   "payload": {...}, "token": "uuid" }
  *
  * @param {GoogleAppsScript.Events.DoPost} e
  * @returns {GoogleAppsScript.Content.TextOutput}
@@ -120,8 +153,14 @@ function doPost(e) {
     } else {
       const data   = JSON.parse(e.postData.contents);
       const action = (data.action || '').toString().trim();
+      const token  = (data.token  || '').toString().trim();
 
-      if (action === 'report') {
+      // ── Token 驗證（classify 與 report 皆須帶合法 token）──
+      if (!_consumeToken(token)) {
+        result = { success: false, error: 'INVALID_TOKEN' };
+      } else if (action === 'classify') {
+        result = classifyIntent(data.msg || '');
+      } else if (action === 'report') {
         result = writeReport(data.payload || {});
       } else {
         result = { success: false, error: `doPost 不支援 action: ${action}` };
@@ -142,11 +181,17 @@ function doPost(e) {
  *   第一層：依 GEMINI_MODELS_FALLBACK 清單逐一嘗試 Gemini API（自動切換備援模型）
  *   第二層：所有 Gemini API 皆失敗時，自動降級至 _ruleBasedClassify 關鍵字備援引擎
  * 已加入 Prompt Injection 防護：截斷長度、移除控制字元、用引號隔離輸入
+ * 已加入頻率限制：每分鐘最多 30 次
  *
  * @param {string} message - 使用者輸入文字
  * @returns {{ success: boolean, intent: string, confidence: number, needsConfirmation: boolean, topic: string }}
  */
 function classifyIntent(message) {
+  // 頻率限制（每分鐘 30 次）
+  if (!_checkRateLimit('classify', 30)) {
+    return { success: false, error: '請求過於頻繁，請稍後再試' };
+  }
+
   if (!message || !message.trim()) {
     return { success: false, error: '訊息不得為空' };
   }
@@ -273,12 +318,34 @@ function classifyIntent(message) {
 /**
  * 寫入報修資料至 Google 試算表
  * 若指定工作表不存在，明確回傳錯誤（不靜默 fallback 至其他工作表）
+ * 已加入頻率限制：每分鐘最多 10 次
+ * 已加入後端格式驗證：比照前端 report.js 的驗證規則
  *
  * @param {object} reportData - 報修資料物件
  * @returns {{ success: boolean, message?: string, error?: string }}
  */
 function writeReport(reportData) {
+  // 頻率限制（每分鐘 10 次）
+  if (!_checkRateLimit('report', 10)) {
+    return { success: false, error: '請求過於頻繁，請稍後再試' };
+  }
+
   try {
+    // ── 後端格式驗證（防止繞過前端直接打 API）──
+    const phone     = String(reportData.phone      || '').trim();
+    const studentId = String(reportData.studentId  || '').trim();
+    const bedNumber = String(reportData.bedNumber  || '').trim();
+
+    if (phone && !/^[0-9]{10}$/.test(phone)) {
+      return { success: false, error: '手機號碼格式錯誤（需為 10 位數字）' };
+    }
+    if (studentId && !/^[0-9]{1,8}$/.test(studentId)) {
+      return { success: false, error: '學號格式錯誤（需為 1–8 位數字）' };
+    }
+    if (bedNumber && !/^[0-9]{1,3}$/.test(bedNumber)) {
+      return { success: false, error: '床號格式錯誤（需為 1–3 位數字）' };
+    }
+
     const spreadsheet = SpreadsheetApp.openById(_getSpreadsheetId());
     const sheet = spreadsheet.getSheetByName(SHEET_NAME);
 
@@ -426,14 +493,18 @@ function _ruleBasedClassify(msg) {
   if (/(常見問題|常見設定|常見)/.test(text)) {
     return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'ALL' };
   }
+  // 3e. 冷氣電費（AC_BILLING）— 必須在 NON_NETWORK 之前，避免被「冷氣」關鍵字誤吸
+  if (/(電費|冷氣儲值|儲值|繳費|冷氣費|空調費)/.test(text)) {
+    return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'AC_BILLING' };
+  }
 
   // 4. 網路教學 / 設定步驟
   if (/(教學|怎麼設|如何設|連線教學|設定步驟|不會連|教我|上網教學|教學文件)/.test(text)) {
     return { success: true, intent: 'BUTTON_TEACH', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 
-  // 5. 非網管業務（冷氣、水電等）
-  if (/(冷氣|電費|洗手台|熱水|電燈|燈泡|浴室|寢室設施|宿舍設施|床位|電器)/.test(text)) {
+  // 5. 非網管業務（冷氣設施、水電等）— 移除「電費」避免誤吸 AC_BILLING
+  if (/(冷氣|洗手台|熱水|電燈|燈泡|浴室|寢室設施|宿舍設施|床位|電器)/.test(text)) {
     return { success: true, intent: 'NON_NETWORK', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 

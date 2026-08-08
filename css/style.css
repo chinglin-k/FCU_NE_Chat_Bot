@@ -1,32 +1,32 @@
 /* ============================================================
-   FCU å®¿èˆç¶²è·¯å ±ä¿® Chatbot â€” å…¨ç«™æ¨£å¼
-   è¨­è¨ˆï¼šæ·±è‰²ç³» Ã— ç»ç’ƒæ“¬æ…‹ Ã— å‹•æ…‹æ•ˆæœ
-   æœ€å¾Œæ›´æ–°ï¼š2026-08-07ï¼ˆä¿®æ­£çª„è¢å¹•è¨ˆæ•¸å™¨éš±è—æ–·é»è‡³ 640pxï¼‰
+   FCU å®¿è?ç¶²è·¯?±ä¿® Chatbot ???¨ç?æ¨??
+   è¨­è?ï¼šæ·±?²ç³» ? ?»ç??¬æ? ? ?•æ??ˆæ?
+   ?€å¾Œæ›´?°ï?2026-08-07ï¼ˆä¿®æ­???¢å?è¨ˆæ•¸?¨éš±?æ–·é»è‡³ 640pxï¼?
    ============================================================ */
 
-/* â”€â”€ Google Fonts é è¨­å·²ç”± HTML è¼‰å…¥ â”€â”€ */
+/* ?€?€ Google Fonts ?è¨­å·²ç”± HTML è¼‰å…¥ ?€?€ */
 
-/* â”€â”€ CSS è¨­è¨ˆè®Šæ•¸ â”€â”€ */
+/* ?€?€ CSS è¨­è?è®Šæ•¸ ?€?€ */
 :root {
-  /* ä¸»è‰²èª¿ */
+  /* ä¸»è‰²èª?*/
   --color-bg-primary:    #0a0e1a;
   --color-bg-secondary:  #0d1730;
   --color-bg-tertiary:   #111d3a;
 
-  /* ç»ç’ƒæ•ˆæœ */
+  /* ?»ç??ˆæ? */
   --glass-bg:            rgba(255, 255, 255, 0.04);
   --glass-bg-hover:      rgba(255, 255, 255, 0.07);
   --glass-border:        rgba(255, 255, 255, 0.08);
   --glass-border-active: rgba(56, 189, 248, 0.35);
   --glass-blur:          12px;
 
-  /* å¼·èª¿è‰² */
+  /* å¼·èª¿??*/
   --color-accent-orange: #f97316;
   --color-accent-orange-light: #fb923c;
   --color-accent-blue:   #38bdf8;
   --color-accent-blue-dim: rgba(56, 189, 248, 0.15);
 
-  /* æ–‡å­— */
+  /* ?‡å? */
   --color-text-primary:  #e2e8f0;
   --color-text-secondary:#94a3b8;
   --color-text-muted:    #64748b;
@@ -43,7 +43,7 @@
   --input-border-focus:  rgba(249, 115, 22, 0.6);
   --input-text:          #e2e8f0;
 
-  /* é™°å½± */
+  /* ?°å½± */
   --shadow-sm:  0 2px 8px rgba(0,0,0,0.3);
   --shadow-md:  0 4px 20px rgba(0,0,0,0.4);
   --shadow-lg:  0 8px 40px rgba(0,0,0,0.5);
@@ -51,7 +51,7 @@
   --glow-blue:   0 0 20px rgba(56, 189, 248, 0.2);
   --glow-blue-strong: 0 0 28px rgba(56, 189, 248, 0.55);
 
-  /* Teams å“ç‰Œç´«è‰²ç³»ï¼ˆé…åˆ Teams 2025 icon æ¼¸å±¤ï¼‰ */
+  /* Teams ?ç?ç´«è‰²ç³»ï??å? Teams 2025 icon æ¼¸å±¤ï¼?*/
   --color-teams-purple:     #7B83EB;
   --color-teams-purple-dim: rgba(123, 131, 235, 0.18);
   --glow-teams:             0 0 18px rgba(123, 131, 235, 0.45);
@@ -65,12 +65,12 @@
   --radius-lg:  20px;
   --radius-xl:  28px;
 
-  /* å‹•ç•« */
+  /* ?•ç•« */
   --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* â”€â”€ Reset â”€â”€ */
+/* ?€?€ Reset ?€?€ */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -104,7 +104,7 @@ a:hover {
   text-decoration: underline;
 }
 
-/* â”€â”€ App å®¹å™¨ â”€â”€ */
+/* ?€?€ App å®¹å™¨ ?€?€ */
 #app {
   display: flex;
   flex-direction: column;
@@ -114,7 +114,7 @@ a:hover {
   position: relative;
 }
 
-/* â”€â”€ Header â”€â”€ */
+/* ?€?€ Header ?€?€ */
 .chat-header {
   flex-shrink: 0;
   height: var(--header-height);
@@ -145,7 +145,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-  /* è®“ flex-item èƒ½æ­£ç¢ºç¸®å°ï¼Œé˜²æ­¢æœ€å°å¯¬åº¦é™åˆ¶ */
+  /* è®?flex-item ?½æ­£ç¢ºç¸®å°ï??²æ­¢?€å°å¯¬åº¦é???*/
   min-width: 0;
   flex-shrink: 1;
   overflow: hidden;
@@ -176,13 +176,13 @@ a:hover {
   color: var(--color-text-primary);
   letter-spacing: 0.02em;
   line-height: 1.2;
-  /* å–®è¡Œé¡¯ç¤º + è¶…å‡ºçœç•¥è™Ÿï¼Œé˜²æ­¢çª„å±å¹•ä¸Šé€²è¡Œæ‹›è¡Œ */
+  /* ?®è?é¡¯ç¤º + è¶…å‡º?ç•¥?Ÿï??²æ­¢çª„å?å¹•ä??²è??›è? */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* header-text éœ€è¦ overflow:hidden æ‰èƒ½è®“ text-overflow ç”Ÿæ•ˆ */
+/* header-text ?€è¦?overflow:hidden ?èƒ½è®?text-overflow ?Ÿæ? */
 .header-text {
   min-width: 0;
   overflow: hidden;
@@ -232,7 +232,7 @@ a:hover {
   font-size: 12px;
 }
 
-/* â”€â”€ Header å³å´ç¾¤çµ„ï¼ˆè¨ˆæ•¸å™¨ + Teams é€£çµï¼‰ â”€â”€ */
+/* ?€?€ Header ?³å´ç¾¤ç?ï¼ˆè??¸å™¨ + Teams ???ï¼??€?€ */
 .header-right {
   display: flex;
   align-items: center;
@@ -240,7 +240,7 @@ a:hover {
   flex-shrink: 0;
 }
 
-/* â”€â”€ Teams å¸¸é§é€£çµï¼ˆHeader å³ä¸Šè§’åœ–ç¤ºæŒ‰éˆ•ï¼Œé¡¯çœ¼è¨­è¨ˆï¼‰ â”€â”€ */
+/* ?€?€ Teams å¸¸é????ï¼ˆHeader ?³ä?è§’å?ç¤ºæ??•ï?é¡¯çœ¼è¨­è?ï¼??€?€ */
 .header-teams-link {
   display: flex;
   align-items: center;
@@ -284,7 +284,7 @@ a:hover {
   letter-spacing: 0.04em;
 }
 
-/* â”€â”€ Teams è¤‡è£½æŒ‰éˆ•ï¼ˆèŠå¤©å€ï¼Œç¹¼æ‰¿ quick-btn åŸºç¤æ¨£å¼ï¼‰ â”€â”€ */
+/* ?€?€ Teams è¤‡è£½?‰é?ï¼ˆè?å¤©å?ï¼Œç¹¼??quick-btn ?ºç?æ¨??ï¼??€?€ */
 .quick-btn.teams-copy-btn {
   border-color: var(--glass-border-active);
   color: var(--color-accent-blue);
@@ -295,7 +295,7 @@ a:hover {
   border-color: var(--color-accent-blue);
 }
 
-/* â”€â”€ Chat Main Area â”€â”€ */
+/* ?€?€ Chat Main Area ?€?€ */
 .chat-main {
   flex: 1;
   overflow: hidden;
@@ -323,7 +323,7 @@ a:hover {
   border-radius: 2px;
 }
 
-/* â”€â”€ Message Wrappers â”€â”€ */
+/* ?€?€ Message Wrappers ?€?€ */
 .msg-wrapper {
   display: flex;
   gap: 10px;
@@ -350,7 +350,7 @@ a:hover {
   flex-direction: row-reverse;
 }
 
-/* â”€â”€ Avatars â”€â”€ */
+/* ?€?€ Avatars ?€?€ */
 .msg-avatar {
   width: 34px;
   height: 34px;
@@ -373,7 +373,7 @@ a:hover {
   border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
-/* â”€â”€ Message Content â”€â”€ */
+/* ?€?€ Message Content ?€?€ */
 .msg-content {
   display: flex;
   flex-direction: column;
@@ -381,7 +381,7 @@ a:hover {
   max-width: calc(100% - 60px);
 }
 
-/* â”€â”€ Bubble â”€â”€ */
+/* ?€?€ Bubble ?€?€ */
 .msg-bubble {
   padding: 12px 16px;
   border-radius: var(--radius-lg);
@@ -420,7 +420,7 @@ a:hover {
   color: rgba(255,255,255,0.9);
 }
 
-/* â”€â”€ Button Group (quick-reply buttons) â”€â”€ */
+/* ?€?€ Button Group (quick-reply buttons) ?€?€ */
 .btn-group {
   display: flex;
   flex-wrap: wrap;
@@ -478,7 +478,7 @@ a:hover {
   box-shadow: none !important;
 }
 
-/* â”€â”€ Typing Indicator â”€â”€ */
+/* ?€?€ Typing Indicator ?€?€ */
 .typing-indicator {
   display: flex;
   align-items: center;
@@ -506,7 +506,7 @@ a:hover {
   30% { transform: translateY(-6px); opacity: 1; }
 }
 
-/* â”€â”€ Link Button in bubble â”€â”€ */
+/* ?€?€ Link Button in bubble ?€?€ */
 .doc-link-btn {
   display: inline-flex;
   align-items: center;
@@ -531,7 +531,7 @@ a:hover {
   transform: translateX(2px);
 }
 
-/* â”€â”€ Footer / Input Area â”€â”€ */
+/* ?€?€ Footer / Input Area ?€?€ */
 .chat-footer {
   flex-shrink: 0;
   padding: 12px 16px 10px;
@@ -619,9 +619,9 @@ a:hover {
   letter-spacing: 0.03em;
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   MODAL â€” å ±ä¿®è¡¨å–®
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+   MODAL ???±ä¿®è¡¨å–®
+?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â? */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -712,7 +712,7 @@ a:hover {
   color: #ef4444;
 }
 
-/* â”€â”€ Report Form â”€â”€ */
+/* ?€?€ Report Form ?€?€ */
 .report-form {
   padding: 20px 24px 32px;
   display: flex;
@@ -778,7 +778,7 @@ a:hover {
   min-height: 90px;
 }
 
-/* â”€â”€ å¯ç¶­ä¿®æ™‚é–“ï¼šæ™‚/åˆ† è¼¸å…¥åˆ— â”€â”€ */
+/* ?€?€ ?¯ç¶­ä¿®æ??“ï?????è¼¸å…¥???€?€ */
 .repair-time-row {
   display: flex;
   align-items: center;
@@ -806,7 +806,7 @@ a:hover {
   flex-shrink: 0;
 }
 
-/* æ™‚é–“æç¤ºæ–‡å­— */
+/* ?‚é??ç¤º?‡å? */
 .field-hint {
   font-size: 12px;
   color: var(--color-text-secondary);
@@ -821,7 +821,7 @@ a:hover {
   color: var(--color-accent-orange);
 }
 
-/* è¡¨å–®éŒ¯èª¤è¨Šæ¯ */
+/* è¡¨å–®?¯èª¤è¨Šæ¯ */
 .form-error {
   font-size: 13px;
   color: #f87171;
@@ -901,15 +901,15 @@ a:hover {
 .loading-dot:nth-child(2) { animation-delay: 0.2s; }
 .loading-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* â”€â”€ Success State â”€â”€ */
+/* ?€?€ Success State ?€?€ */
 .msg-wrapper.success .msg-bubble {
   background: rgba(34, 197, 94, 0.1);
   border-color: rgba(34, 197, 94, 0.25);
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   RESPONSIVE â€” æ‰‹æ©Ÿå„ªåŒ–
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+   RESPONSIVE ???‹æ??ªå?
+?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â? */
 @media (max-width: 640px) {
   :root {
     --header-height: 60px;
@@ -918,7 +918,7 @@ a:hover {
   .header-title { font-size: 13px; }
   .header-subtitle { display: none; }
 
-  /* â”€â”€ çª„è¢å¹•éš±è—è¨ˆæ•¸å™¨ï¼ˆJS ä»ç…§å¸¸è¨ˆæ•¸ï¼Œåªæ˜¯ä¸é¡¯ç¤ºï¼‰ â”€â”€ */
+  /* ?€?€ çª„è¢å¹•éš±?è??¸å™¨ï¼ˆJS ä»ç…§å¸¸è??¸ï??ªæ˜¯ä¸é¡¯ç¤ºï? ?€?€ */
   .header-counter { display: none; }
 
   .chat-messages { padding: 14px 12px; gap: 10px; }
@@ -935,7 +935,7 @@ a:hover {
 
   .form-row { grid-template-columns: 1fr; gap: 16px; }
 
-  /* iOS Safariï¼šinput font-size < 16px æœƒè§¸ç™¼è‡ªå‹•ç¸®æ”¾ï¼Œå¼·åˆ¶è¨­ç‚º 16px */
+  /* iOS Safariï¼šinput font-size < 16px ?ƒè§¸?¼è‡ª?•ç¸®?¾ï?å¼·åˆ¶è¨­ç‚º 16px */
   .form-group input,
   .form-group textarea,
   .chat-input {
@@ -946,13 +946,13 @@ a:hover {
   .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
 }
 
-/* â”€â”€ æ¥µçª„æ‰‹æ©Ÿï¼ˆiPhone SE ç­‰ï¼Œâ‰¤360pxï¼‰â”€â”€ */
+/* ?€?€ æ¥µç??‹æ?ï¼ˆiPhone SE ç­‰ï???60pxï¼‰â??€ */
 @media (max-width: 360px) {
-  /* Teams æŒ‰éˆ•åªé¡•ç¤º iconï¼Œéš±è—æ–‡å­— */
+  /* Teams ?‰é??ªé?ç¤?iconï¼Œéš±?æ?å­?*/
   .teams-link-text { display: none; }
-  /* ç¸®å° padding ï¼Œé™ä½æŒ‰éˆ•å ç”¨å¯¬åº¦ */
+  /* ç¸®å? padding ï¼Œé?ä½æ??•å??¨å¯¬åº?*/
   .header-teams-link { padding: 5px 8px; gap: 4px; }
-  /* aria-label æœ€å·²ä¿ç•™ï¼Œç„¡éšœç¤™ä¸å—å½±éŸ¿ */
+  /* aria-label ?€å·²ä??™ï??¡é?ç¤™ä??—å½±??*/
 }
 
 @media (min-width: 760px) {
@@ -969,7 +969,7 @@ a:hover {
   }
 }
 
-/* â”€â”€ Accessibility â”€â”€ */
+/* ?€?€ Accessibility ?€?€ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -977,11 +977,11 @@ a:hover {
   }
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   å ±ä¿®æˆåŠŸç•«é¢ï¼ˆModal å…§ success viewï¼‰
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+   ?±ä¿®?å??«é¢ï¼ˆModal ??success viewï¼?
+?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â? */
 
-/* .is-hiddenï¼šé€šç”¨éš±è—å·¥å…· classï¼Œå„ªå…ˆç´šé«˜æ–¼æ‰€æœ‰ display è¨­å®š */
+/* .is-hiddenï¼šé€šç”¨?±è?å·¥å…· classï¼Œå„ª?ˆç?é«˜æ–¼?€??display è¨­å? */
 .is-hidden {
   display: none !important;
 }
@@ -1019,7 +1019,7 @@ a:hover {
   margin: 0 0 20px;
 }
 
-/* å€’æ•¸é€²åº¦æ¢ */
+/* ?’æ•¸?²åº¦æ¢?*/
 .success-bar-wrap {
   width: 100%;
   max-width: 260px;
@@ -1037,7 +1037,7 @@ a:hover {
   transform-origin: left;
 }
 
-/* å‹•ç•« */
+/* ?•ç•« */
 @keyframes successPop {
   0%   { transform: scale(0.3); opacity: 0; }
   70%  { transform: scale(1.15); }
@@ -1047,4 +1047,20 @@ a:hover {
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ¢w¢w Âù»y¤Æ¡G­^¤åÂ½Ä¶»²§U¼Ë¦¡ | Bilingual: English translation helper ¢w¢w */
+.text-en {
+  display: inline;
+  font-size: 0.80em;
+  color: var(--color-text-muted, #64748b);
+  font-style: italic;
+  opacity: 0.75;
+  letter-spacing: 0.01em;
+}
+
+/* ¦b block ¤¸¯À¡]¦p <span class="text-en"> ¿W¥ß¦¨¦æ®É¡^±j¨î´«¦æ */
+span.text-en:not([aria-hidden]) {
+  display: block;
+  margin-top: 2px;
 }

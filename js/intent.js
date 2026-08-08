@@ -74,13 +74,19 @@ const Intent = (() => {
     }, CLASSIFY_TIMEOUT_MS);
 
     try {
-      const params = new URLSearchParams({
-        action: 'classify',
-        msg: message.trim()
-      });
-      const res = await fetch(`${CONFIG.GAS_URL}?${params.toString()}`, {
-        signal: controller.signal
-      });
+      // ── POST body：使用者輸入文字透過 POST body 傳送，不暴露於 URL ──
+      // Content-Type: text/plain;charset=utf-8（防止 CORS preflight OPTIONS，
+      // GAS 沒有實作 doOptions → application/json 會導致 405 錯誤）
+      const _doFetch = async (token) => {
+        return fetch(CONFIG.GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'classify', msg: message.trim(), token }),
+          signal: controller.signal
+        });
+      };
+
+      let res = await _doFetch(Chat.getToken());
 
       // HTTP 層錯誤（GAS 服務異常、網路問題等）
       if (!res.ok) {
@@ -88,7 +94,26 @@ const Intent = (() => {
         return _systemErrorFallback;
       }
 
-      const data = await res.json();
+      let data = await res.json();
+
+      // Token 失效：自動重取後重試一次（防止無限迄迴）
+      if (data.error === 'INVALID_TOKEN') {
+        console.warn('[Intent][Token] INVALID_TOKEN，重取 token 後重試一次...');
+        const newToken = await Chat.refreshToken();
+        res = await _doFetch(newToken);
+        if (!res.ok) return _systemErrorFallback;
+        data = await res.json();
+        if (data.error === 'INVALID_TOKEN') {
+          console.warn('[Intent][Token] 重試後仍 INVALID_TOKEN，放棄');
+          return _systemErrorFallback;
+        }
+      }
+
+      // 頻率限制錯誤
+      if (!data.success && data.error === '請求過於頻繁，請稍後再試') {
+        console.warn('[Intent][頻率限制]', data.error);
+        return _systemErrorFallback;
+      }
 
       // GAS 回傳 success: false（API Key 未設定、GAS 例外等）
       if (!data.success || !data.intent) {
