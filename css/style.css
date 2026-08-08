@@ -1143,8 +1143,9 @@ span.text-en:not([aria-hidden]) {
 
 /* ============================================================
    隱藏 reCAPTCHA v3 浮動徽章
-   依 Google reCAPTCHA 服務條款，隱藏徽章後須在頁面上
-   保留可見的 reCAPTCHA 揭露文字（.recaptcha-disclosure）
+   ⚠️ 依 Google reCAPTCHA 服務條款，隱藏徽章後「必須」在頁面上
+   保留可見的 reCAPTCHA 揭露文字（見下方 .recaptcha-disclosure
+   與 index.html 頁尾），否則違反 Google 使用條款。
    ============================================================ */
 .grecaptcha-badge {
   visibility: hidden !important;
@@ -1152,7 +1153,12 @@ span.text-en:not([aria-hidden]) {
   pointer-events: none !important;
 }
 
-/* reCAPTCHA 合規揭露文字樣式 */
+/* ============================================================
+   隱藏 reCAPTCHA v3 浮動徽章
+   ⚠️ 依 Google reCAPTCHA 服務條款，隱藏徽章後「必須」在頁面上
+   保留可見的 reCAPTCHA 揭露文字（見下方 .recaptcha-disclosure
+   與 index.html 頁尾），否則違反 Google 使用條款。
+   ============================================================ */
 .recaptcha-disclosure {
   text-align: center;
   font-size: 10px;

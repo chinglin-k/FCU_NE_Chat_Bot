@@ -13,6 +13,7 @@ const Chat = (() => {
   let sessionToken = null;
   let clientId = null;
   let activeButtons = [];
+  let isWaitingForResponse = false;
 
   /** 取得 Client ID（持久化於 localStorage，用於依使用者計數限流） */
   function getClientId() {
@@ -93,33 +94,28 @@ const Chat = (() => {
 
   /* ── 訊息操作 ── */
   function addMessage(text, isUser = false, isHtml = false) {
-    const wrapperDiv = document.createElement('div');
-    wrapperDiv.className = `msg-wrapper ${isUser ? 'user' : 'bot'}`;
-
-    const avatarDiv = document.createElement('div');
-    avatarDiv.className = 'msg-avatar';
-    avatarDiv.setAttribute('aria-hidden', 'true');
-    avatarDiv.textContent = isUser ? '👤' : '🔧';
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
 
     const contentDiv = document.createElement('div');
-    contentDiv.className = 'msg-content';
-
-    const bubbleDiv = document.createElement('div');
-    bubbleDiv.className = 'msg-bubble';
+    contentDiv.className = 'message-content';
 
     if (isHtml) {
-      bubbleDiv.innerHTML = text;
+      contentDiv.innerHTML = text;
     } else if (isUser) {
-      bubbleDiv.textContent = text;
+      contentDiv.textContent = text;
     } else {
-      bubbleDiv.innerHTML = _parseMarkdown(text);
+      contentDiv.innerHTML = _parseMarkdown(text);
     }
 
-    contentDiv.appendChild(bubbleDiv);
-    wrapperDiv.appendChild(avatarDiv);
-    wrapperDiv.appendChild(contentDiv);
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'message-time';
+    const now = new Date();
+    timeSpan.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    messagesEl.appendChild(wrapperDiv);
+    msgDiv.appendChild(contentDiv);
+    msgDiv.appendChild(timeSpan);
+    messagesEl.appendChild(msgDiv);
     _scrollToBottom();
   }
 
@@ -139,47 +135,30 @@ const Chat = (() => {
 
   /* ── 打字指示器 ── */
   function _showTyping() {
-    const wrapperDiv = document.createElement('div');
-    wrapperDiv.className = 'msg-wrapper bot typing-indicator-msg';
-    wrapperDiv.id = 'typing-indicator';
-
-    const avatarDiv = document.createElement('div');
-    avatarDiv.className = 'msg-avatar';
-    avatarDiv.setAttribute('aria-hidden', 'true');
-    avatarDiv.textContent = '🔧';
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message bot-message typing-indicator-msg';
+    typingDiv.id = 'typing-indicator';
 
     const contentDiv = document.createElement('div');
-    contentDiv.className = 'msg-content';
+    contentDiv.className = 'message-content';
 
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'typing-indicator';
-    typingDiv.setAttribute('aria-label', I18N.getLang() === 'en' ? 'Typing' : '正在輸入');
+    const dotsDiv = document.createElement('div');
+    dotsDiv.className = 'typing-dots';
+    dotsDiv.setAttribute('aria-label', I18N.t('typing.aria'));
+    dotsDiv.innerHTML = '<span></span><span></span><span></span>';
 
-    for (let i = 0; i < 3; i++) {
-      const dot = document.createElement('span');
-      typingDiv.appendChild(dot);
-    }
-
-    contentDiv.appendChild(typingDiv);
-    wrapperDiv.appendChild(avatarDiv);
-    wrapperDiv.appendChild(contentDiv);
-
-    messagesEl.appendChild(wrapperDiv);
+    contentDiv.appendChild(dotsDiv);
+    typingDiv.appendChild(contentDiv);
+    messagesEl.appendChild(typingDiv);
     _scrollToBottom();
   }
 
   function _hideTyping() {
-    const typing = document.getElementById('typing-indicator');
-    if (typing) typing.remove();
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) indicator.remove();
   }
 
-  /* ── 選項按鈕管理 ── */
-  function _removeActiveButtons() {
-    const group = document.getElementById('active-button-group');
-    if (group) group.remove();
-    activeButtons = [];
-  }
-
+  /* ── 按鈕群組 ── */
   function _addButtonGroup(buttons) {
     _removeActiveButtons();
 
@@ -193,25 +172,35 @@ const Chat = (() => {
       btnEl.dataset.action = btn.action;
 
       if (btn.data) {
-        btnEl.dataset.extra = JSON.stringify(btn.data);
+        Object.keys(btn.data).forEach(k => {
+          btnEl.dataset[k] = btn.data[k];
+        });
       }
 
-      const iconSpan = document.createElement('span');
-      iconSpan.setAttribute('aria-hidden', 'true');
-      iconSpan.textContent = btn.icon;
+      if (btn.icon) {
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'btn-icon';
+        iconSpan.setAttribute('aria-hidden', 'true');
+        iconSpan.textContent = btn.icon;
+        btnEl.appendChild(iconSpan);
+        btnEl.appendChild(document.createTextNode(' ' + btn.label));
+      } else {
+        btnEl.textContent = btn.label;
+      }
 
-      const labelText = document.createTextNode(` ${btn.label}`);
-
-      btnEl.appendChild(iconSpan);
-      btnEl.appendChild(labelText);
-
-      btnEl.addEventListener('click', () => _handleButtonClick(btn.action, btn.data, btn.label));
+      btnEl.addEventListener('click', () => _handleButtonClick(btn, groupDiv));
       groupDiv.appendChild(btnEl);
       activeButtons.push(btnEl);
     });
 
     messagesEl.appendChild(groupDiv);
     _scrollToBottom();
+  }
+
+  function _removeActiveButtons() {
+    const group = document.getElementById('active-button-group');
+    if (group) group.remove();
+    activeButtons = [];
   }
 
   /* ── 主選單按鈕 ── */
@@ -224,12 +213,23 @@ const Chat = (() => {
   }
 
   /* ── 按鈕點擊處理 ── */
-  function _handleButtonClick(action, data, label) {
-    if (label) addUserMessage(label);
+  function _handleButtonClick(btn, groupDiv) {
+    if (isWaitingForResponse) return;
+    _removeActiveButtons();
+    addUserMessage(btn.label);
 
-    switch (action) {
+    switch (btn.action) {
       case 'teach':
         _handleTeachFlow();
+        break;
+      case 'setting':
+        _handleSettingFlow();
+        break;
+      case 'setting_subtopic':
+        _handleSettingSubtopic(btn.data ? btn.data.topic : 'ALL');
+        break;
+      case 'report':
+        _handleReportFlow();
         break;
       case 'teach_win':
         _handleTeachDoc('win');
@@ -243,19 +243,11 @@ const Chat = (() => {
       case 'need-help':
         _handleReportFlow();
         break;
-      case 'setting':
-        _handleSettingFlow();
-        break;
-      case 'report':
-        _handleReportFlow();
-        break;
       case 'confirm_intent':
-        if (data && data.intent) {
-          _handleConfirmedIntent(data.intent);
-        }
+        _handleConfirmedIntent(btn.data ? btn.data.intent : '');
         break;
-      case 'copy_teams_account':
-        Teams.copyAccountName();
+      case 'teams-fallback':
+        _handleTeamsClick();
         break;
       default:
         _showMainButtons();
@@ -276,7 +268,7 @@ const Chat = (() => {
     const isWin = sys === 'win';
     const rawTemplate = isWin ? _R().TEACH_WINDOWS : _R().TEACH_MAC;
     const url = isWin ? CONFIG.DOCS.WINDOWS : CONFIG.DOCS.MAC;
-    const text = rawTemplate.replace('{WINDOWS_URL}', url).replace('{MAC_URL}', url);
+    const text = rawTemplate.replace(isWin ? '{WINDOWS_URL}' : '{MAC_URL}', url);
 
     addBotMessage(text);
     _addButtonGroup([
@@ -362,29 +354,39 @@ const Chat = (() => {
 
   function _handleTeamsClick() {
     addBotMessage(_R().TEAMS_FALLBACK);
+    const copyBtnText = `<span aria-hidden="true">📋</span> ${_B().TEAMS_COPY}`;
 
     _addButtonGroup([
       { label: _B().TEAMS_COPY, icon: '📋', action: 'copy_teams_account', className: 'btn-highlight' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
 
-    Teams.open();
+    const copyBtn = document.querySelector('[data-action="copy_teams_account"]');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        Teams.copyAccountName();
+        addBotMessage(_R().TEAMS_COPY_SUCCESS);
+      });
+    }
   }
 
-  /* ── 訊息發送與 LLM 意圖判讀 ── */
+  /* ── 處理使用者自由輸入 ── */
   async function _handleTextInput() {
     const text = inputEl.value.trim();
-    if (!text) return;
+    if (!text || isWaitingForResponse) return;
 
     inputEl.value = '';
     inputEl.style.height = 'auto';
-    addUserMessage(text);
     _removeActiveButtons();
+    addUserMessage(text);
+
+    isWaitingForResponse = true;
     _showTyping();
 
     try {
       const result = await Intent.classify(text);
       _hideTyping();
+      isWaitingForResponse = false;
 
       if (result.isSystemError) {
         addBotMessage(_R().SYSTEM_ERROR);
@@ -394,8 +396,8 @@ const Chat = (() => {
 
       if (result.needsConfirmation && result.intent !== 'UNKNOWN') {
         const label = _L()[result.intent] || result.intent;
-        const confirmMsg = _R().CONFIRM_HINT.replace('{INTENT_LABEL}', label);
-        addBotMessage(confirmMsg);
+        const hintText = _R().CONFIRM_HINT.replace('{INTENT_LABEL}', label);
+        addBotMessage(hintText);
 
         const yesLabel = `${_B().CONFIRM_YES_PREFIX} ${label}`;
         _addButtonGroup([
@@ -412,11 +414,7 @@ const Chat = (() => {
           _handleTeachFlow();
           break;
         case 'BUTTON_SETTING':
-          if (result.topic && result.topic !== 'ALL') {
-            _handleSettingSubtopic(result.topic);
-          } else {
-            _handleSettingFlow();
-          }
+          _handleSettingSubtopic(result.topic || 'ALL');
           break;
         case 'BUTTON_REPORT':
         case 'STICKER_PORT':
@@ -430,17 +428,18 @@ const Chat = (() => {
         default:
           addBotMessage(_R().UNKNOWN);
           _showMainButtons();
-          break;
       }
-    } catch (e) {
+
+    } catch (err) {
+      console.error('Text input error:', err);
       _hideTyping();
-      console.error('Text input handler error:', e);
+      isWaitingForResponse = false;
       addBotMessage(_R().SYSTEM_ERROR);
       _showMainButtons();
     }
   }
 
-  /* ── 事件綁定 ── */
+  /* ── 事件監聽 ── */
   function _bindEvents() {
     sendBtn.addEventListener('click', _handleTextInput);
 
@@ -453,16 +452,24 @@ const Chat = (() => {
 
     inputEl.addEventListener('input', () => {
       inputEl.style.height = 'auto';
-      inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+      inputEl.style.height = `${Math.min(inputEl.scrollHeight, 120)}px`;
     });
 
     const teamsBtn = document.getElementById('teams-header-btn');
     if (teamsBtn) {
-      teamsBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        _handleTeamsClick();
+      teamsBtn.addEventListener('click', () => {
+        Teams.open();
       });
     }
+
+    // 語言變更時更新全域按鈕
+    document.addEventListener('i18n:changed', () => {
+      // 若目前為無狀態空背景，重繪主選單
+      const group = document.getElementById('active-button-group');
+      if (group && activeButtons.length === 3 && activeButtons[0].dataset.action === 'teach') {
+        _showMainButtons();
+      }
+    });
   }
 
   /* ── 初始化 ── */
@@ -481,9 +488,11 @@ const Chat = (() => {
     addBotMessage,
     addUserMessage,
     getToken,
-    refreshToken,
-    getClientId
+    getClientId,
+    refreshToken
   };
 })();
 
-document.addEventListener('DOMContentLoaded', () => Chat.init());
+document.addEventListener('DOMContentLoaded', () => {
+  Chat.init();
+});
