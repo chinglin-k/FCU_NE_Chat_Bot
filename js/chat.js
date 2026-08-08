@@ -301,13 +301,16 @@ const Chat = (() => {
   function _handleSettingFlow() {
     currentMenuState = 'sub_action';
     const items = _R().SETTING_ITEMS;
-    let text = `${_R().SETTING_HEADER}\n\n`;
-    text += `${items.ACCOUNT}\n\n`;
-    text += `${items.ADAPTER}\n\n`;
-    text += `${items.WIFI_SIGNAL}\n\n`;
-    text += `${items.AC_BILLING}`;
 
-    addBotMessage(text);
+    // 開頭標題語
+    addBotMessage(_R().SETTING_HEADER);
+
+    // 常見問題每一項皆為獨立的對話框
+    addBotMessage(items.ACCOUNT);
+    addBotMessage(items.ADAPTER);
+    addBotMessage(items.WIFI_SIGNAL);
+    addBotMessage(items.AC_BILLING);
+
     _addButtonGroup([
       { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
@@ -317,25 +320,28 @@ const Chat = (() => {
   function _handleSettingSubtopic(topic) {
     currentMenuState = 'sub_action';
     const items = _R().SETTING_ITEMS;
-    let text = `${_R().SETTING_HEADER}\n\n`;
+    addBotMessage(_R().SETTING_HEADER);
+
     switch (topic) {
       case 'ACCOUNT':
-        text += items.ACCOUNT;
+        addBotMessage(items.ACCOUNT);
         break;
       case 'ADAPTER':
-        text += items.ADAPTER;
+        addBotMessage(items.ADAPTER);
         break;
       case 'WIFI_SIGNAL':
-        text += items.WIFI_SIGNAL;
+        addBotMessage(items.WIFI_SIGNAL);
         break;
       case 'AC_BILLING':
-        text += items.AC_BILLING;
+        addBotMessage(items.AC_BILLING);
         break;
       default:
-        text += `${items.ACCOUNT}\n\n${items.ADAPTER}\n\n${items.WIFI_SIGNAL}\n\n${items.AC_BILLING}`;
+        addBotMessage(items.ACCOUNT);
+        addBotMessage(items.ADAPTER);
+        addBotMessage(items.WIFI_SIGNAL);
+        addBotMessage(items.AC_BILLING);
     }
 
-    addBotMessage(text);
     _addButtonGroup([
       { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
