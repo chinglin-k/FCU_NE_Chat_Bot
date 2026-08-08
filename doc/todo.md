@@ -1,6 +1,6 @@
 # 開發待辦清單（todo.md）
 
-**更新日期**：2026-08-06
+**更新日期**：2026-08-08
 
 ---
 
@@ -12,7 +12,7 @@
 | P0 | 報修表單收集與驗證 | ✅ Done | 七欄位 + 時間純文字提示 |
 | P0 | GAS 試算表寫入 | ✅ Done | `writeReport()` |
 | P0 | Google Apps Script 部署 | ✅ Done | GAS_URL 已填入 |
-| P1 | LLM 語意分析（Gemini） | ✅ Done | `classifyIntent()` |
+| P1 | LLM 語意分析（Gemini） | ✅ Done | `classifyIntent()` 九模型自動備援 |
 | P1 | 意圖分類串接前端 | ✅ Done | `intent.js` |
 | P1 | 教學文件回覆 | ✅ Done | Windows / Mac PDF 連結 |
 | P1 | 常見問題回覆 | ✅ Done | 轉接器韌體建議、WiFi 帳號密碼等常見問題 |
@@ -22,12 +22,29 @@
 
 ---
 
+## E 輪：資安強化、反濫用與單元測試（2026-08-08）
+
+| 功能 | 狀態 | 說明 |
+|---|---|---|
+| 敏感個資切換為 POST Body | ✅ Done | 學號 / 手機 / 房號 / 床號改經 `doPost`（`text/plain`），不暴露於 URL |
+| 短效 Session Token 驗證 | ✅ Done | `get_token` 發放 120 秒 Token，`_consumeToken` 驗證，使用一次即銷毀 |
+| Client ID 裝置區分與雙層限流 | ✅ Done | `localStorage` (`fcu_client_id`) + `_checkRateLimit`（`classify`: 12/60, `report`: 5/20） |
+| reCAPTCHA v3 隱形驗證 | ✅ Done | 報修表單整合 grecaptcha (score ≥ 0.5)，防止外洩 URL 被濫用 |
+| 後端格式強驗證 (RegEx) | ✅ Done | `gas/Code.gs` 加入學號 `/^[a-zA-Z][0-9]{7}$/`、手機 `/^[0-9]{10}$/`、床號 `/^[0-9]{1,3}$/` 後端二次驗證 |
+| 明碼 試算表 ID 移除 | ✅ Done | 移除 `doc/data-model.md` 明碼 ID，改存 GAS Script Properties |
+| 19 語系 Rule-based 備援分類器 | ✅ Done | `gas/Code.gs` 整合 19 語系關鍵字比對 |
+| Node.js 原生單元測試套件 | ✅ Done | 建立 `test/gas-mocks.js` Mock GAS 全域服務，涵蓋 34 個單元測試項 (100% Passing) |
+| GitHub Actions CI/CD | ✅ Done | 建立 `.github/workflows/test.yml` 自動跑 `npm test` |
+| ESLint 9 Flat Config 規範 | ✅ Done | 建立 `eslint.config.js` 分離 Browser, GAS, Node 測試環境 |
+
+---
+
 ## A 輪：Gemini 意圖分類優化（2026-07-27）
 
 | 功能 | 狀態 | 說明 |
 |---|---|---|
 | 信心分數回傳 | ✅ Done | GAS `classifyIntent()` 改回傳 `{intent, confidence, needsConfirmation}` |
-| 前端 8 秒 Timeout | ✅ Done | `intent.js` 加 AbortController，逾時 fallback UNKNOWN |
+| 前端 25 秒 Timeout Protection | ✅ Done | `intent.js` 加 AbortController 逾時防護 |
 | 低信心確認 UI | ✅ Done | `chat.js` needsConfirmation 時顯示確認 + 主選單按鈕 |
 
 ---
@@ -45,18 +62,6 @@
 
 ---
 
-## fix：Teams 按鈕 UI 優化（2026-07-27）
-
-| 功能 | 狀態 | 說明 |
-|---|---|---|\
-| 按鈕文字改「聯絡我們」 | ✅ Done | `index.html` + `config.js` `TEAMS_HEADER_LINK` |
-| 換用 Teams 2025 品牌 icon | ✅ Done | 內嵌漸層 SVG（兩人形 + 白T方塊），忠實還原官方圖示 |
-| 按鈕改紫色系 | ✅ Done | `css/style.css` 新增 `--color-teams-purple` 等變數，與 Teams icon 色系一致 |
-| 刪除深連結預填文字 | ✅ Done | `config.js` `prefilledMessage: ''` |
-
-
----
-
 ## D 輪：手機優化（2026-08-07）
 
 | 功能 | 狀態 | 說明 |
@@ -65,31 +70,6 @@
 | input/textarea font-size 16px | ✅ Done | iOS 觸發自動縮放實際規則，手機下強制 16px（`css/style.css`） |
 | 窄螢幕完全隱藏計數器 | ✅ Done | 寬度 ≤640px 時 `.header-counter { display: none }`，JS 仍照常計數（`css/style.css`） |
 | GitHub Pages CDN 快取清除 | ✅ Done | 舊版 CSS（480px 斷點）被 CDN 快取，更新 CSS 頂部時間戳記強制重新部署 |
-
----
-
-## 部署後續任務
-
-| 功能 | 狀態 | 說明 |
-|---|---|---|
-| 填入 GAS Web App URL | ✅ Done | 已更新 `js/config.js` |
-| 設定 Gemini API Key | ✅ Done | GAS Script Properties → GEMINI_API_KEY |
-| 啟用 GitHub Pages | ✅ Done | Settings → Pages → Source: main |
-| 驗收測試 | 🔲 Todo | 需實機測試 Teams 深連結跳轉行為 |
-
----
-
-## C 輪：安全審查（A+B 完成後執行）
-
-| 項目 | 狀態 | 說明 |
-|---|---|---|
-| 安全審查報告輸出 | ✅ Done | 完整審查完成，見實作計畫文件 |
-| `_escapeHTML` 補強 | ✅ Done | 補上 `"` `'` 轉義（`chat.js`） |
-| `_addButtonGroup` icon XSS 修復 | ✅ Done | 改用 DOM `textContent` 方式，移除 `innerHTML` 風險（`chat.js`） |
-| Teams 複製 fallback 改善 | ✅ Done | `window.prompt()` 改為 inline 文字提示（`teams.js`） |
-| 文件對齊程式碼現況 | ✅ Done | architecture.md / project-memory.md 更新 |
-| GAS_URL 公開風險言明 | ✅ Done | README.md 已加入警告 |
-| 高風險項目修補 | ✅ Done | 見上方各項 |
 
 ---
 
