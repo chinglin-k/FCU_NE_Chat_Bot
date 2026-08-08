@@ -181,7 +181,7 @@ const ReportForm = (() => {
       if (resData.success) {
         _handleSuccess();
       } else {
-        _showError(resData.message || _R().REPORT_ERROR);
+        _showError(resData.error || _R().REPORT_ERROR);
         _setLoading(false);
       }
 
