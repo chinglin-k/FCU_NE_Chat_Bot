@@ -2,12 +2,6 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <!--
-    CSP 更新說明（reCAPTCHA v3 整合）：
-      script-src  新增 https://www.google.com https://www.gstatic.com → 載入 recaptcha api.js 及其內部資源
-      frame-src   新增 https://www.google.com                        → reCAPTCHA 隱形驗證使用的內嵌 iframe
-      connect-src 新增 https://www.google.com                        → grecaptcha.execute() 內部呼叫
-  -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://script.google.com https://script.googleusercontent.com https://generativelanguage.googleapis.com https://www.google.com; img-src 'self' data:; frame-src https://www.google.com; object-src 'none';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>逢甲大學福星宿舍網路報修助理 | FCU Fuxing Dormitory Network Repair Assistant</title>
@@ -17,8 +11,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <!-- reCAPTCHA v3：render=Site Key，隱形驗證，僅在報修表單送出時呼叫 grecaptcha.execute()
-       徽章已透過 CSS 隱藏（見 style.css .grecaptcha-badge），頁尾已加註 Google 要求之揭露文字 -->
   <script src="https://www.google.com/recaptcha/api.js?render=6LehknstAAAAAPmlQlfjbI5nnbLY2fBrnmkXOcqI" async defer></script>
 </head>
 <body>
@@ -41,7 +33,7 @@
           <span class="counter-star" aria-hidden="true">✨</span>
         </div>
 
-        <!-- ── 語言切換懸浮膠囊按鈕（移入 Header 右側，不與聊天訊息重疊） ── -->
+        <!-- ── 語言切換懸浮膠囊按鈕 ── -->
         <button
           id="lang-toggle-btn"
           class="lang-toggle-btn"
@@ -62,7 +54,6 @@
           data-i18n-title="teams.title"
           title="使用 Microsoft Teams 聯絡福星宿舍網路報修平台"
         >
-          <!-- Microsoft Teams 2025 icon -->
           <svg class="teams-svg-icon" viewBox="0 0 40 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <linearGradient id="tg-a" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -219,7 +210,6 @@
         </button>
       </div>
       <p class="footer-note" data-i18n="footer.note">本服務由 <a href="https://github.com/chinglin-k" target="_blank" rel="noopener noreferrer">@chinglin-k</a> 提供 · 僅限逢甲大學福星宿舍網路相關問題</p>
-      <!-- reCAPTCHA 合規揭露文字 -->
       <p class="recaptcha-disclosure" data-i18n="recaptcha.disclosure">
         本網站受 reCAPTCHA 保護，並適用 Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">隱私權政策</a>與<a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">服務條款</a>。
       </p>

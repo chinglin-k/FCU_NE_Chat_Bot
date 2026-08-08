@@ -221,11 +221,8 @@ const Chat = (() => {
   }
 
   /* ── 主選單按鈕 ── */
-  function _showMainButtons(showPrompt = false) {
+  function _showMainButtons() {
     currentMenuState = 'main';
-    if (showPrompt) {
-      addBotMessage(_R().BACK_TO_MAIN);
-    }
     _addButtonGroup([
       { label: _B().TEACH, icon: '📚', action: 'teach' },
       { label: _B().SETTING, icon: '⚙️', action: 'setting' },
@@ -259,7 +256,8 @@ const Chat = (() => {
         _handleTeachDoc('mac');
         break;
       case 'back-to-main':
-        _showMainButtons(true);
+        addBotMessage(_R().BACK_TO_MAIN);
+        _showMainButtons();
         break;
       case 'need-help':
         _handleReportFlow();
@@ -490,7 +488,7 @@ const Chat = (() => {
             { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
           ]);
         } else if (currentMenuState === 'report') {
-          // 不做多餘按鈕重繪
+          // 無多餘按鈕
         } else if (currentMenuState === 'sub_action') {
           _addButtonGroup([
             { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
