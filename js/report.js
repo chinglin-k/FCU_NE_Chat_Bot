@@ -226,6 +226,10 @@ const ReportForm = (() => {
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      
+      // 防止雙擊重複送出
+      if (submitBtn.disabled) return;
+
       const err = _validate();
       if (err) {
         _showError(err);
