@@ -4,15 +4,15 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 [![Run Validation Unit Tests](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml/badge.svg)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml)
+[![Version](https://img.shields.io/badge/Version-v3.1.0-blue)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/blob/main/CHANGELOG.md)
 
-**版本 / Version**：v1.2.0 (Spec v3.2)  
+**版本 / Version**：v3.1.0  
 **最後更新 / Last Updated**：2026-08-08
 
 ---
 
 ## 功能特色
 
-- 🌐 **中/英介面切換**：聊天介面右上角圓形懸浮按鈕，一鍵切換中文／英文介面，偏好記錄於瀏覽器 localStorage，重新整理後仍保留
 - 📚 **網路教學**：提供 Windows / Mac 宿舍網路設定 PDF 教學
 - ⚙️ **常見問題**：轉接器驅動程式、WiFi 帳號密碼、寢室 WiFi 訊號、冷氣電費儲值等常見問題解答
   * 🎯 支援「子主題精準回覆」：問轉接器只顯示轉接器卡片、問帳密只顯示帳密卡片

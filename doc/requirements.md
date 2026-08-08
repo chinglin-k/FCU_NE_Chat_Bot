@@ -1,9 +1,9 @@
 # 逢甲大學福星宿舍網路報修 Chatbot — 需求規格書
 # FCU Fuxing Dormitory Network Repair Assistant — Requirements Specification
 
-**版本 / Version**：v1.2.0 (Spec v3.2)  
+**版本 / Version**：v3.1.0  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-08-08
+**最後更新 / Last Updated**：2026-08-08 (Security Hardening: reCAPTCHA v3, Dual-Tier Rate Limiting, 9-Model Gemini Fallback, 19-Language Classifier, Version Standardization)  
 **專案倉庫 / Repository**：https://github.com/chinglin-k/FCU_NE_Chat_Bot
 
 ---
@@ -68,14 +68,6 @@ Chatbot 啟動後顯示三個主要選項按鈕，Header 右上角另有 Teams �
 
 - 每次新 session 開啟時累加一次（Atomic LockService 防競態，並透過 `sessionStorage` 進行單次 Session 防重）
 - 在 Header 顯示「已協助 X 人 ✨ / Served X users ✨」
-
-### 3.6 雙語介面分離與即時切換 (FR-05)
-
-使用者可透過聊天介面右上角的圓形懸浮按鈕（`#lang-toggle-btn`），即時在繁體中文與英文介面間切換；語言偏好需持久化至 `localStorage`（`fcu_ne_lang`，重新整理頁面後維持選擇）；切換後所有靜態 UI 文字與後續新產生的聊天內容須立即反映所選語言。
-
-### 3.7 reCAPTCHA 徽章隱藏與合規揭露 (FR-06)
-
-reCAPTCHA v3 浮動徽章透過 CSS 隱藏，提升畫面美觀度與行動裝置體驗。同時依據 Google reCAPTCHA 服務條款硬性規定，於頁尾保留可見的雙語揭露文字 `.recaptcha-disclosure`（含隱私權政策與服務條款官方連結）。
 
 ---
 
