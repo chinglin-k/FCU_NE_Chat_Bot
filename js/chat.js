@@ -95,31 +95,43 @@ const Chat = (() => {
 
   /* ── 訊息操作 ── */
   function addMessage(text, isUser = false, isHtml = false, i18nMarkdownKey = null) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.className = `msg-wrapper ${isUser ? 'user' : 'bot'}`;
+
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = 'msg-avatar';
+    avatarDiv.setAttribute('aria-hidden', 'true');
+    avatarDiv.textContent = isUser ? '👤' : '🔧';
 
     const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
+    contentDiv.className = 'msg-content';
+
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'msg-bubble';
 
     if (i18nMarkdownKey) {
-      contentDiv.setAttribute('data-i18n-markdown', i18nMarkdownKey);
-      contentDiv.innerHTML = _parseMarkdown(I18N.t(i18nMarkdownKey));
+      bubbleDiv.setAttribute('data-i18n-markdown', i18nMarkdownKey);
+      bubbleDiv.innerHTML = _parseMarkdown(I18N.t(i18nMarkdownKey));
     } else if (isHtml) {
-      contentDiv.innerHTML = text;
+      bubbleDiv.innerHTML = text;
     } else if (isUser) {
-      contentDiv.textContent = text;
+      bubbleDiv.textContent = text;
     } else {
-      contentDiv.innerHTML = _parseMarkdown(text);
+      bubbleDiv.innerHTML = _parseMarkdown(text);
     }
 
     const timeSpan = document.createElement('span');
-    timeSpan.className = 'message-time';
+    timeSpan.className = 'msg-time';
     const now = new Date();
     timeSpan.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    msgDiv.appendChild(contentDiv);
-    msgDiv.appendChild(timeSpan);
-    messagesEl.appendChild(msgDiv);
+    contentDiv.appendChild(bubbleDiv);
+    contentDiv.appendChild(timeSpan);
+
+    wrapperDiv.appendChild(avatarDiv);
+    wrapperDiv.appendChild(contentDiv);
+
+    messagesEl.appendChild(wrapperDiv);
     _scrollToBottom();
   }
 
@@ -139,21 +151,28 @@ const Chat = (() => {
 
   /* ── 打字指示器 ── */
   function _showTyping() {
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'message bot-message typing-indicator-msg';
-    typingDiv.id = 'typing-indicator';
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.className = 'msg-wrapper bot typing-indicator-msg';
+    wrapperDiv.id = 'typing-indicator';
+
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = 'msg-avatar';
+    avatarDiv.setAttribute('aria-hidden', 'true');
+    avatarDiv.textContent = '🔧';
 
     const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
+    contentDiv.className = 'msg-content';
 
-    const dotsDiv = document.createElement('div');
-    dotsDiv.className = 'typing-dots';
-    dotsDiv.setAttribute('aria-label', I18N.t('typing.aria'));
-    dotsDiv.innerHTML = '<span></span><span></span><span></span>';
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'msg-bubble typing-indicator';
+    bubbleDiv.setAttribute('aria-label', I18N.t('typing.aria'));
+    bubbleDiv.innerHTML = '<span></span><span></span><span></span>';
 
-    contentDiv.appendChild(dotsDiv);
-    typingDiv.appendChild(contentDiv);
-    messagesEl.appendChild(typingDiv);
+    contentDiv.appendChild(bubbleDiv);
+    wrapperDiv.appendChild(avatarDiv);
+    wrapperDiv.appendChild(contentDiv);
+
+    messagesEl.appendChild(wrapperDiv);
     _scrollToBottom();
   }
 
@@ -167,12 +186,13 @@ const Chat = (() => {
     _removeActiveButtons();
 
     const groupDiv = document.createElement('div');
-    groupDiv.className = 'button-group';
+    groupDiv.className = 'btn-group';
     groupDiv.id = 'active-button-group';
 
     buttons.forEach(btn => {
       const btnEl = document.createElement('button');
-      btnEl.className = `quick-reply-btn ${btn.className || ''}`;
+      const isPrimary = btn.className === 'btn-highlight' || btn.className === 'primary';
+      btnEl.className = `quick-btn ${isPrimary ? 'primary' : ''}`;
       btnEl.dataset.action = btn.action;
 
       if (btn.data) {
@@ -213,7 +233,7 @@ const Chat = (() => {
     _addButtonGroup([
       { label: _B().TEACH, icon: '📚', action: 'teach' },
       { label: _B().SETTING, icon: '⚙️', action: 'setting' },
-      { label: _B().REPORT, icon: '🔧', action: 'report', className: 'btn-highlight' }
+      { label: _B().REPORT, icon: '🔧', action: 'report', className: 'primary' }
     ]);
   }
 
@@ -279,7 +299,7 @@ const Chat = (() => {
 
     addBotMessage(text);
     _addButtonGroup([
-      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'btn-highlight' },
+      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
   }
@@ -295,7 +315,7 @@ const Chat = (() => {
 
     addBotMessage(text);
     _addButtonGroup([
-      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'btn-highlight' },
+      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
   }
@@ -323,7 +343,7 @@ const Chat = (() => {
 
     addBotMessage(text);
     _addButtonGroup([
-      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'btn-highlight' },
+      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
   }
@@ -332,7 +352,7 @@ const Chat = (() => {
     currentMenuState = 'report';
     addBotMessage(_R().REPORT_TRIGGER);
     _addButtonGroup([
-      { label: _B().OPEN_REPORT, icon: '📝', action: 'open_modal', className: 'btn-highlight' },
+      { label: _B().OPEN_REPORT, icon: '📝', action: 'open_modal', className: 'primary' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
 
@@ -367,7 +387,7 @@ const Chat = (() => {
     addBotMessage(_R().TEAMS_FALLBACK);
 
     _addButtonGroup([
-      { label: _B().TEAMS_COPY, icon: '📋', action: 'copy_teams_account', className: 'btn-highlight' },
+      { label: _B().TEAMS_COPY, icon: '📋', action: 'copy_teams_account', className: 'primary' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
 
@@ -411,7 +431,7 @@ const Chat = (() => {
 
         const yesLabel = `${_B().CONFIRM_YES_PREFIX} ${label}`;
         _addButtonGroup([
-          { label: yesLabel, icon: '✅', action: 'confirm_intent', data: { intent: result.intent }, className: 'btn-highlight' },
+          { label: yesLabel, icon: '✅', action: 'confirm_intent', data: { intent: result.intent }, className: 'primary' },
           { label: _B().TEACH, icon: '📚', action: 'teach' },
           { label: _B().SETTING, icon: '⚙️', action: 'setting' },
           { label: _B().REPORT, icon: '🔧', action: 'report' }
@@ -486,7 +506,7 @@ const Chat = (() => {
           ]);
         } else if (currentMenuState === 'report') {
           _addButtonGroup([
-            { label: _B().OPEN_REPORT, icon: '📝', action: 'open_modal', className: 'btn-highlight' },
+            { label: _B().OPEN_REPORT, icon: '📝', action: 'open_modal', className: 'primary' },
             { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
           ]);
           const modalBtn = document.querySelector('[data-action="open_modal"]');
@@ -498,7 +518,7 @@ const Chat = (() => {
           }
         } else if (currentMenuState === 'sub_action') {
           _addButtonGroup([
-            { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'btn-highlight' },
+            { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
             { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
           ]);
         }
