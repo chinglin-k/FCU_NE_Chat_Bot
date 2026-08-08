@@ -4,9 +4,14 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 [![Run Validation Unit Tests](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml/badge.svg)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/Version-v3.1.0-blue)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-v1.3.0-blue)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/blob/main/CHANGELOG.md)
 
-**版本 / Version**：v3.1.0  
+**版本 / Version**：v1.3.0  
+
+> [!WARNING]
+> **試算表 ID 安全性警告**
+> 舊版 commit 曾寫死真實的 Spreadsheet ID，請務必建立新試算表並輪替（Rotate）新的 SPREADSHEET_ID，勿將有存取權限的 ID 再次提交至 Git。
+
 **最後更新 / Last Updated**：2026-08-08
 
 ---

@@ -1,6 +1,6 @@
 # 開發待辦清單（todo.md）
 
-**版本 / Version**：v3.1.0  
+**版本 / Version**：v1.3.0  
 **最後更新 / Last Updated**：2026-08-08
 
 ---
@@ -29,7 +29,7 @@
 |---|---|---|
 | 敏感個資切換為 POST Body | ✅ Done | 學號 / 手機 / 房號 / 床號改經 `doPost`（`text/plain`），不暴露於 URL |
 | 短效 Session Token 驗證 | ✅ Done | `get_token` 發放 120 秒 Token，`_consumeToken` 驗證，使用一次即銷毀 |
-| Client ID 裝置區分與雙層限流 | ✅ Done | `localStorage` (`fcu_client_id`) + `_checkRateLimit`（`classify`: 12/60, `report`: 5/20） |
+| Client ID 裝置區分與雙層限流 | ✅ Done | `localStorage` (`fcu_chat_client_id`) + `_checkRateLimit`（`classify`: 12/60, `report`: 5/20） |
 | reCAPTCHA v3 隱形驗證 | ✅ Done | 報修表單整合 grecaptcha (score ≥ 0.5)，防止外洩 URL 被濫用 |
 | 後端格式強驗證 (RegEx) | ✅ Done | `gas/Code.gs` 加入學號 `/^[a-zA-Z][0-9]{7}$/`、手機 `/^[0-9]{10}$/`、床號 `/^[0-9]{1,3}$/` 後端二次驗證 |
 | 明碼 試算表 ID 移除 | ✅ Done | 移除 `doc/data-model.md` 明碼 ID，改存 GAS Script Properties |

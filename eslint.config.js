@@ -25,6 +25,7 @@ module.exports = [
         ...globals.browser,
         // 專案內跨檔案共用的自訂全域（各自在對應檔案中用 const 宣告於頂層）
         CONFIG: 'readonly',
+        I18N: 'readonly',
         Chat: 'writable',
         Intent: 'readonly',
         ReportForm: 'writable',

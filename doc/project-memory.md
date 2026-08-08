@@ -3,7 +3,7 @@
 > 僅在確認新決策、修改既有決策或發現重要限制時更新。
 > 每次更新須記錄日期、原因與影響範圍。
 
-**版本 / Version**：v3.1.0  
+**版本 / Version**：v1.3.0  
 **最後更新 / Last Updated**：2026-08-08
 
 ---
@@ -16,7 +16,7 @@
 | 2026-07-17 | LLM API 呼叫透過 GAS 代理 | API Key 不得出現在前端或 Git | `gas/Code.gs`、`js/intent.js` |
 | 2026-08-08 | 全面切換為 POST Body (text/plain) 通訊 | 避免敏感個資（學號/電話/對話）暴露於 GET URL Log 或瀏覽器紀錄 | `gas/Code.gs`、`js/intent.js`、`js/report.js` |
 | 2026-08-08 | 實作記憶體層級一次性 Session Token (`get_token`) | 防止未授權請求或跨站偽造呼叫，用一次即失效，頁面重整後自動重新發放 | `gas/Code.gs`、`js/chat.js` |
-| 2026-08-08 | 導入 Client ID 與雙層流量限制 (User & Global) | Client ID 存於 localStorage (`fcu_client_id`) 跨頁面穩定，防刷流量（`classify`: 12/60, `report`: 5/20） | `gas/Code.gs`、`js/chat.js` |
+| 2026-08-08 | 導入 Client ID 與雙層流量限制 (User & Global) | Client ID 存於 localStorage (`fcu_chat_client_id`) 跨頁面穩定，防刷流量（`classify`: 12/60, `report`: 5/20） | `gas/Code.gs`、`js/chat.js` |
 | 2026-08-08 | 整合 Google reCAPTCHA v3 隱形驗證 | 僅報修表單使用（門檻 score ≥ 0.5），防止 GAS_URL 外洩遭大量腳本濫用 | `index.html`、`js/config.js`、`js/report.js`、`gas/Code.gs` |
 | 2026-08-08 | 九模型 Gemini 三層 RPM 自動切換與 429 重試 | 充份利用 15/10/5 RPM 額度，遇 429 延遲 1.5s 重試切換下一個模型 | `gas/Code.gs`、`doc/architecture.md` |
 | 2026-08-08 | 學號格式強驗證：1 位英文字母 + 7 位數字 | 對齊校方學號標準格式（如 `D1234567`），前後端雙重 RegEx 驗證 | `index.html`、`js/report.js`、`gas/Code.gs` |

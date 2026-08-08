@@ -116,7 +116,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="field-room"><span data-i18n="form.room.label">房號</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
-              <input type="text" id="field-room" name="roomNumber" placeholder="e.g. A123" required maxlength="8">
+              <input type="text" id="field-room" name="roomNumber" placeholder="e.g. A123" required maxlength="8" pattern="[A-Za-z0-9-]{1,8}">
             </div>
             <div class="form-group">
               <label for="field-bed"><span data-i18n="form.bed.label">床號</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>

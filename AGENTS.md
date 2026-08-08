@@ -2,7 +2,12 @@
 
 > 所有 AI 工具與開發者均須遵守此規範
 
-**版本 / Version**：v3.1.0  
+**版本 / Version**：v1.3.0  
+
+> [!WARNING]
+> **試算表 ID 安全性警告**
+> 舊版 commit 曾寫死真實的 Spreadsheet ID，請務必建立新試算表並輪替（Rotate）新的 SPREADSHEET_ID，勿將有存取權限的 ID 再次提交至 Git。
+
 **最後更新 / Last Updated**：2026-08-08
 
 ---
@@ -41,7 +46,8 @@ FCU_NE_Chat_Bot/
 ├── index.html            ← 主頁面，不得新增其他 HTML 頁面（SPA）
 ├── css/style.css         ← 所有樣式集中於此
 ├── js/
-│   ├── config.js         ← 設定值集中管理（GAS_URL、RECAPTCHA_SITE_KEY、CONFIG.TEAMS 等）
+│   ├── i18n.js
+  ├── config.js         ← 設定值集中管理（GAS_URL、RECAPTCHA_SITE_KEY、CONFIG.TEAMS 等）
 │   ├── chat.js            ← 主控制器（最後載入）；管理 Session Token 與 Client ID
 │   ├── intent.js          ← 意圖分類（回傳 {intent, confidence, needsConfirmation, isSystemError, topic})
 │   ├── report.js          ← 報修表單（含前端格式驗證、reCAPTCHA token 取得）
@@ -87,7 +93,7 @@ FCU_NE_Chat_Bot/
 - **一次性 Token**：`doGet(?action=get_token)` 發放（120 秒有效、用一次即失效），
   `classify`／`report` 的 POST body 須帶入有效 token，經 `_consumeToken()` 驗證。
   Token 存於前端記憶體變數（非 localStorage），頁面重整後會重新取得。
-- **Client ID**：前端產生的隨機 UUID，存於 `localStorage`（key: `fcu_client_id`），
+- **Client ID**：前端產生的前端亂數字串（Math.random 基底 36 進位），存於 `localStorage`（key: `fcu_chat_client_id`），
   非個資、非身分驗證，僅用於「依使用者區分」的流量限制識別。
 - **雙層流量限制**（`_checkRateLimit`，CacheService 實作）：
   - `classify`：使用者級 12 次/分鐘、全域級 60 次/分鐘

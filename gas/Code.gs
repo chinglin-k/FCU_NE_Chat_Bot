@@ -21,16 +21,13 @@ const GEMINI_MODELS_FALLBACK = [
   // ── RPM 最高（15/min）：優先使用，配額最充裕 ──
   'gemini-3.5-flash-lite',  // RPM 15：Gemini 3.5 輕量版
   'gemini-3.1-flash-lite',  // RPM 15：Gemini 3.1 輕量版
-  // ── RPM 中等（10/min）──
-  'gemini-2.5-flash-lite',  // RPM 10：Gemini 2.5 輕量版
   // ── RPM 標準（5/min）：最新世代強效版 ──
   'gemini-3.6-flash',       // RPM 5：最新 Gemini 3.6
   'gemini-3.5-flash',       // RPM 5：Gemini 3.5
-  'gemini-3-flash',         // RPM 5：Gemini 3
-  'gemini-2.5-flash',       // RPM 5：Gemini 2.5
-  // ── 穩定備援（2.0 系列）──
-  'gemini-2.0-flash',       // 穩定備援
-  'gemini-2.0-flash-lite'   // 最後保底
+  // ── 預覽版文字對話模型（補齊） ──
+  'gemini-3.1-pro-preview',
+  'gemini-3-flash-preview',
+  // ⚠️ 棄用模型（gemini-2.0-flash 等）已根據官方最新文件移除
 ];
 
 // ──────────────────────────────────────────────
@@ -55,6 +52,20 @@ function _sanitizeIdentifier(identifier) {
   const id = String(identifier || '').trim();
   const cleaned = id.replace(/[^a-zA-Z0-9-]/g, '').slice(0, 64);
   return cleaned || 'anonymous';
+}
+
+/**
+ * 防止 CSV / 公式注入（Formula Injection）
+ * 若字串以 =, +, -, @ 或 Tab 開頭，代表在 Excel / LibreOffice 開啟匯出檔時
+ * 可能被誤判為公式並執行；加上前導單引號讓其在試算軟體中強制顯示為純文字。
+ * 注意：這是「匯出成 CSV/XLSX 之後」的防護，Google Sheets 內部已用
+ * setNumberFormat('@') 保護，兩者需同時存在才算完整。
+ * @param {string} value
+ * @returns {string}
+ */
+function _sanitizeForSpreadsheet(value) {
+  const str = String(value || '');
+  return /^[=+\-@\t]/.test(str) ? `'${str}` : str;
 }
 
 // ──────────────────────────────────────────────
@@ -141,11 +152,18 @@ function doGet(e) {
         break;
 
       case 'counter_get':
-        result = getCounter();
+        // 唯讀操作，給予較寬鬆的全域上限，避免被當作免費的請求量放大器
+        result = _checkRateLimit('counter_get', 999999, 'anonymous', 120)
+          ? getCounter()
+          : { success: false, count: 0, error: '請求過於頻繁，請稍後再試' };
         break;
 
       case 'counter_increment':
-        result = incrementCounter();
+        // 會寫入 Script Properties，套用與 report 相近等級的全域限流，
+        // 防止 GAS_URL 外洩後被腳本無限灌爆、洗版累積人數並耗盡帳號執行配額
+        result = _checkRateLimit('counter_increment', 999999, 'anonymous', 30)
+          ? incrementCounter()
+          : { success: false, count: 0, error: '請求過於頻繁，請稍後再試' };
         break;
 
       // classify 與 report 已移至 doPost，此處明確拒絕
@@ -458,6 +476,10 @@ function writeReport(reportData, clientId, recaptchaToken) {
     if (bedNumber && !/^[0-9]{1,3}$/.test(bedNumber)) {
       return { success: false, error: '床號格式錯誤（需為 1–3 位數字）' };
     }
+    const roomNumber = String(reportData.roomNumber || '').trim();
+    if (roomNumber && !/^[A-Za-z0-9-]{1,8}$/.test(roomNumber)) {
+      return { success: false, error: '房號格式錯誤（僅限英數字與連字號，最長 8 碼）' };
+    }
 
     const spreadsheet = SpreadsheetApp.openById(_getSpreadsheetId());
     const sheet = spreadsheet.getSheetByName(SHEET_NAME);
@@ -490,13 +512,13 @@ function writeReport(reportData, clientId, recaptchaToken) {
     // S-07: 後端欄位長度截斷（對比兩者工程同步）
     // 目的：防止攻擊者繞過前端驗證寫入超長字串
     const safe = {
-      studentId:   String(reportData.studentId   || '').slice(0, 8),
-      name:        String(reportData.name        || '').slice(0, 50),
-      roomNumber:  String(reportData.roomNumber  || '').slice(0, 8),
+      studentId:   _sanitizeForSpreadsheet(String(reportData.studentId   || '').slice(0, 8)),
+      name:        _sanitizeForSpreadsheet(String(reportData.name        || '').slice(0, 50)),
+      roomNumber:  _sanitizeForSpreadsheet(String(reportData.roomNumber  || '').slice(0, 8)),
       bedNumber:   String(reportData.bedNumber   || '').slice(0, 3),
       phone:       String(reportData.phone       || '').slice(0, 10),
-      repairTime:  String(reportData.repairTime  || '').slice(0, 20),
-      description: String(reportData.description || '').slice(0, 200)
+      repairTime:  _sanitizeForSpreadsheet(String(reportData.repairTime  || '').slice(0, 20)),
+      description: _sanitizeForSpreadsheet(String(reportData.description || '').slice(0, 200))
     };
 
     const rowValues = [
@@ -663,6 +685,7 @@ if (typeof module !== 'undefined' && module.exports) {
     incrementCounter,
     _checkRateLimit,
     _sanitizeIdentifier,
+    _sanitizeForSpreadsheet,
     _generateToken,
     _consumeToken,
     _verifyRecaptcha,

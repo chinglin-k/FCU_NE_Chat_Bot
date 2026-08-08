@@ -11,7 +11,7 @@ const Counter = (() => {
   function _updateDisplay(count) {
     const el = document.getElementById(DISPLAY_ID);
     if (!el) return;
-    el.textContent = count.toLocaleString('zh-TW');
+    el.textContent = count.toLocaleString(I18N.getLang() === 'zh' ? 'zh-TW' : 'en-US');
     el.classList.remove('bump');
     // 強制 reflow 以觸發動畫
     void el.offsetWidth;

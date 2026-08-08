@@ -91,6 +91,7 @@ const ReportForm = (() => {
     if (!name) return V.NAME_REQUIRED;
     if (!studentId || !/^[a-zA-Z][0-9]{7}$/.test(studentId)) return V.STUDENT_ID_FORMAT;
     if (!room) return V.ROOM_REQUIRED;
+    if (!/^[A-Za-z0-9-]{1,8}$/.test(room)) return V.ROOM_FORMAT;
     if (!bed || !/^[0-9]{1,3}$/.test(bed)) return V.BED_FORMAT;
     if (!phone || !/^[0-9]{10}$/.test(phone)) return V.PHONE_FORMAT;
 
@@ -263,7 +264,3 @@ const ReportForm = (() => {
 
   return { init, open, close };
 })();
-
-document.addEventListener('DOMContentLoaded', () => {
-  ReportForm.init();
-});

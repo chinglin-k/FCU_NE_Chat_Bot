@@ -1,11 +1,11 @@
 {
   "name": "fcu-ne-chat-bot",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "FCU Fuxing Dormitory Network Repair Assistant",
   "main": "js/chat.js",
   "type": "commonjs",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "scripts": {
     "test": "node --test test/*.test.js",

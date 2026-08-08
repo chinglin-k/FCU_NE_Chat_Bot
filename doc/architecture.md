@@ -1,6 +1,6 @@
 # 架構設計文件 (Architecture Design Document)
 
-**版本 / Version**：v3.1.0  
+**版本 / Version**：v1.3.0  
 **最後更新 / Last Updated**：2026-08-08（Security Hardening: reCAPTCHA v3, Dual-Tier Rate Limiting, 9-Model Gemini Fallback Matrix, Client ID & Token Validation）
 
 ---

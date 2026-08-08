@@ -50,13 +50,13 @@ const Intent = (() => {
     /** A. 理解失敗 fallback（NLU 正常運作但無法辨識意圖） */
     const _unknownFallback = {
       intent: INTENTS.UNKNOWN, confidence: 0,
-      needsConfirmation: false, isSystemError: false, topic: 'ALL'
+      needsConfirmation: false, isSystemError: false, topic: 'NONE'
     };
 
     /** B. 系統錯誤 fallback（逾時、HTTP 錯誤、GAS 失敗等） */
     const _systemErrorFallback = {
       intent: INTENTS.UNKNOWN, confidence: 0,
-      needsConfirmation: false, isSystemError: true, topic: 'ALL'
+      needsConfirmation: false, isSystemError: true, topic: 'NONE'
     };
 
     if (!message || !message.trim()) return _unknownFallback;
