@@ -459,6 +459,23 @@ function incrementCounter() {
 /**
  * 關鍵字 Rule-based 備援分類器
  * 當 Gemini API 配額用盡或網路異常時，確保 Chatbot 仍能 100% 精準回應常見意圖
+ * 支援 16 種語言/地區語言識別：
+ *   1. 繁體中文 (Traditional Chinese)
+ *   2. 英文 (English)
+ *   3. 日文 (Japanese)
+ *   4. 馬來文 (Malay)
+ *   5. 韓文 (Korean)
+ *   6. 印尼文 (Indonesian)
+ *   7. 菲律賓文 (Filipino / Tagalog)
+ *   8. 泰文 (Thai)
+ *   9. 南非荷蘭文 (Afrikaans)
+ *  10. 法文 (French)
+ *  11. 史瓦帝尼文 (siSwati / Swati)
+ *  12. 越南文 (Vietnamese)
+ *  13. 墨西哥西班牙文 (Spanish - Mexico)
+ *  14. 摩西文 / 法文 (Mooré - Burkina Faso)
+ *  15. 蒙古文 (Mongolian)
+ *  16. 埃及阿拉伯文 (Egyptian Arabic) & 厄瓜多西班牙文 (Spanish - Ecuador)
  *
  * @param {string} msg - 清理後的使用者輸入
  * @returns {{ success: boolean, intent: string, confidence: number, needsConfirmation: boolean, topic: string }}
@@ -466,45 +483,45 @@ function incrementCounter() {
 function _ruleBasedClassify(msg) {
   const text = msg.toLowerCase();
 
-  // 1. 報修意圖
-  if (/(報修|修復|幫我修|派人|實體協助|故障|壞掉|無法連線|斷線|網路壞了|網路問題)/.test(text)) {
+  // 1. 報修意圖 (BUTTON_REPORT)
+  if (/(報修|修復|幫我修|派人|實體協助|故障|壞掉|無法連線|斷線|網路壞了|網路問題|維修|repair|fix|broken|technician|not working|offline|connection issue|maintenance|修理|つながらない|障害|点検|baiki|rosak|terputus|수리|고장|연결 오류|점검|고쳐주|perbaiki|rusak|gangguan|ayusin|sira|kumpuni|ซ่อม|เสีย|แจ้งซ่อม|ช่าง|herstel|regmaak|gebreek|réparer|panne|cassé|dysfonctionnement|kulungisa|kuphuka|sửa|hỏng|báo hỏng|reparar|arreglar|falla|avería|maane|засвар|гэмтэл|засах|تصليح|عطل|مش شغال|صيانة)/.test(text)) {
     return { success: true, intent: 'BUTTON_REPORT', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 
-  // 2. IP 貼紙 / 網路孔問題
-  if (/(貼紙|ip貼紙|網路孔|插孔|牆上|牆孔|牆壁|插座)/.test(text)) {
+  // 2. IP 貼紙 / 網路孔問題 (STICKER_PORT)
+  if (/(貼紙|ip貼紙|網路孔|插孔|牆上|牆孔|牆壁|插座|網路插座|sticker|wall port|wall socket|ethernet port|rj45 port|wall outlet|ステッカー|シール|壁のポート|差し込み口|pelekat|port dinding|soket ethernet|스티커|벽 포트|랜선 포트|소켓|랜 포트|stiker|colokan|saksakan|สติกเกอร์|พอร์ตผนัง|ช่องสายแลน|plakkers|muurpoort|étiquette|prise murale|port éthernet|sitikha|nhãn|cổng mạng|ổ cắm mạng|cổng tường|etiqueta|puerto de pared|toma de red|стикер|ханын порт|разетка|استيكر|ملصق|منفذ حائط)/.test(text)) {
     return { success: true, intent: 'STICKER_PORT', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 
   // 3. BUTTON_SETTING 子主題細分
-  // 3a. 轉接器類（ADAPTER）
-  if (/(轉接器|轉接頭|轉換器|轉換頭|rj45|驅動|驅動程式)/.test(text)) {
+  // 3a. 轉接器類 (ADAPTER)
+  if (/(轉接器|轉接頭|轉換器|轉換頭|rj45|驅動|驅動程式|usb轉接|adapter|dongle|driver|convertor|converter|usb-c adapter|アダプタ|変換|ドライバ|pemutar|penyesuai|pemacu|어댑터|젠더|드라이버|변환기|adaptor|konverter|pangkonek|อะแดปเตอร์|ดงเกิล|ไดรเวอร์|ตัวแปลง|koppelvlak|drywer|omskakelaar|adaptateur|convertisseur|pilote|siavumelwano|bộ chuyển đổi|cáp chuyển|adaptador|convertidor|controlador|адаптер|хөрвүүлэгч|драйвер|محول|كارت شبكة|تعريفات|درايفر|دنجل)/.test(text)) {
     return { success: true, intent: 'BUTTON_SETTING', confidence: 0.95, needsConfirmation: false, topic: 'ADAPTER' };
   }
-  // 3b. 帳號密碼類（ACCOUNT）
-  if (/(wifi帳號|wifi密碼|fcu帳號|nid|密碼|帳號)/.test(text)) {
+  // 3b. 帳號密碼類 (ACCOUNT)
+  if (/(wifi帳號|wifi密碼|fcu帳號|nid|密碼|帳號|登入密碼|帳密|account|password|login|username|credentials|passcode|アカウント|パスワード|ログイン|暗証番号|akaun|kata laluan|log masuk|계정|비밀번호|암호|로그인|아이디|akun|kata sandi|akawnt|pag-log in|บัญชี|รหัสผ่าน|เข้าสู่ระบบ|พาสเวิร์ด|rekening|wagwoord|intrek|compte|mot de passe|identifiant|mdp|akhawunti|igama lemvume|iphasiwedi|tài khoản|mật khẩu|đăng nhập|cuenta|contraseña|usuario|clave|iniciar sesión|данс|нууц үг|нэвтрэх|حساب|كلمة السر|كلمة المرور|تسجيل الدخول)/.test(text)) {
     return { success: true, intent: 'BUTTON_SETTING', confidence: 0.95, needsConfirmation: false, topic: 'ACCOUNT' };
   }
-  // 3c. WiFi 訊號類（WIFI_SIGNAL）
-  if (/(寢室wifi|寢室收不到|收不到wifi|收不到訊號|寢室沒有wifi|寢室無wifi)/.test(text)) {
+  // 3c. WiFi 訊號類 (WIFI_SIGNAL)
+  if (/(寢室wifi|寢室收不到|收不到wifi|收不到訊號|寢室沒有wifi|寢室無wifi|房間無wifi|no wifi signal|weak wifi|no coverage|dorm wifi|no signal|部屋でwifi|信号が弱い|電波がない|tiada isyarat wifi|wifi bilik|신호 없음|와이파이 안잡힘|방에서 와이파이|sinyal lemah|walang signal|ไม่มีสัญญาณ|สัญญาณ wifi|geen wifi sein|pas de signal wifi|chambre|kute isignali|không có sóng|sóng yếu|sin señal de wifi|habitación|дохио байхгүй|өрөөний wi-fi|مفيش شبكة|واي فاي ضعيف|مفيش إشارة)/.test(text)) {
     return { success: true, intent: 'BUTTON_SETTING', confidence: 0.95, needsConfirmation: false, topic: 'WIFI_SIGNAL' };
   }
-  // 3d. 其他常見問題（ALL）
-  if (/(常見問題|常見設定|常見)/.test(text)) {
-    return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'ALL' };
-  }
-  // 3e. 冷氣電費（AC_BILLING）— 必須在 NON_NETWORK 之前，避免被「冷氣」關鍵字誤吸
-  if (/(電費|冷氣儲值|儲值|繳費|冷氣費|空調費)/.test(text)) {
+  // 3d. 冷氣電費 (AC_BILLING) — 必須在 NON_NETWORK 之前，避免被關鍵字誤吸
+  if (/(電費|冷氣儲值|儲值|繳費|冷氣費|空調費|儲值冷氣|ac billing|aircon top-up|electricity bill|prepaid ac|recharge ac|エアコン代|電気代|チャージ|空調費|bil ac|tambah nilai ac|bayaran elektrik|에어컨 요금|전기세|충전|냉방비|tagihan ac|isi ulang ac|bayar listrik|bayad sa ac|top-up ng ac|kuryente|ค่าแอร์|เติมเงินแอร์|ค่าไฟ|lugversorging|facture clim|rechargement clim|électricité|inkhokhelo ya ac|gezi|tiền điều hòa|nạp tiền điều hòa|tiền điện|saldo de aire|recarga ac|pago de electricidad|агааржуулагчийн төлбөр|цахилгааны мөнгө|كارت التكييف|شحن التكييف|فاتورة الكهرباء)/.test(text)) {
     return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'AC_BILLING' };
   }
+  // 3e. 其他常見問題 (ALL)
+  if (/(常見問題|常見設定|常見|faq|frequently asked|よくある質問|soalan lazim|자주 묻는 질문|pertanyaan umum|madalas na tanong|คำถามที่พบบ่อย|veelgestelde vrae|questions fréquentes|imidlalo|câu hỏi thường gặp|preguntas frecuentes|түгээмэл асуултууд|الأسئلة الشائعة)/.test(text)) {
+    return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'ALL' };
+  }
 
-  // 4. 網路教學 / 設定步驟
-  if (/(教學|怎麼設|如何設|連線教學|設定步驟|不會連|教我|上網教學|教學文件)/.test(text)) {
+  // 4. 網路教學 / 設定步驟 (BUTTON_TEACH)
+  if (/(教學|怎麼設|如何設|連線教學|設定步驟|不會連|教我|上網教學|教學文件|設定指南|tutorial|guide|manual|setup|how to connect|configuration|instruction|使い方|マニュアル|設定方法|接続ガイド|panduan|cara sambung|tetapan|가이드|매뉴얼|설정 방법|자습서|pengaturan|petunjuk|gabay|kung paano ikonekta|คู่มือ|วิธีเชื่อมต่อ|ขั้นตอนการตั้งค่า|gids|handleiding|opstelling|tutoriel|manuel|sihlahlo|hướng dẫn|cài đặt|cách kết nối|cómo conectar|instrucciones|заавар|гарын авлага|тохируулах|دليل|طريقة الضبط|طريقة التوصيل|خطوات)/.test(text)) {
     return { success: true, intent: 'BUTTON_TEACH', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 
-  // 5. 非網管業務（冷氣設施、水電等）— 移除「電費」避免誤吸 AC_BILLING
-  if (/(冷氣|洗手台|熱水|電燈|燈泡|浴室|寢室設施|宿舍設施|床位|電器)/.test(text)) {
+  // 5. 非網管業務 (NON_NETWORK - 冷氣設施、水電、浴室、燈泡等)
+  if (/(冷氣|洗手台|熱水|電燈|燈泡|浴室|寢室設施|宿舍設施|床位|電器|門鎖|bathroom|warm water|hot water|light bulb|lamp|bed frame|lock|desk|sink|toilet|洗面台|お湯|電球|ライト|鍵|ベッド|水道|bilik mandi|air panas|lampu|katil|kunci|sinki|tandas|세면대|온수|전등|전구|욕실|침대|열쇠|싱크대|화장실|kamar mandi|air panas|lampu|banyo|mainit na tubig|ilaw|kama|susi|ห้องน้ำ|น้ำอุ่น|หลอดไฟ|เตียง|กุญแจ|ชักโครก|badkamer|warm water|lig|bed|sleutel|salle de bain|eau chaude|ampoule|lit|clé|toilettes|likamelo lekugeza|emanti lanhlanu|sikhanyiso|nhà vệ sinh|nước nóng|bóng đèn|giường|khóa|baño|agua caliente|bombilla|lámpara|cama|llave|угаалгын өрөө|халуун ус|гэрэл|ор|түлхүүр|حمام|مية سخنة|لمبة|سرير|مفتاح)/.test(text)) {
     return { success: true, intent: 'NON_NETWORK', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
   }
 
