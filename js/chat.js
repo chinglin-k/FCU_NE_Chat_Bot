@@ -13,8 +13,6 @@ const Chat = (() => {
   let sessionToken = null;
   let clientId = null;
   let activeButtons = [];
-  let currentMenuState = 'main'; // 'main', 'teach', 'setting', 'report', 'teams'
-  let isWaitingForResponse = false;
 
   /** 取得 Client ID（持久化於 localStorage，用於依使用者計數限流） */
   function getClientId() {
@@ -94,7 +92,7 @@ const Chat = (() => {
   }
 
   /* ── 訊息操作 ── */
-  function addMessage(text, isUser = false, isHtml = false, i18nMarkdownKey = null) {
+  function addMessage(text, isUser = false, isHtml = false) {
     const wrapperDiv = document.createElement('div');
     wrapperDiv.className = `msg-wrapper ${isUser ? 'user' : 'bot'}`;
 
@@ -109,10 +107,7 @@ const Chat = (() => {
     const bubbleDiv = document.createElement('div');
     bubbleDiv.className = 'msg-bubble';
 
-    if (i18nMarkdownKey) {
-      bubbleDiv.setAttribute('data-i18n-markdown', i18nMarkdownKey);
-      bubbleDiv.innerHTML = _parseMarkdown(I18N.t(i18nMarkdownKey));
-    } else if (isHtml) {
+    if (isHtml) {
       bubbleDiv.innerHTML = text;
     } else if (isUser) {
       bubbleDiv.textContent = text;
@@ -128,8 +123,8 @@ const Chat = (() => {
     _scrollToBottom();
   }
 
-  function addBotMessage(text, isHtml = false, i18nMarkdownKey = null) {
-    addMessage(text, false, isHtml, i18nMarkdownKey);
+  function addBotMessage(text, isHtml = false) {
+    addMessage(text, false, isHtml);
   }
 
   function addUserMessage(text) {
@@ -156,12 +151,16 @@ const Chat = (() => {
     const contentDiv = document.createElement('div');
     contentDiv.className = 'msg-content';
 
-    const bubbleDiv = document.createElement('div');
-    bubbleDiv.className = 'msg-bubble typing-indicator';
-    bubbleDiv.setAttribute('aria-label', I18N.t('typing.aria'));
-    bubbleDiv.innerHTML = '<span></span><span></span><span></span>';
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator';
+    typingDiv.setAttribute('aria-label', I18N.getLang() === 'en' ? 'Typing' : '正在輸入');
 
-    contentDiv.appendChild(bubbleDiv);
+    for (let i = 0; i < 3; i++) {
+      const dot = document.createElement('span');
+      typingDiv.appendChild(dot);
+    }
+
+    contentDiv.appendChild(typingDiv);
     wrapperDiv.appendChild(avatarDiv);
     wrapperDiv.appendChild(contentDiv);
 
@@ -170,42 +169,43 @@ const Chat = (() => {
   }
 
   function _hideTyping() {
-    const indicator = document.getElementById('typing-indicator');
-    if (indicator) indicator.remove();
+    const typing = document.getElementById('typing-indicator');
+    if (typing) typing.remove();
   }
 
-  /* ── 按鈕群組 ── */
+  /* ── 選項按鈕管理 ── */
+  function _removeActiveButtons() {
+    const group = document.getElementById('active-button-group');
+    if (group) group.remove();
+    activeButtons = [];
+  }
+
   function _addButtonGroup(buttons) {
     _removeActiveButtons();
 
     const groupDiv = document.createElement('div');
-    groupDiv.className = 'btn-group';
+    groupDiv.className = 'button-group';
     groupDiv.id = 'active-button-group';
 
     buttons.forEach(btn => {
       const btnEl = document.createElement('button');
-      const isPrimary = btn.className === 'btn-highlight' || btn.className === 'primary';
-      btnEl.className = `quick-btn ${isPrimary ? 'primary' : ''}`;
+      btnEl.className = `quick-reply-btn ${btn.className || ''}`;
       btnEl.dataset.action = btn.action;
 
       if (btn.data) {
-        Object.keys(btn.data).forEach(k => {
-          btnEl.dataset[k] = btn.data[k];
-        });
+        btnEl.dataset.extra = JSON.stringify(btn.data);
       }
 
-      if (btn.icon) {
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'btn-icon';
-        iconSpan.setAttribute('aria-hidden', 'true');
-        iconSpan.textContent = btn.icon;
-        btnEl.appendChild(iconSpan);
-        btnEl.appendChild(document.createTextNode(' ' + btn.label));
-      } else {
-        btnEl.textContent = btn.label;
-      }
+      const iconSpan = document.createElement('span');
+      iconSpan.setAttribute('aria-hidden', 'true');
+      iconSpan.textContent = btn.icon;
 
-      btnEl.addEventListener('click', () => _handleButtonClick(btn, groupDiv));
+      const labelText = document.createTextNode(` ${btn.label}`);
+
+      btnEl.appendChild(iconSpan);
+      btnEl.appendChild(labelText);
+
+      btnEl.addEventListener('click', () => _handleButtonClick(btn.action, btn.data, btn.label));
       groupDiv.appendChild(btnEl);
       activeButtons.push(btnEl);
     });
@@ -214,40 +214,22 @@ const Chat = (() => {
     _scrollToBottom();
   }
 
-  function _removeActiveButtons() {
-    const group = document.getElementById('active-button-group');
-    if (group) group.remove();
-    activeButtons = [];
-  }
-
   /* ── 主選單按鈕 ── */
   function _showMainButtons() {
-    currentMenuState = 'main';
     _addButtonGroup([
       { label: _B().TEACH, icon: '📚', action: 'teach' },
       { label: _B().SETTING, icon: '⚙️', action: 'setting' },
-      { label: _B().REPORT, icon: '🔧', action: 'report', className: 'primary' }
+      { label: _B().REPORT, icon: '🔧', action: 'report', className: 'btn-highlight' }
     ]);
   }
 
   /* ── 按鈕點擊處理 ── */
-  function _handleButtonClick(btn, groupDiv) {
-    if (isWaitingForResponse) return;
-    _removeActiveButtons();
-    addUserMessage(btn.label);
+  function _handleButtonClick(action, data, label) {
+    if (label) addUserMessage(label);
 
-    switch (btn.action) {
+    switch (action) {
       case 'teach':
         _handleTeachFlow();
-        break;
-      case 'setting':
-        _handleSettingFlow();
-        break;
-      case 'setting_subtopic':
-        _handleSettingSubtopic(btn.data ? btn.data.topic : 'ALL');
-        break;
-      case 'report':
-        _handleReportFlow();
         break;
       case 'teach_win':
         _handleTeachDoc('win');
@@ -256,17 +238,24 @@ const Chat = (() => {
         _handleTeachDoc('mac');
         break;
       case 'back-to-main':
-        addBotMessage(_R().BACK_TO_MAIN);
         _showMainButtons();
         break;
       case 'need-help':
         _handleReportFlow();
         break;
-      case 'confirm_intent':
-        _handleConfirmedIntent(btn.data ? btn.data.intent : '');
+      case 'setting':
+        _handleSettingFlow();
         break;
-      case 'teams-fallback':
-        _handleTeamsClick();
+      case 'report':
+        _handleReportFlow();
+        break;
+      case 'confirm_intent':
+        if (data && data.intent) {
+          _handleConfirmedIntent(data.intent);
+        }
+        break;
+      case 'copy_teams_account':
+        Teams.copyAccountName();
         break;
       default:
         _showMainButtons();
@@ -275,7 +264,6 @@ const Chat = (() => {
 
   /* ── 流程處理 ── */
   function _handleTeachFlow() {
-    currentMenuState = 'teach';
     addBotMessage(_R().TEACH_CHOOSE);
     _addButtonGroup([
       { label: _B().TEACH_WIN, icon: '💻', action: 'teach_win' },
@@ -285,73 +273,74 @@ const Chat = (() => {
   }
 
   function _handleTeachDoc(sys) {
-    currentMenuState = 'sub_action';
     const isWin = sys === 'win';
     const rawTemplate = isWin ? _R().TEACH_WINDOWS : _R().TEACH_MAC;
     const url = isWin ? CONFIG.DOCS.WINDOWS : CONFIG.DOCS.MAC;
-    const text = rawTemplate.replace(isWin ? '{WINDOWS_URL}' : '{MAC_URL}', url);
+    const text = rawTemplate.replace('{WINDOWS_URL}', url).replace('{MAC_URL}', url);
 
     addBotMessage(text);
     _addButtonGroup([
-      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
+      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'btn-highlight' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
   }
 
   function _handleSettingFlow() {
-    currentMenuState = 'sub_action';
     const items = _R().SETTING_ITEMS;
+    let text = `${_R().SETTING_HEADER}\n\n`;
+    text += `${items.ACCOUNT}\n\n`;
+    text += `${items.ADAPTER}\n\n`;
+    text += `${items.WIFI_SIGNAL}\n\n`;
+    text += `${items.AC_BILLING}`;
 
-    // 開頭標題語
-    addBotMessage(_R().SETTING_HEADER);
-
-    // 常見問題每一項皆為獨立的對話框
-    addBotMessage(items.ACCOUNT);
-    addBotMessage(items.ADAPTER);
-    addBotMessage(items.WIFI_SIGNAL);
-    addBotMessage(items.AC_BILLING);
-
+    addBotMessage(text);
     _addButtonGroup([
-      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
+      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'btn-highlight' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
   }
 
   function _handleSettingSubtopic(topic) {
-    currentMenuState = 'sub_action';
     const items = _R().SETTING_ITEMS;
-    addBotMessage(_R().SETTING_HEADER);
-
+    let text = `${_R().SETTING_HEADER}\n\n`;
     switch (topic) {
       case 'ACCOUNT':
-        addBotMessage(items.ACCOUNT);
+        text += items.ACCOUNT;
         break;
       case 'ADAPTER':
-        addBotMessage(items.ADAPTER);
+        text += items.ADAPTER;
         break;
       case 'WIFI_SIGNAL':
-        addBotMessage(items.WIFI_SIGNAL);
+        text += items.WIFI_SIGNAL;
         break;
       case 'AC_BILLING':
-        addBotMessage(items.AC_BILLING);
+        text += items.AC_BILLING;
         break;
       default:
-        addBotMessage(items.ACCOUNT);
-        addBotMessage(items.ADAPTER);
-        addBotMessage(items.WIFI_SIGNAL);
-        addBotMessage(items.AC_BILLING);
+        text += `${items.ACCOUNT}\n\n${items.ADAPTER}\n\n${items.WIFI_SIGNAL}\n\n${items.AC_BILLING}`;
     }
 
+    addBotMessage(text);
     _addButtonGroup([
-      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
+      { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'btn-highlight' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
   }
 
   function _handleReportFlow() {
-    currentMenuState = 'report';
     addBotMessage(_R().REPORT_TRIGGER);
-    ReportForm.open();
+    _addButtonGroup([
+      { label: _B().OPEN_REPORT, icon: '📝', action: 'open_modal', className: 'btn-highlight' },
+      { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
+    ]);
+
+    const modalBtn = document.querySelector('[data-action="open_modal"]');
+    if (modalBtn) {
+      modalBtn.addEventListener('click', () => {
+        _removeActiveButtons();
+        ReportForm.open();
+      });
+    }
   }
 
   function _handleConfirmedIntent(intent) {
@@ -372,40 +361,30 @@ const Chat = (() => {
   }
 
   function _handleTeamsClick() {
-    currentMenuState = 'teams';
     addBotMessage(_R().TEAMS_FALLBACK);
 
     _addButtonGroup([
-      { label: _B().TEAMS_COPY, icon: '📋', action: 'copy_teams_account', className: 'primary' },
+      { label: _B().TEAMS_COPY, icon: '📋', action: 'copy_teams_account', className: 'btn-highlight' },
       { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
     ]);
 
-    const copyBtn = document.querySelector('[data-action="copy_teams_account"]');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', () => {
-        Teams.copyAccountName();
-        addBotMessage(_R().TEAMS_COPY_SUCCESS);
-      });
-    }
+    Teams.open();
   }
 
-  /* ── 處理使用者自由輸入 ── */
+  /* ── 訊息發送與 LLM 意圖判讀 ── */
   async function _handleTextInput() {
     const text = inputEl.value.trim();
-    if (!text || isWaitingForResponse) return;
+    if (!text) return;
 
     inputEl.value = '';
     inputEl.style.height = 'auto';
-    _removeActiveButtons();
     addUserMessage(text);
-
-    isWaitingForResponse = true;
+    _removeActiveButtons();
     _showTyping();
 
     try {
       const result = await Intent.classify(text);
       _hideTyping();
-      isWaitingForResponse = false;
 
       if (result.isSystemError) {
         addBotMessage(_R().SYSTEM_ERROR);
@@ -415,12 +394,12 @@ const Chat = (() => {
 
       if (result.needsConfirmation && result.intent !== 'UNKNOWN') {
         const label = _L()[result.intent] || result.intent;
-        const hintText = _R().CONFIRM_HINT.replace('{INTENT_LABEL}', label);
-        addBotMessage(hintText);
+        const confirmMsg = _R().CONFIRM_HINT.replace('{INTENT_LABEL}', label);
+        addBotMessage(confirmMsg);
 
         const yesLabel = `${_B().CONFIRM_YES_PREFIX} ${label}`;
         _addButtonGroup([
-          { label: yesLabel, icon: '✅', action: 'confirm_intent', data: { intent: result.intent }, className: 'primary' },
+          { label: yesLabel, icon: '✅', action: 'confirm_intent', data: { intent: result.intent }, className: 'btn-highlight' },
           { label: _B().TEACH, icon: '📚', action: 'teach' },
           { label: _B().SETTING, icon: '⚙️', action: 'setting' },
           { label: _B().REPORT, icon: '🔧', action: 'report' }
@@ -433,7 +412,11 @@ const Chat = (() => {
           _handleTeachFlow();
           break;
         case 'BUTTON_SETTING':
-          _handleSettingSubtopic(result.topic || 'ALL');
+          if (result.topic && result.topic !== 'ALL') {
+            _handleSettingSubtopic(result.topic);
+          } else {
+            _handleSettingFlow();
+          }
           break;
         case 'BUTTON_REPORT':
         case 'STICKER_PORT':
@@ -447,18 +430,17 @@ const Chat = (() => {
         default:
           addBotMessage(_R().UNKNOWN);
           _showMainButtons();
+          break;
       }
-
-    } catch (err) {
-      console.error('Text input error:', err);
+    } catch (e) {
       _hideTyping();
-      isWaitingForResponse = false;
+      console.error('Text input handler error:', e);
       addBotMessage(_R().SYSTEM_ERROR);
       _showMainButtons();
     }
   }
 
-  /* ── 事件監聽 ── */
+  /* ── 事件綁定 ── */
   function _bindEvents() {
     sendBtn.addEventListener('click', _handleTextInput);
 
@@ -471,38 +453,16 @@ const Chat = (() => {
 
     inputEl.addEventListener('input', () => {
       inputEl.style.height = 'auto';
-      inputEl.style.height = `${Math.min(inputEl.scrollHeight, 120)}px`;
+      inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
     });
 
     const teamsBtn = document.getElementById('teams-header-btn');
     if (teamsBtn) {
-      teamsBtn.addEventListener('click', () => {
-        Teams.open();
+      teamsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        _handleTeamsClick();
       });
     }
-
-    // 語言變更時，重繪 activeButtons
-    document.addEventListener('i18n:changed', () => {
-      const group = document.getElementById('active-button-group');
-      if (group && activeButtons.length > 0) {
-        if (currentMenuState === 'main') {
-          _showMainButtons();
-        } else if (currentMenuState === 'teach') {
-          _addButtonGroup([
-            { label: _B().TEACH_WIN, icon: '💻', action: 'teach_win' },
-            { label: _B().TEACH_MAC, icon: '🍎', action: 'teach_mac' },
-            { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
-          ]);
-        } else if (currentMenuState === 'report') {
-          // 無多餘按鈕
-        } else if (currentMenuState === 'sub_action') {
-          _addButtonGroup([
-            { label: _B().NEED_HELP, icon: '🔧', action: 'need-help', className: 'primary' },
-            { label: _B().BACK_MAIN, icon: '↩️', action: 'back-to-main' }
-          ]);
-        }
-      }
-    });
   }
 
   /* ── 初始化 ── */
@@ -511,8 +471,7 @@ const Chat = (() => {
     if (CONFIG.GAS_URL && CONFIG.GAS_URL !== 'YOUR_GAS_WEB_APP_URL_HERE') {
       _fetchToken();
     }
-    // 歡迎訊息使用 data-i18n-markdown="welcome" 支援即時語言切換
-    addBotMessage('', false, 'welcome');
+    addBotMessage(_R().WELCOME);
     _showMainButtons();
     _bindEvents();
   }
@@ -522,11 +481,9 @@ const Chat = (() => {
     addBotMessage,
     addUserMessage,
     getToken,
-    getClientId,
-    refreshToken
+    refreshToken,
+    getClientId
   };
 })();
 
-document.addEventListener('DOMContentLoaded', () => {
-  Chat.init();
-});
+document.addEventListener('DOMContentLoaded', () => Chat.init());
