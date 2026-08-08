@@ -21,16 +21,16 @@ const ReportForm = (() => {
 
   /* ── 必填欄位清單（欄位 name、DOM id、錯誤訊息）── */
   const REQUIRED_FIELDS = [
-    { name: 'name',             id: 'field-name',             msg: '請填寫姓名' },
-    { name: 'studentId',        id: 'field-student-id',       msg: '請填寫學號' },
-    { name: 'roomNumber',       id: 'field-room',             msg: '請填寫房號' },
-    { name: 'bedNumber',        id: 'field-bed',              msg: '請填寫床號' },
-    { name: 'phone',            id: 'field-phone',            msg: '請填寫手機號碼' },
-    { name: 'repairHourStart',  id: 'field-repair-hour-start',msg: '請填寫可維修時間（開始）' },
-    { name: 'repairMinStart',   id: 'field-repair-min-start', msg: '請填寫可維修時間（開始分鐘）' },
-    { name: 'repairHourEnd',    id: 'field-repair-hour-end',  msg: '請填寫可維修時間（結束）' },
-    { name: 'repairMinEnd',     id: 'field-repair-min-end',   msg: '請填寫可維修時間（結束分鐘）' },
-    { name: 'description',      id: 'field-description',      msg: '請填寫問題描述' }
+    { name: 'name',             id: 'field-name',             msg: '請填寫姓名 / Full name is required' },
+    { name: 'studentId',        id: 'field-student-id',       msg: '請填寫學號 / Student ID is required' },
+    { name: 'roomNumber',       id: 'field-room',             msg: '請填寫房號 / Room number is required' },
+    { name: 'bedNumber',        id: 'field-bed',              msg: '請填寫床號 / Bed number is required' },
+    { name: 'phone',            id: 'field-phone',            msg: '請填寫手機號碼 / Mobile number is required' },
+    { name: 'repairHourStart',  id: 'field-repair-hour-start',msg: '請填寫可維修時間（開始）/ Start time is required' },
+    { name: 'repairMinStart',   id: 'field-repair-min-start', msg: '請填寫可維修時間（開始分鐘）/ Start minute is required' },
+    { name: 'repairHourEnd',    id: 'field-repair-hour-end',  msg: '請填寫可維修時間（結束）/ End time is required' },
+    { name: 'repairMinEnd',     id: 'field-repair-min-end',   msg: '請填寫可維修時間（結束分鐘）/ End minute is required' },
+    { name: 'description',      id: 'field-description',      msg: '請填寫問題描述 / Issue description is required' }
   ];
 
   /** 開啟 Modal */
@@ -137,55 +137,73 @@ const ReportForm = (() => {
 
     // 床號必須為 1-3 位數字
     if (data.bedNumber && !/^[0-9]{1,3}$/.test(data.bedNumber.trim())) {
-      errors.push({ field: 'field-bed', msg: '床號必須為 1−3 位數字' });
+      errors.push({ field: 'field-bed', msg: '床號必須為 1−3 位數字 / Bed number must be 1–3 digits' });
     }
 
     // 手機號碼必須為 10 位數字
     if (data.phone && !/^[0-9]{10}$/.test(data.phone.trim())) {
-      errors.push({ field: 'field-phone', msg: '手機號碼必須為 10 位數字' });
+      errors.push({ field: 'field-phone', msg: '手機號碼必須為 10 位數字 / Mobile number must be 10 digits' });
     }
 
     // 小時範圍驗證（0–23）
     const hStart = parseInt(data.repairHourStart, 10);
     const hEnd   = parseInt(data.repairHourEnd, 10);
     if (data.repairHourStart && (isNaN(hStart) || hStart < 0 || hStart > 23)) {
-      errors.push({ field: 'field-repair-hour-start', msg: '小時必須在 0–23 之間' });
+      errors.push({ field: 'field-repair-hour-start', msg: '小時必須在 0–23 之間 / Hour must be between 0 and 23' });
     }
     if (data.repairHourEnd && (isNaN(hEnd) || hEnd < 0 || hEnd > 23)) {
-      errors.push({ field: 'field-repair-hour-end', msg: '小時必須在 0–23 之間' });
+      errors.push({ field: 'field-repair-hour-end', msg: '小時必須在 0–23 之間 / Hour must be between 0 and 23' });
     }
 
     // 分鐘範圍驗證（0–59）
     const mStart = parseInt(data.repairMinStart, 10);
     const mEnd   = parseInt(data.repairMinEnd, 10);
     if (data.repairMinStart && (isNaN(mStart) || mStart < 0 || mStart > 59)) {
-      errors.push({ field: 'field-repair-min-start', msg: '分鐘必須在 0–59 之間' });
+      errors.push({ field: 'field-repair-min-start', msg: '分鐘必須在 0–59 之間 / Minute must be between 0 and 59' });
     }
     if (data.repairMinEnd && (isNaN(mEnd) || mEnd < 0 || mEnd > 59)) {
-      errors.push({ field: 'field-repair-min-end', msg: '分鐘必須在 0–59 之間' });
+      errors.push({ field: 'field-repair-min-end', msg: '分鐘必須在 0–59 之間 / Minute must be between 0 and 59' });
     }
 
     return errors;
   }
 
   /**
-   * 向 GAS 送出報修資料（使用 GET + URLSearchParams）
-   *
-   * ⚠️ GAS 架構限制說明：
-   *   GAS Web App 對所有請求固定回傳 302 redirect（從 script.google.com 轉至
-   *   script.googleusercontent.com）。依 HTTP 規範，302 redirect 後 POST 會自動
-   *   改為 GET，導致 POST body 遺失，doPost 無法正常接收資料。
-   *   因此採用 GET + payload 參數，資料已透過 HTTPS 加密傳輸。
-   *   若未來改用中繼 Proxy，可切換回 doPost。
+   * 向 GAS 送出報修資料（POST body，中性 MIME 防止 CORS preflight）
+   * Content-Type: text/plain;charset=utf-8 不觸發 OPTIONS preflight
+   * GAS 的 302 redirect 後 fetch() 會自動跟隨且保留 POST 方法
    */
+  const REPORT_TIMEOUT_MS = 30000; // 30 秒途時保護
+
   async function _submitToGAS(reportData) {
-    const params = new URLSearchParams({
-      action:  'report',
-      payload: JSON.stringify(reportData)
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), REPORT_TIMEOUT_MS);
+
+    const _doFetch = async (token) => fetch(CONFIG.GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'report', payload: reportData, token }),
+      signal: controller.signal
     });
-    const res = await fetch(`${CONFIG.GAS_URL}?${params.toString()}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+
+    try {
+      let res = await _doFetch(Chat.getToken());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      let data = await res.json();
+
+      // Token 失效：自動重取後重試一次
+      if (data.error === 'INVALID_TOKEN') {
+        console.warn('[ReportForm][Token] INVALID_TOKEN，重取後重試...');
+        const newToken = await Chat.refreshToken();
+        res = await _doFetch(newToken);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        data = await res.json();
+      }
+
+      return data;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   /** 初始化所有事件監聽 */
@@ -238,7 +256,7 @@ const ReportForm = (() => {
         errors.forEach(({ field }) => {
           document.getElementById(field)?.classList.add('error');
         });
-        _showError('⚠️ 請填寫所有必填欄位（標示 * 者）');
+        _showError('⚠️ 請填寫所有必填欄位（標示 * 者）/ Please complete all required fields (marked *)');
         return;
       }
 
@@ -258,11 +276,17 @@ const ReportForm = (() => {
         if (result.success) {
           _showModalSuccess();
         } else {
+          // 顯示後端回傳的錯誤訊息（Rate Limit、格式錯誤等）
           throw new Error(result.error || '伺服器回傳錯誤');
         }
       } catch (err) {
         console.error('[ReportForm] 送出失敗:', err);
-        _showError('⚠️ 送出時發生問題，請稍後再試或至宿舍服務台通報。');
+        // 後端回傳的錯誤訊息（如 Rate Limit、格式驗證錯誤）直接顯示給使用者
+        const isKnownError = err.message && !err.message.startsWith('HTTP') && err.message !== 'Failed to fetch' && err.name !== 'AbortError';
+        const errMsg = isKnownError
+          ? `⚠️ ${err.message}`
+          : '⚠️ 送出時發生問題，請稍後再試或至宿舍服務台通報。/ An error occurred. Please retry or visit the dormitory service desk.';
+        _showError(errMsg);
         _setLoading(false);
       }
     });

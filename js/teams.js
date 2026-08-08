@@ -98,7 +98,7 @@ const Teams = (() => {
         fallback.className = 'teams-copy-fallback';
         fallback.style.cssText =
           'margin-top:6px;font-size:12px;color:#94a3b8;word-break:break-all;user-select:all;';
-        fallback.textContent = '請手動複製：' + text;
+        fallback.textContent = '請手動複製 / Please copy manually: ' + text;
         btnEl.parentElement.appendChild(fallback);
       }
     }

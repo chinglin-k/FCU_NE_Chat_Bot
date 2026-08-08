@@ -21,6 +21,36 @@ const Chat = (() => {
   let _isProcessing = false;
 
   /* ══════════════════════════════════════
+     一次性 Token 管理
+     Token 存在記憶體變數（不存 localStorage/sessionStorage）
+     頁面重整後會重取，是可接受的行為
+  ══════════════════════════════════════ */
+  let _token = null;
+
+  /** 向 GAS 取得新 Token，存入記憶體 */
+  async function _fetchToken() {
+    try {
+      const res = await fetch(`${CONFIG.GAS_URL}?action=get_token`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data.success && data.token) {
+        _token = data.token;
+        console.log('[Chat][Token] 取得新 token 成功');
+      } else {
+        console.warn('[Chat][Token] 取得 token 失敗:', data.error);
+      }
+    } catch (e) {
+      console.warn('[Chat][Token] 網路錯誤，無法取得 token:', e);
+    }
+  }
+
+  /** 供 intent.js / report.js 呼叫：取得目前 token */
+  function getToken() { return _token; }
+
+  /** 供 intent.js / report.js 呼叫：重取 token（INVALID_TOKEN 時使用） */
+  async function refreshToken() { await _fetchToken(); return _token; }
+
+  /* ══════════════════════════════════════
      Markdown 簡易渲染器
      支援：**bold**、[text](url)、換行
   ══════════════════════════════════════ */
@@ -41,6 +71,17 @@ const Chat = (() => {
      訊息渲染
   ══════════════════════════════════════ */
 
+  // ⚠️ 安全性警告：此函式使用 _renderMarkdown 而非 _escapeHTML，
+  // 前提假設是傳入的 text 永遠來自 CONFIG.RESPONSES 等內部常數。
+  // 禁止將使用者輸入或任何外部 API（含 Gemini）回傳內容直接傳入此函式，
+  // 否則會產生 XSS 漏洞。如需顯示使用者輸入或外部內容，請改用會呼叫
+  // _escapeHTML 的訊息渲染路徑。
+  //
+  // ⚠️ SECURITY WARNING: This function uses _renderMarkdown instead of _escapeHTML.
+  // It assumes the input `text` always comes from internal constants like CONFIG.RESPONSES.
+  // Do NOT pass user input or any external API response (including Gemini) directly to this
+  // function, as it will create an XSS vulnerability. Use the _escapeHTML rendering path
+  // instead for any user-supplied or externally-sourced content.
   /** 新增 Bot 訊息泡泡 */
   function addBotMessage(text) {
     const wrapper = document.createElement('div');
@@ -218,8 +259,8 @@ const Chat = (() => {
           _hideTyping();
           addBotMessage(CONFIG.RESPONSES.TEACH_CHOOSE);
           _addButtonGroup([
-            { id: 'btn-teach-win', icon: '🪟', label: 'Windows 系統', action: 'teach-windows' },
-            { id: 'btn-teach-mac', icon: '🍎', label: 'Mac 系統',     action: 'teach-mac'    }
+            { id: 'btn-teach-win', icon: '🪟', label: 'Windows 系統 / Windows', action: 'teach-windows' },
+            { id: 'btn-teach-mac', icon: '🍎', label: 'Mac 系統 / Mac',         action: 'teach-mac'    }
           ]);
           break;
 
@@ -229,8 +270,8 @@ const Chat = (() => {
           _hideTyping();
           await _showSettingFAQ();
           _addButtonGroup([
-            { id: 'btn-need-help-setting', icon: '🆘', label: '我需要協助', action: 'need-help' },
-            { id: 'btn-back-main-setting', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+            { id: 'btn-need-help-setting', icon: '🆘', label: '我需要協助 / I Need Help',        action: 'need-help'   },
+            { id: 'btn-back-main-setting', icon: '🏠', label: '回到主選單 / Back to Main Menu', action: 'back-to-main' }
           ]);
           break;
 
@@ -242,8 +283,8 @@ const Chat = (() => {
           addBotMessage(CONFIG.RESPONSES.REPORT_TRIGGER);
           ReportForm.open();
           _addButtonGroup([
-            { id: 'btn-open-report',      icon: '📝', label: '開啟報修表單', action: 'open-report' },
-            { id: 'btn-back-main-report', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+            { id: 'btn-open-report',      icon: '📝', label: '開啟報修表單 / Open Repair Form', action: 'open-report'   },
+            { id: 'btn-back-main-report', icon: '🏠', label: '回到主選單 / Back to Main Menu',  action: 'back-to-main' }
           ]);
           break;
 
@@ -257,8 +298,8 @@ const Chat = (() => {
             .replace('{WINDOWS_URL}', CONFIG.DOCS.WINDOWS);
           addBotMessage(msgWin);
           _addButtonGroup([
-            { id: 'btn-need-help-win', icon: '🆘', label: '我需要協助', action: 'need-help' },
-            { id: 'btn-back-main-win', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+            { id: 'btn-need-help-win', icon: '🆘', label: '我需要協助 / I Need Help',        action: 'need-help'   },
+            { id: 'btn-back-main-win', icon: '🏠', label: '回到主選單 / Back to Main Menu', action: 'back-to-main' }
           ]);
           break;
         }
@@ -271,8 +312,8 @@ const Chat = (() => {
             .replace('{MAC_URL}', CONFIG.DOCS.MAC);
           addBotMessage(msgMac);
           _addButtonGroup([
-            { id: 'btn-need-help-mac', icon: '🆘', label: '我需要協助', action: 'need-help' },
-            { id: 'btn-back-main-mac', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+            { id: 'btn-need-help-mac', icon: '🆘', label: '我需要協助 / I Need Help',        action: 'need-help'   },
+            { id: 'btn-back-main-mac', icon: '🏠', label: '回到主選單 / Back to Main Menu', action: 'back-to-main' }
           ]);
           break;
         }
@@ -281,7 +322,7 @@ const Chat = (() => {
           _showTyping();
           await _delay(400);
           _hideTyping();
-          addBotMessage('還有其他問題嗎？請選擇：');
+          addBotMessage('還有其他問題嗎？請選擇：\n*Any other questions? Please choose:*');
           _showMainButtons();
           break;
       }
@@ -296,9 +337,9 @@ const Chat = (() => {
 
   function _showMainButtons() {
     _addButtonGroup([
-      { id: 'btn-teach',   icon: '📚', label: '教學',                              action: 'teach'   },
-      { id: 'btn-setting', icon: '⚙️', label: '常見問題',                           action: 'setting' },
-      { id: 'btn-report',  icon: '🔧', label: '我要實體協助、報修', action: 'report',  primary: true }
+      { id: 'btn-teach',   icon: '📚', label: '教學 / Tutorials',                              action: 'teach'   },
+      { id: 'btn-setting', icon: '⚙️', label: '常見問題 / FAQ',                                action: 'setting' },
+      { id: 'btn-report',  icon: '🔧', label: '我要實體協助、報修 / Request On-site Help', action: 'report',  primary: true }
     ]);
   }
 
@@ -358,10 +399,10 @@ const Chat = (() => {
         addBotMessage(hintText);
         // 顯示推薦按鈕（依判斷到的意圖）+ 主選單三顆按鈕讓使用者自行選擇
         _addButtonGroup([
-          { id: 'btn-confirm-intent', icon: '✅', label: `是，${label}`, action: _intentToAction(intent), primary: true },
-          { id: 'btn-confirm-teach',   icon: '📚', label: '教學',                   action: 'teach'   },
-          { id: 'btn-confirm-setting', icon: '⚙️', label: '常見問題',               action: 'setting' },
-          { id: 'btn-confirm-report',  icon: '🔧', label: '我要實體協助、報修',     action: 'report'  }
+          { id: 'btn-confirm-intent', icon: '✅', label: `是 / Yes — ${label}`, action: _intentToAction(intent), primary: true },
+          { id: 'btn-confirm-teach',   icon: '📚', label: '教學 / Tutorials',                               action: 'teach'   },
+          { id: 'btn-confirm-setting', icon: '⚙️', label: '常見問題 / FAQ',                                 action: 'setting' },
+          { id: 'btn-confirm-report',  icon: '🔧', label: '我要實體協助、報修 / Request On-site Help', action: 'report'  }
         ]);
         return;
       }
@@ -370,8 +411,8 @@ const Chat = (() => {
         case INTENTS.BUTTON_TEACH:
           addBotMessage(CONFIG.RESPONSES.TEACH_CHOOSE);
           _addButtonGroup([
-            { id: 'btn-teach-win-txt', icon: '🪟', label: 'Windows 系統', action: 'teach-windows' },
-            { id: 'btn-teach-mac-txt', icon: '🍎', label: 'Mac 系統',     action: 'teach-mac'    }
+            { id: 'btn-teach-win-txt', icon: '🪟', label: 'Windows 系統 / Windows', action: 'teach-windows' },
+            { id: 'btn-teach-mac-txt', icon: '🍎', label: 'Mac 系統 / Mac',         action: 'teach-mac'    }
           ]);
           break;
 
@@ -382,12 +423,12 @@ const Chat = (() => {
           const isSingleTopic = (topic !== 'ALL') &&
             Object.prototype.hasOwnProperty.call(CONFIG.RESPONSES.SETTING_ITEMS, topic);
           const buttons = [
-            { id: 'btn-need-help-txt', icon: '🆘', label: '我需要協助', action: 'need-help' }
+            { id: 'btn-need-help-txt', icon: '🆘', label: '我需要協助 / I Need Help', action: 'need-help' }
           ];
           if (isSingleTopic) {
-            buttons.push({ id: 'btn-view-all-setting', icon: '📋', label: '查看所有常見問題', action: 'setting' });
+            buttons.push({ id: 'btn-view-all-setting', icon: '📋', label: '查看所有常見問題 / View All FAQs', action: 'setting' });
           }
-          buttons.push({ id: 'btn-back-main-setting-txt', icon: '🏠', label: '回到主選單', action: 'back-to-main' });
+          buttons.push({ id: 'btn-back-main-setting-txt', icon: '🏠', label: '回到主選單 / Back to Main Menu', action: 'back-to-main' });
           _addButtonGroup(buttons);
           break;
         }
@@ -397,15 +438,15 @@ const Chat = (() => {
           addBotMessage(CONFIG.RESPONSES.REPORT_TRIGGER);
           ReportForm.open();
           _addButtonGroup([
-            { id: 'btn-open-report-txt',      icon: '📝', label: '開啟報修表單', action: 'open-report'   },
-            { id: 'btn-back-main-report-txt', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+            { id: 'btn-open-report-txt',      icon: '📝', label: '開啟報修表單 / Open Repair Form', action: 'open-report'   },
+            { id: 'btn-back-main-report-txt', icon: '🏠', label: '回到主選單 / Back to Main Menu',  action: 'back-to-main' }
           ]);
           break;
 
         case INTENTS.NON_NETWORK:
           addBotMessage(CONFIG.RESPONSES.NON_NETWORK);
           _addButtonGroup([
-            { id: 'btn-back-main-txt', icon: '🏠', label: '回到主選單', action: 'back-to-main' }
+            { id: 'btn-back-main-txt', icon: '🏠', label: '回到主選單 / Back to Main Menu', action: 'back-to-main' }
           ]);
           break;
 
@@ -465,6 +506,11 @@ const Chat = (() => {
   ══════════════════════════════════════ */
 
   function init() {
+    /* 取得一次性 Token（供後續 classify / report 使用）*/
+    if (CONFIG.GAS_URL !== 'YOUR_GAS_WEB_APP_URL_HERE') {
+      _fetchToken();
+    }
+
     /* 歡迎訊息 + 主選單 */
     addBotMessage(CONFIG.RESPONSES.WELCOME);
     _showMainButtons();
@@ -527,7 +573,7 @@ const Chat = (() => {
       const copyBtn = document.createElement('button');
       copyBtn.id        = 'teams-copy-btn';
       copyBtn.className = 'quick-btn teams-copy-btn';
-      copyBtn.innerHTML = '<span aria-hidden="true">📋</span> 複製「福星宿舍網路報修平台」';
+      copyBtn.innerHTML = '<span aria-hidden="true">📋</span> 複製「福星宿舍網路報修平台」/ Copy Account Name';
       copyBtn.addEventListener('click', () => Teams.copyAccountName(copyBtn));
       copyGroup.appendChild(copyBtn);
       _append(copyGroup);
@@ -540,7 +586,7 @@ const Chat = (() => {
     }
   }
 
-  return { init, addBotMessage, addUserMessage, onReportSuccess };
+  return { init, addBotMessage, addUserMessage, onReportSuccess, getToken, refreshToken };
 })();
 
 /* ── 啟動 ── */
