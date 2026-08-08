@@ -68,6 +68,8 @@ const Chat = (() => {
     return text
       // 粗體
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      // 斜體
+      .replace(/_([^_]+)_/g, '<em>$1</em>')
       // 連結（僅允許 https:// 或 http:// 協議，防止 javascript: 等惡意連結）
       .replace(/\[(.+?)\]\((.+?)\)/g, (_, label, url) => {
         const safeUrl = /^https?:\/\//i.test(url) ? url : '#';
@@ -518,7 +520,10 @@ const Chat = (() => {
   function init() {
 
     document.addEventListener('i18n:changed', () => {
-      // 語言切換時，如果有未點擊的按鈕可以選擇重繪，但為簡化我們先不做回溯
+      // 語言切換時，停用先前的按鈕並重新印出歡迎訊息與主選單
+      _disableActiveButtons();
+      addBotMessage(_R().WELCOME);
+      _showMainButtons();
     });
     /* 取得一次性 Token（供後續 classify / report 使用）*/
     if (CONFIG.GAS_URL !== 'YOUR_GAS_WEB_APP_URL_HERE') {
