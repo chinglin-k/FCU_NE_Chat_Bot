@@ -4,8 +4,12 @@
   "description": "FCU Fuxing Dormitory Network Repair Assistant",
   "main": "js/chat.js",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "lint": "eslint . \"gas/**/*.gs\""
   },
   "keywords": [
     "fcu",
@@ -14,5 +18,13 @@
     "gas"
   ],
   "author": "chinglin-k",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chinglin-k/FCU_NE_Chat_Bot.git"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0"
+  }
 }

@@ -46,18 +46,53 @@ function _getSpreadsheetId() {
 }
 
 // ──────────────────────────────────────────────
-// 濫用防護：全域頻率限制
+// 濫用防護：cache key 清洗
+// 避免 identifier 內含非法字元污染 CacheService key，並限制長度
+// @param {string} identifier
+// @returns {string} 僅含英數字與連字號、長度 ≤64 的安全字串
+// ──────────────────────────────────────────────
+function _sanitizeIdentifier(identifier) {
+  const id = String(identifier || '').trim();
+  const cleaned = id.replace(/[^a-zA-Z0-9-]/g, '').slice(0, 64);
+  return cleaned || 'anonymous';
+}
+
+// ──────────────────────────────────────────────
+// 濫用防護：雙層頻率限制（使用者級 + 全域級）
 // 使用 CacheService 在每分鐘時間窗口內計數
-// @param {string} action   - 操作名稱（用於 cache key）
-// @param {number} limitPerMinute - 每分鐘上限次數
+//   - 使用者級：依 clientId 區分，避免單一使用者耗盡全體配額
+//   - 全域級：所有使用者加總的硬上限，防止大量不同 clientId 同時湧入
+//     （例如清空 localStorage 後重生 clientId 繞過使用者級限制）耗盡 Gemini 配額
+// @param {string} action              - 操作名稱（用於 cache key）
+// @param {number} limitPerMinute      - 單一 identifier 每分鐘上限次數
+// @param {string} [identifier]        - 使用者識別碼（前端產生的 clientId，非個資）
+// @param {number} [globalLimitPerMinute] - 全域每分鐘上限次數（省略則不做全域限制）
 // @returns {boolean} true = 允許通過；false = 超出限制
 // ──────────────────────────────────────────────
-function _checkRateLimit(action, limitPerMinute) {
-  const cache = CacheService.getScriptCache();
-  const key   = `rl_${action}_${Math.floor(Date.now() / 60000)}`;
-  const count = parseInt(cache.get(key) || '0', 10);
+function _checkRateLimit(action, limitPerMinute, identifier, globalLimitPerMinute) {
+  const cache        = CacheService.getScriptCache();
+  const minuteBucket = Math.floor(Date.now() / 60000);
+
+  // ① 全域上限（可選）：先檢查，超過就直接拒絕，不消耗使用者級配額
+  if (globalLimitPerMinute) {
+    const globalKey   = `rl_${action}_global_${minuteBucket}`;
+    const globalCount = parseInt(cache.get(globalKey) || '0', 10);
+    if (globalCount >= globalLimitPerMinute) return false;
+  }
+
+  // ② 使用者級上限
+  const safeId = _sanitizeIdentifier(identifier);
+  const key    = `rl_${action}_${safeId}_${minuteBucket}`;
+  const count  = parseInt(cache.get(key) || '0', 10);
   if (count >= limitPerMinute) return false;
+
+  // 兩層檢查皆通過才真正計數（避免半通過時錯誤累計）
   cache.put(key, (count + 1).toString(), 60);
+  if (globalLimitPerMinute) {
+    const globalKey   = `rl_${action}_global_${minuteBucket}`;
+    const globalCount = parseInt(cache.get(globalKey) || '0', 10);
+    cache.put(globalKey, (globalCount + 1).toString(), 60);
+  }
   return true;
 }
 
@@ -138,8 +173,12 @@ function doGet(e) {
  * 個資與使用者輸入文字透過 POST body 傳送，不暴露於 URL
  *
  * POST body 格式（Content-Type: text/plain;charset=utf-8）：
- *   { "action": "classify", "msg": "...", "token": "uuid" }
- *   { "action": "report",   "payload": {...}, "token": "uuid" }
+ *   { "action": "classify", "msg": "...", "token": "uuid", "clientId": "uuid" }
+ *   { "action": "report",   "payload": {...}, "token": "uuid", "clientId": "uuid", "recaptchaToken": "..." }
+ *
+ * clientId：前端產生並存於 localStorage 的隨機裝置識別碼（非個資、非可還原真實身分），
+ *           僅用於依使用者區分頻率限制，缺漏時視為 'anonymous' 共用同一額度
+ * recaptchaToken：reCAPTCHA v3 一次性 token，僅 report 需要，用於防止 GAS_URL 外洩後遭腳本濫用
  *
  * @param {GoogleAppsScript.Events.DoPost} e
  * @returns {GoogleAppsScript.Content.TextOutput}
@@ -151,17 +190,21 @@ function doPost(e) {
     if (!e.postData || !e.postData.contents) {
       result = { success: false, error: '缺少請求內容' };
     } else {
-      const data   = JSON.parse(e.postData.contents);
-      const action = (data.action || '').toString().trim();
-      const token  = (data.token  || '').toString().trim();
+      const data          = JSON.parse(e.postData.contents);
+      const action        = (data.action         || '').toString().trim();
+      const token         = (data.token           || '').toString().trim();
+      // clientId：前端產生的隨機識別碼（非個資），僅用於「依使用者區分」的頻率限制
+      const clientId      = (data.clientId        || '').toString().trim();
+      // recaptchaToken：reCAPTCHA v3 執行後取得的一次性 token，僅 report 需要
+      const recaptchaToken = (data.recaptchaToken || '').toString().trim();
 
       // ── Token 驗證（classify 與 report 皆須帶合法 token）──
       if (!_consumeToken(token)) {
         result = { success: false, error: 'INVALID_TOKEN' };
       } else if (action === 'classify') {
-        result = classifyIntent(data.msg || '');
+        result = classifyIntent(data.msg || '', clientId);
       } else if (action === 'report') {
-        result = writeReport(data.payload || {});
+        result = writeReport(data.payload || {}, clientId, recaptchaToken);
       } else {
         result = { success: false, error: `doPost 不支援 action: ${action}` };
       }
@@ -181,14 +224,15 @@ function doPost(e) {
  *   第一層：依 GEMINI_MODELS_FALLBACK 清單逐一嘗試 Gemini API（自動切換備援模型）
  *   第二層：所有 Gemini API 皆失敗時，自動降級至 _ruleBasedClassify 關鍵字備援引擎
  * 已加入 Prompt Injection 防護：截斷長度、移除控制字元、用引號隔離輸入
- * 已加入頻率限制：每分鐘最多 30 次
+ * 已加入頻率限制：依 clientId 每人每分鐘最多 12 次，全體使用者每分鐘總計最多 60 次
  *
- * @param {string} message - 使用者輸入文字
+ * @param {string} message  - 使用者輸入文字
+ * @param {string} [clientId] - 前端產生的裝置識別碼（非個資），用於依使用者區分限流
  * @returns {{ success: boolean, intent: string, confidence: number, needsConfirmation: boolean, topic: string }}
  */
-function classifyIntent(message) {
-  // 頻率限制（每分鐘 30 次）
-  if (!_checkRateLimit('classify', 30)) {
+function classifyIntent(message, clientId) {
+  // 頻率限制：單一使用者每分鐘 12 次／全體使用者每分鐘 60 次
+  if (!_checkRateLimit('classify', 12, clientId, 60)) {
     return { success: false, error: '請求過於頻繁，請稍後再試' };
   }
 
@@ -315,19 +359,88 @@ function classifyIntent(message) {
   }
 }
 
+// ──────────────────────────────────────────────
+// reCAPTCHA v3 伺服器端驗證
+// 前端在送出報修表單前透過 grecaptcha.execute() 取得一次性 token，
+// 後端呼叫 Google siteverify API 驗證 token 是否有效、action 是否相符、
+// 以及風險分數（score）是否達門檻
+//
+// ⚠️ 需在 GAS 專案設定 → 指令碼屬性 中新增 RECAPTCHA_SECRET_KEY
+//    （切勿把 Secret Key 寫死在程式碼或提交至 Git）
+//
+// 備註：Google 目前建議新專案改用 reCAPTCHA Enterprise 的 CreateAssessment API
+// （需要 Google Cloud 專案與已啟用計費的 API），siteverify 屬於舊版但仍持續維護支援，
+// 對本專案（單純的 GAS Web App、無 GCP 專案）而言部署成本最低，故採用 siteverify。
+// 若未來要遷移到 CreateAssessment，只需替換本函式的實作，呼叫端介面不變。
+//
+// @param {string} token          - 前端 grecaptcha.execute() 取得的 token
+// @param {string} [expectedAction] - 預期的 action 名稱（需與前端呼叫時一致）
+// @returns {{ success: boolean, score?: number, error?: string }}
+// ──────────────────────────────────────────────
+function _verifyRecaptcha(token, expectedAction) {
+  const RECAPTCHA_MIN_SCORE = 0.5; // 0.0（可能是機器人）～1.0（可能是真人）
+
+  const secret = (PropertiesService.getScriptProperties().getProperty('RECAPTCHA_SECRET_KEY') || '').trim();
+  if (!secret) {
+    Logger.log('[_verifyRecaptcha] RECAPTCHA_SECRET_KEY 尚未於 Script Properties 設定');
+    return { success: false, error: 'RECAPTCHA_NOT_CONFIGURED' };
+  }
+  if (!token) {
+    return { success: false, error: 'RECAPTCHA_TOKEN_MISSING' };
+  }
+
+  try {
+    const response = UrlFetchApp.fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'post',
+      payload: { secret, response: token },
+      muteHttpExceptions: true
+    });
+
+    const result = JSON.parse(response.getContentText());
+
+    if (!result.success) {
+      Logger.log('[_verifyRecaptcha] 驗證失敗: ' + JSON.stringify(result['error-codes'] || []));
+      return { success: false, error: 'RECAPTCHA_FAILED' };
+    }
+    if (expectedAction && result.action !== expectedAction) {
+      Logger.log(`[_verifyRecaptcha] action 不符，預期「${expectedAction}」，實際「${result.action}」`);
+      return { success: false, error: 'RECAPTCHA_ACTION_MISMATCH' };
+    }
+    if (typeof result.score === 'number' && result.score < RECAPTCHA_MIN_SCORE) {
+      Logger.log(`[_verifyRecaptcha] 風險分數過低: ${result.score}`);
+      return { success: false, error: 'RECAPTCHA_LOW_SCORE', score: result.score };
+    }
+
+    return { success: true, score: result.score };
+  } catch (err) {
+    Logger.log('[_verifyRecaptcha] 例外: ' + err.toString());
+    return { success: false, error: 'RECAPTCHA_VERIFY_EXCEPTION' };
+  }
+}
+
 /**
  * 寫入報修資料至 Google 試算表
  * 若指定工作表不存在，明確回傳錯誤（不靜默 fallback 至其他工作表）
- * 已加入頻率限制：每分鐘最多 10 次
+ * 已加入頻率限制：依 clientId 每人每分鐘最多 5 次，全體使用者每分鐘總計最多 20 次
+ * 已加入 reCAPTCHA v3 驗證：防止 GAS_URL 外洩後遭腳本大量濫用送出報修單
  * 已加入後端格式驗證：比照前端 report.js 的驗證規則
  *
- * @param {object} reportData - 報修資料物件
+ * @param {object} reportData      - 報修資料物件
+ * @param {string} [clientId]      - 前端產生的裝置識別碼（非個資），用於依使用者區分限流
+ * @param {string} [recaptchaToken] - reCAPTCHA v3 token
  * @returns {{ success: boolean, message?: string, error?: string }}
  */
-function writeReport(reportData) {
-  // 頻率限制（每分鐘 10 次）
-  if (!_checkRateLimit('report', 10)) {
+function writeReport(reportData, clientId, recaptchaToken) {
+  // 頻率限制：單一使用者每分鐘 5 次／全體使用者每分鐘 20 次
+  if (!_checkRateLimit('report', 5, clientId, 20)) {
     return { success: false, error: '請求過於頻繁，請稍後再試' };
+  }
+
+  // reCAPTCHA v3 驗證（GAS_URL 外洩後的第一道防線）
+  const captcha = _verifyRecaptcha(recaptchaToken, 'submit_report');
+  if (!captcha.success) {
+    Logger.log(`[writeReport] reCAPTCHA 未通過: ${captcha.error}`);
+    return { success: false, error: '驗證失敗，請重新整理頁面後再試一次' };
   }
 
   try {
@@ -514,7 +627,7 @@ function _ruleBasedClassify(msg) {
     return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'AC_BILLING' };
   }
   // 3e. 其他常見問題 (ALL)
-  if (/(常見問題|常見設定|常見|常见问题|常见设置|常见|faq|frequently asked|よくある質問|soalan lazim|자주 묻는 질문|pertanyaan umum|madalas na tanong|คำถามที่พบบ่อย|veelgestelde vrae|questions fréquentes|imidlalo|câu hỏi thường gặp|preguntas frecuentes|түгээмэл асуултууд|الأسئلة الشائعة)/.test(text)) {
+  if (/(常見問題|常見設定|常見|常见问题|常见设置|常见|faq|frequently asked|よくある質問|soalan lazim|자주 묻ns 질문|pertanyaan umum|madalas na tanong|คำถามที่พบบ่อย|veelgestelde vrae|questions fréquentes|imidlalo|câu hỏi thường gặp|preguntas frecuentes|түгээмэл асуултууд|الأسئلة الشائعة)/.test(text)) {
     return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'ALL' };
   }
 
@@ -530,4 +643,32 @@ function _ruleBasedClassify(msg) {
 
   // 預設無法匹配時降級為 UNKNOWN
   return { success: true, intent: 'UNKNOWN', confidence: 0.3, needsConfirmation: true, topic: 'NONE' };
+}
+
+// ──────────────────────────────────────────────
+// Node.js 單元測試支援（不影響 GAS 執行環境）
+// GAS 執行環境沒有 `module` 全域物件，此區塊在 GAS 中永遠不會執行，
+// 僅在 `node --test` 底下 require 本檔案時才會匯出，讓純函式可被獨立測試。
+// 測試檔會先在 global 上注入 CacheService / PropertiesService / UrlFetchApp /
+// LockService / SpreadsheetApp / ContentService / Utilities / Logger 的假物件，
+// 詳見 test/gas-mocks.js。
+// ──────────────────────────────────────────────
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    doGet,
+    doPost,
+    classifyIntent,
+    writeReport,
+    getCounter,
+    incrementCounter,
+    _checkRateLimit,
+    _sanitizeIdentifier,
+    _generateToken,
+    _consumeToken,
+    _verifyRecaptcha,
+    _ruleBasedClassify,
+    _getSpreadsheetId,
+    GEMINI_MODELS_FALLBACK,
+    MAX_MSG_LEN
+  };
 }
