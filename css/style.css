@@ -1058,3 +1058,119 @@ span.text-en:not([aria-hidden]) {
   margin-top: 2px;
 }
 
+
+
+/* ============================================================
+   語言切換懸浮按鈕（中/EN Toggle）
+   位置：header 分界線下方、.chat-main 右上角
+   使用 rem 定位與尺寸 → 使用者放大瀏覽器字級（無障礙）時
+   按鈕仍維持在正確的相對位置，不會被裁切或遮住標題/訊息
+   ============================================================ */
+.lang-toggle-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 15;
+
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 44px;   /* 觸控目標最小尺寸，WCAG 2.5.5 */
+  min-height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+
+  background: var(--glass-bg);
+  border: 1.5px solid var(--glass-border-active);
+  color: var(--color-accent-blue);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--shadow-sm);
+
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+
+  transition: transform 0.2s var(--ease-spring),
+              box-shadow 0.2s var(--ease-out),
+              background 0.2s var(--ease-out),
+              border-color 0.2s var(--ease-out);
+}
+
+.lang-toggle-btn:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--color-accent-blue);
+  box-shadow: var(--glow-blue);
+  transform: scale(1.08);
+}
+
+.lang-toggle-btn:active {
+  transform: scale(0.94);
+}
+
+.lang-toggle-btn:focus-visible {
+  outline: 2px solid var(--color-accent-blue);
+  outline-offset: 2px;
+}
+
+.lang-toggle-btn .lang-toggle-label {
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .lang-toggle-btn {
+    top: 0.6rem;
+    right: 0.6rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .lang-toggle-btn {
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 2.3rem;
+    height: 2.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lang-toggle-btn { transition: none; }
+}
+
+/* ============================================================
+   隱藏 reCAPTCHA v3 浮動徽章
+   依 Google reCAPTCHA 服務條款，隱藏徽章後須在頁面上
+   保留可見的 reCAPTCHA 揭露文字（.recaptcha-disclosure）
+   ============================================================ */
+.grecaptcha-badge {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* reCAPTCHA 合規揭露文字樣式 */
+.recaptcha-disclosure {
+  text-align: center;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
+.recaptcha-disclosure a {
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.recaptcha-disclosure a:hover {
+  color: var(--color-accent-blue);
+}

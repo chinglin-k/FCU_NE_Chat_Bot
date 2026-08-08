@@ -2,7 +2,7 @@
 
 > 所有 AI 工具與開發者均須遵守此規範
 
-**版本 / Version**：v1.1.0 (Spec v3.1)  
+**版本 / Version**：v1.2.0 (Spec v3.2)  
 **最後更新 / Last Updated**：2026-08-08
 
 ---
@@ -54,6 +54,17 @@ FCU_NE_Chat_Bot/
 ├── .env.example           ← 環境變數範本（不含真實機密值）
 └── doc/                   ← 專案文件
 ```
+
+---
+
+## 多語言（i18n）規範
+
+- 本專案所有「使用者可見文字」一律禁止以「中文 / English」合併字串或 `<span class="text-en">` 方式寫死在 HTML／JS 中。
+- 靜態 UI 外殼文字：使用 `data-i18n` / `data-i18n-placeholder` / `data-i18n-aria-label` / `data-i18n-title` 屬性，字典維護於 `js/i18n.js` 的 `STRINGS.zh` / `STRINGS.en`。
+- 動態聊天內容（機器人回覆、按鈕文字、表單驗證訊息）：維護於 `js/config.js` 的 `CONFIG.RESPONSES.{zh,en}` 與 `CONFIG.BUTTON_LABELS.{zh,en}`，透過 `I18N.getLang()` 於執行期選字串。
+- 新增任何使用者可見文字時，**必須同時**在 `zh` 與 `en` 兩份字典補齊對應 key，PR/commit 中若只改了一種語言視為未完成。
+- `js/i18n.js` 必須在 `<script>` 載入順序中排在 `js/config.js` 之前。
+- 語言切換按鈕的 DOM id 固定為 `lang-toggle-btn`。
 
 ---
 

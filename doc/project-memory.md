@@ -3,7 +3,7 @@
 > 僅在確認新決策、修改既有決策或發現重要限制時更新。
 > 每次更新須記錄日期、原因與影響範圍。
 
-**版本 / Version**：v1.1.0 (Spec v3.1)  
+**版本 / Version**：v1.2.0 (Spec v3.2)  
 **最後更新 / Last Updated**：2026-08-08
 
 ---
@@ -14,6 +14,9 @@
 |---|---|---|---|
 | 2026-07-17 | 前端使用純 HTML+CSS+JS，不用框架 | GitHub Pages 免費托管無需 build 流程，維護門檻低 | 全站 |
 | 2026-07-17 | LLM API 呼叫透過 GAS 代理 | API Key 不得出現在前端或 Git | `gas/Code.gs`、`js/intent.js` |
+| 2026-08-08 | 實作獨立 i18n 模組 (`js/i18n.js`) 與 DOM `data-i18n` 掃描器 | 分離中英文 UI，取代雙語合併寫法，提供即時切換與 `localStorage` 持久化 | `js/i18n.js`、`js/config.js`、`index.html` |
+| 2026-08-08 | 語言切換按鈕採 `rem` 相對定位於 `.chat-main` 右上角 | 確保使用者放大瀏覽器字級時按鈕仍維持在相對位置、不遮擋標題或訊息 | `css/style.css`、`index.html` |
+| 2026-08-08 | 隱藏 reCAPTCHA 徽章並於頁尾新增合規揭露文字 | 提升 UI 視覺體驗，同時滿足 Google 服務條款硬性規定 | `css/style.css`、`index.html` |
 | 2026-08-08 | 全面切換為 POST Body (text/plain) 通訊 | 避免敏感個資（學號/電話/對話）暴露於 GET URL Log 或瀏覽器紀錄 | `gas/Code.gs`、`js/intent.js`、`js/report.js` |
 | 2026-08-08 | 實作記憶體層級一次性 Session Token (`get_token`) | 防止未授權請求或跨站偽造呼叫，用一次即失效，頁面重整後自動重新發放 | `gas/Code.gs`、`js/chat.js` |
 | 2026-08-08 | 導入 Client ID 與雙層流量限制 (User & Global) | Client ID 存於 localStorage (`fcu_client_id`) 跨頁面穩定，防刷流量（`classify`: 12/60, `report`: 5/20） | `gas/Code.gs`、`js/chat.js` |
