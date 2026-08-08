@@ -11,10 +11,11 @@
 |---|---|---|---|
 | 2026-07-17 | 前端使用純 HTML+CSS+JS，不用框架 | GitHub Pages 免費托管無需 build 流程，維護門檻低 | 全站 |
 | 2026-07-17 | LLM API 呼叫透過 GAS 代理 | API Key 不得出現在前端或 Git | `gas/Code.gs`、`js/intent.js` |
-| 2026-07-17 | GAS 使用 GET 請求（非 POST） | POST redirect 會遺失 body，GET + URL params 最可靠 | 所有 GAS 呼叫 |
-| 2026-07-17 | 可維修時間實作時/分範圍驗證（ 0-23 / 0-59 ） | 防止無效數字寫入試算表；編碼方式改為純文字時間欄，儲存 `HH:MM–HH:MM` 格式 | `js/report.js`、`index.html` |
-| 2026-07-17 | 累積人數用 sessionStorage 防重複計數 | 避免同一使用者重整頁面時重複累加 | `js/counter.js` |
-| 2026-07-17 | Gemini 2.0 Flash 模型（多模型備援） | 速度快、免費額度充足，適合分類任務；多模型備援機制提升可用性 | `gas/Code.gs` |
+| 2026-08-08 | 全面切換為 POST Body (text/plain) 通訊 | 避免敏感個資（學號/電話/對話）暴露於 GET URL Log | `gas/Code.gs`、`js/intent.js`、`js/report.js` |
+| 2026-08-08 | 實作記憶體層級一次性 Session Token (`get_token`) | 防止未授權請求或跨站偽造呼叫 | `gas/Code.gs`、`js/chat.js` |
+| 2026-08-08 | 實作 GAS CacheService Rate Limiting | 防止惡意流量刷爆 API 額度 (`classify`: 30/min, `report`: 10/min) | `gas/Code.gs` |
+| 2026-08-08 | 學號格式強驗證：1 位英文字母 + 7 位數字 | 對齊校方學號標準格式（如 `D1234567`） | `index.html`、`js/report.js`、`gas/Code.gs` |
+| 2026-08-08 | 19 語系 Rule-based 備援分類器 | 確保 Gemini 失敗時仍可精準回應各國籍學生 | `gas/Code.gs`、`README.md` |
 
 ---
 
@@ -22,7 +23,8 @@
 
 - 可維修時間建議範圍：**18:00–21:00**（本人需在場）
 - 新生入住期間 **12:00–17:00** 網管看到後會盡速前往
-- 報修欄位必填：姓名、學號、房號、床號、手機、可維修時間、問題描述
+- 報修欄位必填：姓名、學號（1字母+7數字）、房號、床號、手機、可維修時間、問題描述
+- 報修成功介面僅保留「報修成功！」與進度條，隱藏標題列 Header
 - 試算表中「是否派人」「是否完成」「備註」由網管手動填寫，系統不填
 - 非網管業務（冷氣、洗手台等）轉介至宿舍服務台或行動逢甲 App
 
@@ -31,5 +33,5 @@
 ## 重要限制
 
 - GitHub Pages 為靜態托管，**無法在前端執行伺服器端邏輯**
-- GAS URL 長度上限約 2000 字元，問題描述過長時 URL params 可能截斷（目前實務描述長度不超過限制）
 - GAS 免費版每日執行次數限制：6 分鐘執行時間，每日可處理約 500+ 次分類
+

@@ -60,10 +60,11 @@ const ReportForm = (() => {
     if (shouldNotify && window.Chat) Chat.onReportSuccess();
   }
 
-  /** 重置表單狀態（含還原 success view）*/
+  /** 重置表單狀態（含還原 success view 與 modal-header）*/
   function _resetForm() {
     form()?.reset();
     form()?.classList.remove('is-hidden');   // 還原表單可見
+    document.querySelector('.modal-header')?.classList.remove('is-hidden'); // 還原 header 可見
     successView()?.classList.add('is-hidden'); // 確保 success view 隱藏
     _setLoading(false);
     _clearErrors();
@@ -77,8 +78,9 @@ const ReportForm = (() => {
     _pendingSuccess = true;
     _setLoading(false);
 
-    // 隱藏表單、顯示成功畫面
+    // 隱藏表單與標題列、顯示成功畫面
     form()?.classList.add('is-hidden');         // 隱藏表單
+    document.querySelector('.modal-header')?.classList.add('is-hidden'); // 隱藏頂部 header 標題列
     successView()?.classList.remove('is-hidden'); // 顯示 success view
 
     // 播放進度條（CSS transition 從 100% 縮至 0%）
@@ -134,6 +136,11 @@ const ReportForm = (() => {
     const errors = REQUIRED_FIELDS
       .filter(({ name }) => !data[name]?.trim())
       .map(({ id, msg }) => ({ field: id, msg }));
+
+    // 學號必須為 1 個英文字母 + 7 位數字（例如 D1234567）
+    if (data.studentId && !/^[a-zA-Z][0-9]{7}$/.test(data.studentId.trim())) {
+      errors.push({ field: 'field-student-id', msg: '學號格式錯誤（需為 1 位英文字母 + 7 位數字，如 D1234567） / Student ID must be 1 letter + 7 digits (e.g. D1234567)' });
+    }
 
     // 床號必須為 1-3 位數字
     if (data.bedNumber && !/^[0-9]{1,3}$/.test(data.bedNumber.trim())) {

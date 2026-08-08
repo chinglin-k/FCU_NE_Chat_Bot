@@ -1050,17 +1050,11 @@ a:hover {
 }
 
 /* ── 雙語化：英文翻譯輔助樣式 | Bilingual: English translation helper ── */
-.text-en {
-  display: inline;
-  font-size: 0.80em;
-  color: var(--color-text-muted, #64748b);
-  font-style: italic;
-  opacity: 0.75;
-  letter-spacing: 0.01em;
-}
+.text-en { font-size: 0.82em; color: #94a3b8; font-style: italic; font-weight: 400; opacity: 0.85; letter-spacing: 0.015em; line-height: 1.35; }
 
 /* 在 block 元素（如 <span class="text-en"> 獨立成行時）強制換行 */
 span.text-en:not([aria-hidden]) {
   display: block;
   margin-top: 2px;
 }
+
