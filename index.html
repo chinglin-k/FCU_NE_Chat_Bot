@@ -2,12 +2,6 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <!--
-    CSP 更新說明（reCAPTCHA v3 整合）：
-      script-src  新增 https://www.google.com https://www.gstatic.com → 載入 recaptcha api.js 及其內部資源
-      frame-src   新增 https://www.google.com                        → reCAPTCHA 隱形驗證使用的內嵌 iframe
-      connect-src 新增 https://www.google.com                        → grecaptcha.execute() 內部呼叫
-  -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google.com https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://script.google.com https://script.googleusercontent.com https://generativelanguage.googleapis.com https://www.google.com; img-src 'self' data:; frame-src https://www.google.com; object-src 'none';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>逢甲大學福星宿舍網路報修助理 | FCU Fuxing Dormitory Network Repair Assistant</title>
@@ -17,9 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-  <!-- reCAPTCHA v3：render=Site Key，隱形驗證，僅在報修表單送出時呼叫 grecaptcha.execute()
-       徽章已透過 CSS 隱藏（見 style.css .grecaptcha-badge），頁尾已加註 Google 要求之揭露文字 -->
-  <script src="https://www.google.com/recaptcha/api.js?render=6LehknstAAAAAPmlQlfjbI5nnbLY2fBrnmkXOcqI" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js?render=6LehknstAAAAAPmlQlfjbI5nnbLY2fBrnmkXOcqI" async defer></script>
 </head>
 <body>
   <div id="app">
@@ -81,17 +73,18 @@
 
     <!-- ── Chat Messages Area ── -->
     <main class="chat-main" role="main">
-      <!-- ── 語言切換懸浮按鈕 ── -->
-      <button
-        id="lang-toggle-btn"
-        class="lang-toggle-btn"
-        type="button"
-        aria-pressed="false"
-        data-i18n-aria-label="langToggle.aria"
-        aria-label="切換語言為 English"
-      >
-        <span class="lang-toggle-label" aria-hidden="true">EN</span>
-      </button>
+
+  <!-- ── 語言切換懸浮按鈕 ── -->
+  <button
+    id="lang-toggle-btn"
+    class="lang-toggle-btn"
+    type="button"
+    aria-pressed="false"
+    data-i18n-aria-label="langToggle.aria"
+    aria-label="切換語言為 English"
+  >
+    <span class="lang-toggle-label" aria-hidden="true">EN</span>
+  </button>
 
       <div class="chat-messages" id="chat-messages" aria-live="polite" aria-label="對話訊息">
         <!-- 訊息由 JavaScript 動態插入 -->
@@ -138,23 +131,23 @@
 
           <div class="form-group">
             <label><span data-i18n="form.repairTime.label">可維修時間</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
-            <div class="repair-time-row" role="group" aria-label="可維修時間範圍 / Available Repair Time Range">
+            <div class="repair-time-row" role="group" data-i18n-aria-label="form.repairTime.range" aria-label="可維修時間範圍">
               <input type="text" id="field-repair-hour-start" name="repairHourStart"
                 placeholder="時" required inputmode="numeric" pattern="([0-9]|1[0-9]|2[0-3])"
-                maxlength="2" data-i18n-aria-label="form.repairTime.startHour.aria" aria-label="開始小時（0-23）" class="repair-time-input">
+                maxlength="2" data-i18n-aria-label="form.repairTime.startHour" aria-label="開始小時（0-23）" class="repair-time-input">
               <span class="repair-time-sep" aria-hidden="true">時</span>
               <input type="text" id="field-repair-min-start" name="repairMinStart"
                 placeholder="分" required inputmode="numeric" pattern="([0-9]|[1-5][0-9])"
-                maxlength="2" data-i18n-aria-label="form.repairTime.startMin.aria" aria-label="開始分鐘（0-59）" class="repair-time-input">
+                maxlength="2" data-i18n-aria-label="form.repairTime.startMin" aria-label="開始分鐘（0-59）" class="repair-time-input">
               <span class="repair-time-sep" aria-hidden="true">分</span>
               <span class="repair-time-dash" aria-hidden="true">─</span>
               <input type="text" id="field-repair-hour-end" name="repairHourEnd"
                 placeholder="時" required inputmode="numeric" pattern="([0-9]|1[0-9]|2[0-3])"
-                maxlength="2" data-i18n-aria-label="form.repairTime.endHour.aria" aria-label="結束小時（0-23）" class="repair-time-input">
+                maxlength="2" data-i18n-aria-label="form.repairTime.endHour" aria-label="結束小時（0-23）" class="repair-time-input">
               <span class="repair-time-sep" aria-hidden="true">時</span>
               <input type="text" id="field-repair-min-end" name="repairMinEnd"
                 placeholder="分" required inputmode="numeric" pattern="([0-9]|[1-5][0-9])"
-                maxlength="2" data-i18n-aria-label="form.repairTime.endMin.aria" aria-label="結束分鐘（0-59）" class="repair-time-input">
+                maxlength="2" data-i18n-aria-label="form.repairTime.endMin" aria-label="結束分鐘（0-59）" class="repair-time-input">
               <span class="repair-time-sep" aria-hidden="true">分</span>
             </div>
             <p class="field-hint" id="repair-time-hint" data-i18n="form.repairTime.hint">
@@ -167,8 +160,7 @@
             <textarea
               id="field-description"
               name="description"
-              data-i18n-placeholder="form.description.placeholder"
-              placeholder="請詳細描述您遇到的網路問題，例如：網路連不上、IP 貼紙缺漏、網路孔故障等..."
+              data-i18n-placeholder="form.description.placeholder" placeholder="請詳細描述您遇到的網路問題，例如：網路連不上、IP 貼紙缺漏、網路孔故障等..."
               rows="4"
               required
               maxlength="200"
@@ -209,11 +201,9 @@
         <textarea
           id="chat-input"
           class="chat-input"
-          data-i18n-placeholder="input.placeholder"
-          placeholder="輸入訊息，或點擊上方按鈕選擇服務..."
+          data-i18n-placeholder="input.placeholder" placeholder="輸入訊息，或點擊上方按鈕選擇服務..."
           rows="1"
-          data-i18n-aria-label="input.aria"
-          aria-label="輸入訊息"
+          data-i18n-aria-label="input.aria" aria-label="輸入訊息"
           maxlength="500"
         ></textarea>
         <button id="send-btn" class="send-btn" data-i18n-aria-label="send.aria" aria-label="送出訊息">
@@ -224,15 +214,16 @@
         </button>
       </div>
       <p class="footer-note" data-i18n="footer.note">本服務由 <a href="https://github.com/chinglin-k" target="_blank" rel="noopener noreferrer">@chinglin-k</a> 提供 · 僅限逢甲大學福星宿舍網路相關問題</p>
-      <!-- reCAPTCHA 合規揭露文字 -->
       <p class="recaptcha-disclosure" data-i18n="recaptcha.disclosure">
-        本網站受 reCAPTCHA 保護，並適用 Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">隱私權政策</a>與<a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">服務條款</a>。
+        本網站受 reCAPTCHA 保護，並適用 Google
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">隱私權政策</a>與
+        <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">服務條款</a>。
       </p>
     </footer>
 
   </div><!-- /#app -->
 
-  <!-- Scripts（載入順序：i18n → config → counter → intent → report → teams → chat） -->
+  <!-- Scripts（載入順序：config → counter → intent → report → teams → chat） -->
   <script src="js/i18n.js"></script>
   <script src="js/config.js"></script>
   <script src="js/counter.js"></script>
