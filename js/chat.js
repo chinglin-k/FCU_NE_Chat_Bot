@@ -120,14 +120,7 @@ const Chat = (() => {
       bubbleDiv.innerHTML = _parseMarkdown(text);
     }
 
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'msg-time';
-    const now = new Date();
-    timeSpan.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-
     contentDiv.appendChild(bubbleDiv);
-    contentDiv.appendChild(timeSpan);
-
     wrapperDiv.appendChild(avatarDiv);
     wrapperDiv.appendChild(contentDiv);
 

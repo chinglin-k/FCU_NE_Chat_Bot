@@ -60,8 +60,8 @@ const I18N = (() => {
         '本服務由 <a href="https://github.com/chinglin-k" target="_blank" rel="noopener noreferrer">@chinglin-k</a> 提供 · 僅限逢甲大學福星宿舍網路相關問題',
       'recaptcha.disclosure':
         '本網站受 reCAPTCHA 保護，並適用 Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">隱私權政策</a>與<a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">服務條款</a>。',
-      'langToggle.aria': '切換語言為 English',
-      'langToggle.label': 'EN',
+      'langToggle.aria': '切換語言 / Switch Language',
+      'langToggle.label': '中 / EN',
       'typing.aria': '正在輸入'
     },
     en: {
@@ -109,8 +109,8 @@ const I18N = (() => {
         'Provided by <a href="https://github.com/chinglin-k" target="_blank" rel="noopener noreferrer">@chinglin-k</a> · For FCU Fuxing Dormitory network issues only',
       'recaptcha.disclosure':
         'This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> apply.',
-      'langToggle.aria': 'Switch language to Chinese',
-      'langToggle.label': '中',
+      'langToggle.aria': 'Switch Language / 切換語言',
+      'langToggle.label': '中 / EN',
       'typing.aria': 'Typing'
     }
   };
