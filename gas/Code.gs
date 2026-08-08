@@ -339,8 +339,8 @@ function writeReport(reportData) {
     if (phone && !/^[0-9]{10}$/.test(phone)) {
       return { success: false, error: '手機號碼格式錯誤（需為 10 位數字）' };
     }
-    if (studentId && !/^[0-9]{1,8}$/.test(studentId)) {
-      return { success: false, error: '學號格式錯誤（需為 1–8 位數字）' };
+    if (studentId && !/^[a-zA-Z][0-9]{7}$/.test(studentId)) {
+      return { success: false, error: '學號格式錯誤（需為 1 位英文字母 + 7 位數字，如 D1234567）' };
     }
     if (bedNumber && !/^[0-9]{1,3}$/.test(bedNumber)) {
       return { success: false, error: '床號格式錯誤（需為 1–3 位數字）' };
