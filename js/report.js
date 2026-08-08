@@ -37,16 +37,15 @@ const ReportForm = (() => {
     _hideError();
     _setLoading(false);
 
-    // 預設填入推薦可維修時間：18:00 - 21:00
     const hStart = document.getElementById('field-repair-hour-start');
     const mStart = document.getElementById('field-repair-min-start');
     const hEnd = document.getElementById('field-repair-hour-end');
     const mEnd = document.getElementById('field-repair-min-end');
 
-    if (hStart) hStart.value = '18';
-    if (mStart) mStart.value = '00';
-    if (hEnd) hEnd.value = '21';
-    if (mEnd) mEnd.value = '00';
+    if (hStart) hStart.value = '';
+    if (mStart) mStart.value = '';
+    if (hEnd) hEnd.value = '';
+    if (mEnd) mEnd.value = '';
   }
 
   function _showError(msg) {
