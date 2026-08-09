@@ -3,6 +3,7 @@
    ── 參照 counter.js 的 IIFE 寫法
    ── 開啟 Teams 聊天深連結、偵測 App 是否被喚起、平台備援跳轉
    ============================================================ */
+/* exported Teams */
 'use strict';
 
 const Teams = (() => {
@@ -63,11 +64,24 @@ const Teams = (() => {
     document.body.removeChild(anchor);
 
     // 2.5 秒後偵測頁面是否被隱藏（App 被喚起會讓瀏覽器失去焦點）
+    //
+    // ⚠️ 修正（v1.3.1 / BUG-07）：原本在此用 window.open(fallbackUrl, '_blank', ...)，
+    // 但這段程式碼是在 setTimeout 回呼中執行，已脫離使用者點擊當下的同步呼叫鏈，
+    // 大多數瀏覽器（尤其 Safari／iOS）的彈跳視窗封鎖機制會直接擋掉這類延遲呼叫的
+    // window.open()，導致「App 未安裝時跳轉商店/網頁版」的備援機制實際上經常失效。
+    // 改用與上方深連結相同的「建立隱藏 <a target="_blank"> 並模擬點擊」手法，
+    // 瀏覽器多半仍視其為一般連結導覽而非彈跳視窗，較不易被封鎖。
     setTimeout(() => {
       if (!document.hidden) {
         // 頁面仍在前景 → 代表 App 未被喚起，跳轉備援
         console.warn('[Teams] App 未被喚起，跳轉備援:', fallbackUrl);
-        window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+        const fallbackAnchor = document.createElement('a');
+        fallbackAnchor.href   = fallbackUrl;
+        fallbackAnchor.target = '_blank';
+        fallbackAnchor.rel    = 'noopener noreferrer';
+        document.body.appendChild(fallbackAnchor);
+        fallbackAnchor.click();
+        document.body.removeChild(fallbackAnchor);
       }
     }, 2500);
   }

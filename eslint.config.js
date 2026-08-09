@@ -35,7 +35,10 @@ module.exports = [
       }
     },
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // v1.3.1：新增 caughtErrorsIgnorePattern，讓 catch (_e) / catch (_) 這類
+      // 刻意保留但不使用的錯誤變數，也套用與一般參數相同的 `^_` 忽略慣例
+      // （no-unused-vars 的 args 與 caughtErrors 是各自獨立的選項）。
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-undef': 'error',
       eqeqeq: ['warn', 'smart'],
       'no-console': 'off'
@@ -63,7 +66,9 @@ module.exports = [
       }
     },
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // v1.3.1：同上，補上 caughtErrorsIgnorePattern（例如 gas/Code.gs 中
+      // `catch (_) { lock.releaseLock(); }` 這類刻意不使用的錯誤變數）。
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-undef': 'error',
       eqeqeq: ['warn', 'smart']
     }

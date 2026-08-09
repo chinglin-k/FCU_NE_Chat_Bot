@@ -1,6 +1,7 @@
 /* ============================================================
    report.js — 報修表單處理模組
    ============================================================ */
+/* exported ReportForm */
 'use strict';
 
 const ReportForm = (() => {
@@ -162,27 +163,53 @@ const ReportForm = (() => {
       clearTimeout(timeoutId);
       const resData = await response.json();
 
+      // ── 判斷後端回傳的 error 是否為「內部代碼」（如 INVALID_TOKEN、
+      //    INTERNAL_ERROR、RECAPTCHA_FAILED 等全大寫底線格式），
+      //    這類代碼不是給使用者看的句子，一律改顯示通用錯誤訊息；
+      //    其餘則是後端已組好的中文驗證訊息（如「手機號碼格式錯誤...」），
+      //    可直接顯示給使用者。
+      const _isInternalCode = (err) => typeof err === 'string' && /^[A-Z_]+$/.test(err);
+      const _friendlyError  = (err) => (_isInternalCode(err) ? _R().REPORT_ERROR : (err || _R().REPORT_ERROR));
+
       if (resData.error === 'INVALID_TOKEN') {
         const newToken = await Chat.refreshToken();
         if (newToken) {
           payloadData.token = newToken;
-          const retryRes = await fetch(CONFIG.GAS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payloadData)
-          });
-          const retryData = await retryRes.json();
-          if (retryData.success) {
-            _handleSuccess();
+          const retryController = new AbortController();
+          const retryTimeoutId = setTimeout(() => retryController.abort(), 30000);
+          try {
+            const retryRes = await fetch(CONFIG.GAS_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify(payloadData),
+              signal: retryController.signal
+            });
+            const retryData = await retryRes.json();
+            if (retryData.success) {
+              _handleSuccess();
+              return;
+            }
+            // ⚠️ 修正（v1.3.1 / BUG-04）：重試後仍失敗時，不得把內部代碼
+            // （如 'INVALID_TOKEN'）原樣顯示給使用者。
+            _showError(_friendlyError(retryData.error));
+            _setLoading(false);
             return;
+          } finally {
+            clearTimeout(retryTimeoutId);
           }
         }
+        // 沒有新 token 可用：顯示通用錯誤，不暴露內部錯誤碼
+        _showError(_R().REPORT_ERROR);
+        _setLoading(false);
+        return;
       }
 
       if (resData.success) {
         _handleSuccess();
       } else {
-        _showError(resData.error || _R().REPORT_ERROR);
+        // ⚠️ 修正（v1.3.1 / BUG-04）：僅在 error 不是內部代碼時才直接顯示，
+        // 避免把 'INTERNAL_ERROR' 等代碼原樣呈現在使用者介面。
+        _showError(_friendlyError(resData.error));
         _setLoading(false);
       }
 

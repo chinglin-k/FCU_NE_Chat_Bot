@@ -19,7 +19,7 @@ function validateBedNumber(bed) {
   return /^[0-9]{1,3}$/.test(bed.trim());
 }
 
-test('Student ID validation (1 letter + 7 digits)', (t) => {
+test('Student ID validation (1 letter + 7 digits)', () => {
   assert.equal(validateStudentId('D1234567'), true, 'Valid student ID (upper)');
   assert.equal(validateStudentId('d9876543'), true, 'Valid student ID (lower)');
   assert.equal(validateStudentId('12345678'), false, 'All digits without letter should fail');
@@ -28,14 +28,14 @@ test('Student ID validation (1 letter + 7 digits)', (t) => {
   assert.equal(validateStudentId(''), false, 'Empty string should fail');
 });
 
-test('Phone validation (10 digits)', (t) => {
+test('Phone validation (10 digits)', () => {
   assert.equal(validatePhone('0912345678'), true, 'Valid 10 digits mobile number');
   assert.equal(validatePhone('091234567'), false, '9 digits should fail');
   assert.equal(validatePhone('09123456789'), false, '11 digits should fail');
   assert.equal(validatePhone('abc0912345'), false, 'Letters in phone should fail');
 });
 
-test('Bed number validation (1-3 digits)', (t) => {
+test('Bed number validation (1-3 digits)', () => {
   assert.equal(validateBedNumber('1'), true, '1 digit');
   assert.equal(validateBedNumber('12'), true, '2 digits');
   assert.equal(validateBedNumber('123'), true, '3 digits');
@@ -58,7 +58,7 @@ function filterTopic(intent, rawTopic) {
   return VALID_TOPICS.includes(normalized) ? normalized : 'ALL';
 }
 
-test('Intent whitelist filter', (t) => {
+test('Intent whitelist filter', () => {
   assert.equal(filterIntent('BUTTON_REPORT'), 'BUTTON_REPORT');
   assert.equal(filterIntent('button_teach'), 'BUTTON_TEACH');
   assert.equal(filterIntent('HACKED_INTENT'), 'UNKNOWN', 'Invalid intent fallback to UNKNOWN');
@@ -66,7 +66,7 @@ test('Intent whitelist filter', (t) => {
   assert.equal(filterIntent(null), 'UNKNOWN');
 });
 
-test('Topic whitelist filter', (t) => {
+test('Topic whitelist filter', () => {
   assert.equal(filterTopic('BUTTON_SETTING', 'ADAPTER'), 'ADAPTER');
   assert.equal(filterTopic('BUTTON_SETTING', 'INVALID_TOPIC'), 'ALL', 'Invalid topic fallback to ALL');
   assert.equal(filterTopic('BUTTON_REPORT', 'ADAPTER'), 'NONE', 'Non-setting intent topic set to NONE');
@@ -78,7 +78,7 @@ function needsConfirmation(confidence) {
   return conf < 0.6;
 }
 
-test('Confidence score confirmation threshold', (t) => {
+test('Confidence score confirmation threshold', () => {
   assert.equal(needsConfirmation(0.95), false, 'High confidence does not need confirmation');
   assert.equal(needsConfirmation(0.60), false, '0.60 confidence does not need confirmation');
   assert.equal(needsConfirmation(0.59), true, '< 0.60 confidence needs confirmation');

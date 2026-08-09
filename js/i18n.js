@@ -7,6 +7,7 @@
    ============================================================ */
 'use strict';
 
+/* exported I18N */
 const I18N = (() => {
   const STORAGE_KEY = 'fcu_ne_lang';
   const DEFAULT_LANG = 'zh';
@@ -39,6 +40,7 @@ const I18N = (() => {
       'form.bed.label': '床號',
       'form.phone.label': '手機號碼',
       'form.repairTime.label': '可維修時間',
+      'form.repairTime.range': '可維修時間範圍',
       'form.repairTime.startHour.aria': '開始小時（0-23）',
       'form.repairTime.startMin.aria': '開始分鐘（0-59）',
       'form.repairTime.endHour.aria': '結束小時（0-23）',
@@ -87,6 +89,7 @@ const I18N = (() => {
       'form.bed.label': 'Bed No.',
       'form.phone.label': 'Mobile Number',
       'form.repairTime.label': 'Available Repair Time',
+      'form.repairTime.range': 'Available repair time range',
       'form.repairTime.startHour.aria': 'Start Hour (0-23)',
       'form.repairTime.startMin.aria': 'Start Minute (0-59)',
       'form.repairTime.endHour.aria': 'End Hour (0-23)',
@@ -118,7 +121,7 @@ const I18N = (() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved && SUPPORTED.includes(saved)) return saved;
-    } catch (e) {
+    } catch (_e) {
       /* localStorage 被封鎖（無痕模式等）：忽略，改用預設語言 */
     }
     return DEFAULT_LANG;
@@ -166,7 +169,7 @@ const I18N = (() => {
   function setLang(lang) {
     if (!SUPPORTED.includes(lang) || lang === currentLang) return;
     currentLang = lang;
-    try { window.localStorage.setItem(STORAGE_KEY, lang); } catch (e) { /* ignore */ }
+    try { window.localStorage.setItem(STORAGE_KEY, lang); } catch (_e) { /* ignore */ }
     _applyToDom();
   }
 

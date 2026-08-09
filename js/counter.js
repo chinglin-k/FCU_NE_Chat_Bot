@@ -2,6 +2,7 @@
    counter.js — 累積使用人數模組
    ── 向 GAS 讀取 / 累加計數，並更新 Header 數字顯示
    ============================================================ */
+/* exported Counter */
 'use strict';
 
 const Counter = (() => {
@@ -23,7 +24,9 @@ const Counter = (() => {
   async function _fetchCount() {
     if (CONFIG.GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE') return null;
     try {
-      const url = `${CONFIG.GAS_URL}?action=counter_get`;
+      // ⚠️ v1.3.1 / BUG-08：帶上 clientId 讓後端能依使用者個別限流，
+      // 而非所有人共用同一組 'anonymous' 配額。
+      const url = `${CONFIG.GAS_URL}?action=counter_get&clientId=${encodeURIComponent(Chat.getClientId())}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -38,7 +41,8 @@ const Counter = (() => {
   async function _increment() {
     if (CONFIG.GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE') return null;
     try {
-      const url = `${CONFIG.GAS_URL}?action=counter_increment`;
+      // ⚠️ v1.3.1 / BUG-08：同上，帶上 clientId 供後端個別限流。
+      const url = `${CONFIG.GAS_URL}?action=counter_increment&clientId=${encodeURIComponent(Chat.getClientId())}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();

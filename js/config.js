@@ -5,6 +5,7 @@
    ============================================================ */
 'use strict';
 
+/* exported CONFIG */
 const CONFIG = Object.freeze({
   GAS_URL: 'https://script.google.com/macros/s/AKfycbw9EUOHrcSvlAA72gAeq7Mz3HsBWqIR0BjeoFeWbIs7FpilYjgb2vCF0iOwA1NL_8sbjw/exec',
   RECAPTCHA_SITE_KEY: '6LehknstAAAAAPmlQlfjbI5nnbLY2fBrnmkXOcqI',

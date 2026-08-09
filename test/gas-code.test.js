@@ -245,6 +245,48 @@ test('writeReport：學號格式錯誤時拒絕', () => {
   }
 });
 
+// ── v1.3.1 / BUG-01 迴歸測試 ──────────────────────────────
+// 修正前：`if (phone && !regex.test(phone))` 在欄位為空字串（falsy）時
+// 會整段跳過驗證，等同繞過前端即可送出必填欄位皆為空的報修單。
+test('writeReport：studentId 為空字串時應拒絕（BUG-01 迴歸測試）', () => {
+  const { exported, mocks, restore } = loadGasCode({
+    scriptProperties: { SPREADSHEET_ID: 'sheet-id', RECAPTCHA_SECRET_KEY: 'secret' }
+  });
+  try {
+    mockPassingRecaptcha(mocks);
+    const payload = { ...validReportPayload(), studentId: '' };
+    const result = exported.writeReport(payload, 'user-f', 'good-token');
+    assert.equal(result.success, false);
+    assert.match(result.error, /學號格式錯誤/);
+  } finally {
+    restore();
+  }
+});
+
+test('writeReport：phone / bedNumber / roomNumber 為空字串時應拒絕（BUG-01 迴歸測試）', () => {
+  const { exported, mocks, restore } = loadGasCode({
+    scriptProperties: { SPREADSHEET_ID: 'sheet-id', RECAPTCHA_SECRET_KEY: 'secret' }
+  });
+  try {
+    mockPassingRecaptcha(mocks);
+    const cases = [
+      { field: 'phone', overrides: { phone: '' }, expected: /手機號碼格式錯誤/ },
+      { field: 'bedNumber', overrides: { bedNumber: '' }, expected: /床號格式錯誤/ },
+      { field: 'roomNumber', overrides: { roomNumber: '' }, expected: /房號格式錯誤/ },
+      { field: 'name', overrides: { name: '' }, expected: /請輸入姓名/ },
+      { field: 'description', overrides: { description: '' }, expected: /請描述您的網路問題/ }
+    ];
+    for (const { field, overrides, expected } of cases) {
+      const payload = { ...validReportPayload(), ...overrides };
+      const result = exported.writeReport(payload, `user-empty-${field}`, 'good-token');
+      assert.equal(result.success, false, `欄位 ${field} 為空字串時應被拒絕`);
+      assert.match(result.error, expected);
+    }
+  } finally {
+    restore();
+  }
+});
+
 test('writeReport：超長欄位會被後端截斷後寫入，而非直接拒絕', () => {
   const { exported, mocks, restore } = loadGasCode({
     scriptProperties: { SPREADSHEET_ID: 'sheet-id', RECAPTCHA_SECRET_KEY: 'secret' }
@@ -401,6 +443,40 @@ test('doGet：counter_get 與 counter_increment 正常運作', () => {
     const after = callDoGet(exported, { action: 'counter_increment' });
     assert.equal(after.success, true);
     assert.equal(after.count, 1);
+  } finally {
+    restore();
+  }
+});
+
+// ── v1.3.1 / BUG-08 迴歸測試 ──────────────────────────────
+// 修正前：counter_increment 使用固定 identifier 'anonymous' 且使用者級上限為
+// 999999（形同不限制），任何人皆可直接對 GAS_URL 灌爆此 action 刷高計數。
+test('doGet：counter_increment 依 clientId 個別限流，超過上限即拒絕（BUG-08 迴歸測試）', () => {
+  const { exported, restore } = loadGasCode();
+  try {
+    const clientId = 'client-x';
+    // 依目前設定，同一 clientId 每分鐘最多 3 次
+    for (let i = 0; i < 3; i++) {
+      const r = callDoGet(exported, { action: 'counter_increment', clientId });
+      assert.equal(r.success, true, `第 ${i + 1} 次應成功`);
+    }
+    const fourth = callDoGet(exported, { action: 'counter_increment', clientId });
+    assert.equal(fourth.success, false, '第 4 次應被限流拒絕');
+    assert.match(fourth.error, /請求過於頻繁/);
+  } finally {
+    restore();
+  }
+});
+
+test('doGet：counter_increment 不同 clientId 各自獨立計算配額', () => {
+  const { exported, restore } = loadGasCode();
+  try {
+    for (let i = 0; i < 3; i++) {
+      assert.equal(callDoGet(exported, { action: 'counter_increment', clientId: 'client-a' }).success, true);
+    }
+    // client-a 額度用盡，但 client-b 應仍可正常累加
+    const bResult = callDoGet(exported, { action: 'counter_increment', clientId: 'client-b' });
+    assert.equal(bResult.success, true);
   } finally {
     restore();
   }
