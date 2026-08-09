@@ -53,9 +53,20 @@
 
   /* Teams 專屬紫色系（對齊 Teams 2025 icon 漸層） */
   --color-teams-purple:     #7B83EB;
+  --color-teams-purple-light: #9EA5F1;
   --color-teams-purple-dim: rgba(123, 131, 235, 0.18);
   --glow-teams:             0 0 18px rgba(123, 131, 235, 0.45);
   --glow-teams-strong:      0 0 28px rgba(123, 131, 235, 0.7);
+
+  /* 語意色（成功／危險） */
+  --color-success:      #4ade80;
+  --color-danger:       #ef4444;
+  --color-danger-light: #f87171;
+
+  /* 純白 / Bot 頭像漸層（v1.3.1：改用變數，移除 CSS 內的硬編碼色碼） */
+  --color-white:        #fff;
+  --avatar-bot-from:    #1e3a5f;
+  --avatar-bot-to:      #0c2040;
 
   /* 尺寸 */
   --header-height: 68px;
@@ -262,7 +273,7 @@ a:hover {
 
 .header-teams-link:hover {
   background: rgba(123, 131, 235, 0.3);
-  border-color: #9EA5F1;
+  border-color: var(--color-teams-purple-light);
   box-shadow: var(--glow-teams-strong);
   transform: scale(1.07);
 }
@@ -364,7 +375,7 @@ a:hover {
 }
 
 .msg-wrapper.bot .msg-avatar {
-  background: linear-gradient(135deg, #1e3a5f, #0c2040);
+  background: linear-gradient(135deg, var(--avatar-bot-from), var(--avatar-bot-to));
   border: 1px solid var(--glass-border-active);
 }
 
@@ -402,7 +413,7 @@ a:hover {
 .msg-wrapper.user .msg-bubble {
   background: linear-gradient(135deg, var(--bubble-user-from), var(--bubble-user-to));
   border-top-right-radius: 4px;
-  color: #fff;
+  color: var(--color-white);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
 }
 
@@ -461,14 +472,14 @@ a:hover {
 .quick-btn.primary {
   background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-orange-light));
   border-color: transparent;
-  color: #fff;
+  color: var(--color-white);
   box-shadow: 0 2px 12px rgba(249, 115, 22, 0.3);
 }
 
 .quick-btn.primary:hover:not(:disabled) {
   box-shadow: var(--glow-orange), 0 4px 16px rgba(249, 115, 22, 0.4);
   transform: translateY(-2px);
-  color: #fff;
+  color: var(--color-white);
 }
 
 .quick-btn:disabled {
@@ -598,7 +609,7 @@ a:hover {
 .send-btn svg {
   width: 16px;
   height: 16px;
-  color: #fff;
+  color: var(--color-white);
   transform: translateX(1px);
 }
 
@@ -648,7 +659,7 @@ a:hover {
   width: 100%;
   max-width: 760px;
   max-height: 88dvh;
-  background: #0d1730;
+  background: var(--color-bg-secondary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   overflow-y: auto;
@@ -674,7 +685,7 @@ a:hover {
   border-bottom: 1px solid var(--glass-border);
   position: sticky;
   top: 0;
-  background: #0d1730;
+  background: var(--color-bg-secondary);
   z-index: 1;
 }
 
@@ -709,7 +720,7 @@ a:hover {
 .modal-close:hover {
   background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.4);
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 /* ── Report Form ── */
@@ -824,7 +835,7 @@ a:hover {
 /* 表單 誤訊息 */
 .form-error {
   font-size: 13px;
-  color: #f87171;
+  color: var(--color-danger-light);
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.25);
   border-radius: var(--radius-sm);
@@ -856,7 +867,7 @@ a:hover {
 
 .btn-primary {
   background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-orange-light));
-  color: #fff;
+  color: var(--color-white);
   box-shadow: 0 2px 12px rgba(249, 115, 22, 0.3);
   min-width: 120px;
   justify-content: center;
@@ -895,7 +906,7 @@ a:hover {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-white);
   animation: typingBounce 1.2s ease-in-out infinite;
 }
 .loading-dot:nth-child(2) { animation-delay: 0.2s; }
@@ -1008,7 +1019,7 @@ a:hover {
   margin: 8px 0 4px;
   font-size: 22px;
   font-weight: 700;
-  color: #4ade80;
+  color: var(--color-success);
   letter-spacing: 0.02em;
 }
 
@@ -1049,10 +1060,10 @@ a:hover {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ww yơG^½ĶU˦ | Bilingual: English translation helper ww */
-.text-en { font-size: 0.82em; color: #94a3b8; font-style: italic; font-weight: 400; opacity: 0.85; letter-spacing: 0.015em; line-height: 1.35; }
+/* 雙語顯示：中文主要文字下方的英文輔助翻譯 | Bilingual: English translation helper */
+.text-en { font-size: 0.82em; color: var(--color-text-secondary); font-style: italic; font-weight: 400; opacity: 0.85; letter-spacing: 0.015em; line-height: 1.35; }
 
-/* b block ]p <span class="text-en"> Wߦɡ^j */
+/* 讓 block 元素內的 <span class="text-en"> 換行獨立顯示 */
 span.text-en:not([aria-hidden]) {
   display: block;
   margin-top: 2px;

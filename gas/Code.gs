@@ -151,20 +151,30 @@ function doGet(e) {
         result = { success: true, token: _generateToken() };
         break;
 
-      case 'counter_get':
+      case 'counter_get': {
         // 唯讀操作，給予較寬鬆的全域上限，避免被當作免費的請求量放大器
-        result = _checkRateLimit('counter_get', 999999, 'anonymous', 120)
+        const readClientId = (e.parameter.clientId || 'anonymous').toString();
+        result = _checkRateLimit('counter_get', 30, readClientId, 120)
           ? getCounter()
           : { success: false, count: 0, error: '請求過於頻繁，請稍後再試' };
         break;
+      }
 
-      case 'counter_increment':
-        // 會寫入 Script Properties，套用與 report 相近等級的全域限流，
-        // 防止 GAS_URL 外洩後被腳本無限灌爆、洗版累積人數並耗盡帳號執行配額
-        result = _checkRateLimit('counter_increment', 999999, 'anonymous', 30)
+      case 'counter_increment': {
+        // ⚠️ 修正（v1.3.1 / BUG-08）：原本使用者級上限為 999999（形同不限制），
+        // 且固定用 'anonymous' 當識別碼，等於全站共用同一組配額，任何人都能
+        // 直接對 GAS_URL 送出大量 counter_increment 請求刷高「累積服務人數」，
+        // 且無法個別追蹤/限制單一使用者。現在改為依前端傳入的 clientId 個別
+        // 限流（每人每分鐘最多 3 次）。
+        // 全域上限於 v1.3.1 追加調整：原訂每分鐘 30 次，於新生入住等尖峰時段
+        // （大量學生同時開啟頁面、各自觸發一次 session 計數）容易被誤擋，
+        // 已調升為每分鐘 500 次，兩層限流邏輯本身不變。
+        const writeClientId = (e.parameter.clientId || 'anonymous').toString();
+        result = _checkRateLimit('counter_increment', 3, writeClientId, 500)
           ? incrementCounter()
           : { success: false, count: 0, error: '請求過於頻繁，請稍後再試' };
         break;
+      }
 
       // classify 與 report 已移至 doPost，此處明確拒絕
       case 'classify':
@@ -177,8 +187,11 @@ function doGet(e) {
     }
 
   } catch (err) {
+    // ⚠️ 修正（v1.3.1 / BUG-03）：不得將 err.toString() 原樣回傳給前端，
+    // 內部錯誤訊息可能包含函式名稱、變數內容等實作細節（CWE-209 資訊洩漏）。
+    // 詳細內容仍記錄於 Logger，前端僅收到通用錯誤代碼。
     Logger.log('[doGet] 錯誤: ' + err.toString());
-    result = { success: false, error: err.toString() };
+    result = { success: false, error: 'INTERNAL_ERROR' };
   }
 
   return ContentService
@@ -228,8 +241,9 @@ function doPost(e) {
       }
     }
   } catch (err) {
+    // 同上（BUG-03）：不回傳原始例外內容給前端，僅記錄於 Logger。
     Logger.log('[doPost] 錯誤: ' + err.toString());
-    result = { success: false, error: err.toString() };
+    result = { success: false, error: 'INTERNAL_ERROR' };
   }
 
   return ContentService
@@ -372,8 +386,9 @@ function classifyIntent(message, clientId) {
     return { success: true, intent, confidence, needsConfirmation, topic };
 
   } catch (err) {
+    // 同上（BUG-03）：不回傳原始例外內容給前端，僅記錄於 Logger。
     Logger.log('[classifyIntent] 例外: ' + err.toString());
-    return { success: false, error: err.toString() };
+    return { success: false, error: 'INTERNAL_ERROR' };
   }
 }
 
@@ -463,22 +478,34 @@ function writeReport(reportData, clientId, recaptchaToken) {
 
   try {
     // ── 後端格式驗證（防止繞過前端直接打 API）──
-    const phone     = String(reportData.phone      || '').trim();
-    const studentId = String(reportData.studentId  || '').trim();
-    const bedNumber = String(reportData.bedNumber  || '').trim();
+    // ⚠️ 修正（v1.3.1 / BUG-01）：舊版寫法 `if (phone && !regex.test(phone))` 在欄位為
+    // 空字串時（falsy）會整段略過驗證，等同「必填」形同虛設 —— 攻擊者可略過前端，
+    // 直接對 GAS Web App 送出 studentId / phone / bedNumber / roomNumber 皆為空字串
+    // 的請求並成功寫入試算表。修正後一律先檢查「必填」，再檢查「格式」。
+    const name        = String(reportData.name        || '').trim();
+    const phone       = String(reportData.phone       || '').trim();
+    const studentId   = String(reportData.studentId   || '').trim();
+    const bedNumber   = String(reportData.bedNumber   || '').trim();
+    const roomNumber  = String(reportData.roomNumber  || '').trim();
+    const description = String(reportData.description || '').trim();
 
-    if (phone && !/^[0-9]{10}$/.test(phone)) {
-      return { success: false, error: '手機號碼格式錯誤（需為 10 位數字）' };
+    if (!name) {
+      return { success: false, error: '請輸入姓名' };
     }
-    if (studentId && !/^[a-zA-Z][0-9]{7}$/.test(studentId)) {
+    if (!studentId || !/^[a-zA-Z][0-9]{7}$/.test(studentId)) {
       return { success: false, error: '學號格式錯誤（需為 1 位英文字母 + 7 位數字，如 D1234567）' };
     }
-    if (bedNumber && !/^[0-9]{1,3}$/.test(bedNumber)) {
+    if (!roomNumber || !/^[A-Za-z0-9-]{1,8}$/.test(roomNumber)) {
+      return { success: false, error: '房號格式錯誤（僅限英數字與連字號，最長 8 碼）' };
+    }
+    if (!bedNumber || !/^[0-9]{1,3}$/.test(bedNumber)) {
       return { success: false, error: '床號格式錯誤（需為 1–3 位數字）' };
     }
-    const roomNumber = String(reportData.roomNumber || '').trim();
-    if (roomNumber && !/^[A-Za-z0-9-]{1,8}$/.test(roomNumber)) {
-      return { success: false, error: '房號格式錯誤（僅限英數字與連字號，最長 8 碼）' };
+    if (!phone || !/^[0-9]{10}$/.test(phone)) {
+      return { success: false, error: '手機號碼格式錯誤（需為 10 位數字）' };
+    }
+    if (!description) {
+      return { success: false, error: '請描述您的網路問題' };
     }
 
     const spreadsheet = SpreadsheetApp.openById(_getSpreadsheetId());
@@ -512,13 +539,13 @@ function writeReport(reportData, clientId, recaptchaToken) {
     // S-07: 後端欄位長度截斷（對比兩者工程同步）
     // 目的：防止攻擊者繞過前端驗證寫入超長字串
     const safe = {
-      studentId:   _sanitizeForSpreadsheet(String(reportData.studentId   || '').slice(0, 8)),
-      name:        _sanitizeForSpreadsheet(String(reportData.name        || '').slice(0, 50)),
-      roomNumber:  _sanitizeForSpreadsheet(String(reportData.roomNumber  || '').slice(0, 8)),
-      bedNumber:   String(reportData.bedNumber   || '').slice(0, 3),
-      phone:       String(reportData.phone       || '').slice(0, 10),
-      repairTime:  _sanitizeForSpreadsheet(String(reportData.repairTime  || '').slice(0, 20)),
-      description: _sanitizeForSpreadsheet(String(reportData.description || '').slice(0, 200))
+      studentId:   _sanitizeForSpreadsheet(studentId.slice(0, 8)),
+      name:        _sanitizeForSpreadsheet(name.slice(0, 50)),
+      roomNumber:  _sanitizeForSpreadsheet(roomNumber.slice(0, 8)),
+      bedNumber:   bedNumber.slice(0, 3),
+      phone:       phone.slice(0, 10),
+      repairTime:  _sanitizeForSpreadsheet(String(reportData.repairTime || '').slice(0, 20)),
+      description: _sanitizeForSpreadsheet(description.slice(0, 200))
     };
 
     const rowValues = [
@@ -547,8 +574,9 @@ function writeReport(reportData, clientId, recaptchaToken) {
     return { success: true, message: '報修資料已成功寫入試算表' };
 
   } catch (err) {
+    // 同上（BUG-03）：不回傳原始例外內容給前端，僅記錄於 Logger。
     Logger.log('[writeReport] 錯誤: ' + err.toString());
-    return { success: false, error: err.toString() };
+    return { success: false, error: 'INTERNAL_ERROR' };
   }
 }
 
@@ -563,8 +591,9 @@ function getCounter() {
     const count = parseInt(properties.getProperty('USER_COUNT') || '0', 10);
     return { success: true, count };
   } catch (err) {
+    // 同上（BUG-03）：不回傳原始例外內容給前端，僅記錄於 Logger。
     Logger.log('[getCounter] 錯誤: ' + err.toString());
-    return { success: false, count: 0, error: err.toString() };
+    return { success: false, count: 0, error: 'INTERNAL_ERROR' };
   }
 }
 
@@ -584,8 +613,9 @@ function incrementCounter() {
     Logger.log(`[incrementCounter] 累積使用人數：${newCount}`);
     return { success: true, count: newCount };
   } catch (err) {
+    // 同上（BUG-03）：不回傳原始例外內容給前端，僅記錄於 Logger。
     Logger.log('[incrementCounter] 錯誤: ' + err.toString());
-    return { success: false, count: 0, error: err.toString() }; // 確保 count 欄位存在
+    return { success: false, count: 0, error: 'INTERNAL_ERROR' }; // 確保 count 欄位存在
   } finally {
     try { lock.releaseLock(); } catch (_) {}
   }
@@ -649,7 +679,10 @@ function _ruleBasedClassify(msg) {
     return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'AC_BILLING' };
   }
   // 3e. 其他常見問題 (ALL)
-  if (/(常見問題|常見設定|常見|常见问题|常见设置|常见|faq|frequently asked|よくある質問|soalan lazim|자주 묻ns 질문|pertanyaan umum|madalas na tanong|คำถามที่พบบ่อย|veelgestelde vrae|questions fréquentes|imidlalo|câu hỏi thường gặp|preguntas frecuentes|түгээмэл асуултууд|الأسئلة الشائعة)/.test(text)) {
+  // ⚠️ 修正（v1.3.1 / BUG-06）：韓文「常見問題」關鍵字原字串「자주 묻ns 질문」
+  // 混入了拉丁字母「ns」造成亂碼，該字串在真實使用者輸入中永遠不會出現，
+  // 等於此語系的 FAQ 判斷永遠失效。已修正為正確韓文「자주 묻는 질문」。
+  if (/(常見問題|常見設定|常見|常见问题|常见设置|常见|faq|frequently asked|よくある質問|soalan lazim|자주 묻는 질문|pertanyaan umum|madalas na tanong|คำถามที่พบบ่อย|veelgestelde vrae|questions fréquentes|imidlalo|câu hỏi thường gặp|preguntas frecuentes|түгээмэл асуултууд|الأسئلة الشائعة)/.test(text)) {
     return { success: true, intent: 'BUTTON_SETTING', confidence: 0.90, needsConfirmation: false, topic: 'ALL' };
   }
 

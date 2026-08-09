@@ -9,6 +9,7 @@
      topic: 'ACCOUNT'|'ADAPTER'|'WIFI_SIGNAL'|'AC_BILLING'|'ALL'|'NONE'
             — 僅 BUTTON_SETTING 時有意義；其他意圖為 'NONE'
    ============================================================ */
+/* exported Intent */
 'use strict';
 
 const Intent = (() => {

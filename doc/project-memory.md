@@ -3,8 +3,8 @@
 > 僅在確認新決策、修改既有決策或發現重要限制時更新。
 > 每次更新須記錄日期、原因與影響範圍。
 
-**版本 / Version**：v1.3.0  
-**最後更新 / Last Updated**：2026-08-08
+**版本 / Version**：v1.3.1  
+**最後更新 / Last Updated**：2026-08-09
 
 ---
 
@@ -18,7 +18,17 @@
 | 2026-08-08 | 實作記憶體層級一次性 Session Token (`get_token`) | 防止未授權請求或跨站偽造呼叫，用一次即失效，頁面重整後自動重新發放 | `gas/Code.gs`、`js/chat.js` |
 | 2026-08-08 | 導入 Client ID 與雙層流量限制 (User & Global) | Client ID 存於 localStorage (`fcu_chat_client_id`) 跨頁面穩定，防刷流量（`classify`: 12/60, `report`: 5/20） | `gas/Code.gs`、`js/chat.js` |
 | 2026-08-08 | 整合 Google reCAPTCHA v3 隱形驗證 | 僅報修表單使用（門檻 score ≥ 0.5），防止 GAS_URL 外洩遭大量腳本濫用 | `index.html`、`js/config.js`、`js/report.js`、`gas/Code.gs` |
-| 2026-08-08 | 九模型 Gemini 三層 RPM 自動切換與 429 重試 | 充份利用 15/10/5 RPM 額度，遇 429 延遲 1.5s 重試切換下一個模型 | `gas/Code.gs`、`doc/architecture.md` |
+| 2026-08-09 | `writeReport()` 後端驗證改為「先必填、後格式」 | 原本 `field && !regex.test(field)` 寫法在欄位為空字串時會整段跳過驗證，等同必填形同虛設（BUG-01） | `gas/Code.gs`、`test/gas-code.test.js` |
+| 2026-08-09 | 後端例外一律回傳通用錯誤代碼，不回傳 `err.toString()` | 避免內部實作細節（函式名稱、變數內容）透過錯誤訊息外洩給前端（BUG-03 / CWE-209） | `gas/Code.gs` |
+| 2026-08-09 | `counter_increment` 改為依 `clientId` 個別限流（3 次/分鐘），全域上限由 30 次/分鐘調整為 500 次/分鐘 | 原本使用者級上限 999999 形同不限制，任何人可直接刷高累積人數（BUG-08）；後續依使用情境回饋，30/分鐘的全域上限在新生入住等大量學生同時開啟頁面的尖峰時段容易誤擋合法計數，調升為 500/分鐘 | `gas/Code.gs`、`js/counter.js` |
+| 2026-08-09 | Teams 備援跳轉改用隱藏 `<a>` 模擬點擊，不再用延遲的 `window.open()` | 延遲呼叫的 `window.open()` 容易被瀏覽器彈跳視窗封鎖機制擋下（BUG-07） | `js/teams.js` |
+| 2026-08-09 | 報修表單不再顯示未翻譯的內部錯誤代碼 | `report.js` 原本會把 `INVALID_TOKEN` 等內部代碼原樣顯示給使用者，改為僅顯示已翻譯的通用錯誤訊息（BUG-04） | `js/report.js` |
+| 2026-08-09 | 修正可維修時間 4 個欄位的 aria-label 鍵名不對齊 | `index.html` 使用的 `data-i18n-aria-label` 鍵名與 `js/i18n.js` 實際定義（多了 `.aria` 後綴）不一致，導致切換英文時顯示原始鍵名字串；同時補上缺漏的 `form.repairTime.range` 鍵（BUG-05） | `index.html`、`js/i18n.js` |
+| 2026-08-09 | 修正韓文備援分類器關鍵字亂碼 | `_ruleBasedClassify()` 中「자주 묻ns 질문」混入拉丁字母造成永遠無法匹配，修正為正確韓文「자주 묻는 질문」（BUG-06） | `gas/Code.gs` |
+| 2026-08-09 | CSS 中文註解亂碼與硬編碼色碼清理 | `.text-en` 區塊 2 處註解混有亂碼字元；另有 14 處色碼未走 `:root` 變數，違反既有 CSS 規範（BUG-09、BUG-10） | `css/style.css` |
+| 2026-08-09 | ESLint 14 個 warning 全數歸零 | 新增 `/* exported X */` 官方指令解決模組全域變數 false positive，補上 `caughtErrorsIgnorePattern` 設定，移除測試檔未用參數（BUG-11） | `js/*.js`、`eslint.config.js`、`test/validation.test.js` |
+| 2026-08-09 | 清除 Git 歷史中殘留的真實 Spreadsheet ID | 確認 `v1.0.0`／`v1.1.0`／`v1.2.0` 三個 tag 對應歷史（共 33 個 ref）中仍可取得明碼 ID，用 `git-filter-repo` 於沙盒端清除並驗證全歷史 0 匹配，產出可還原的 git bundle；實際 force push 覆蓋 GitHub 遠端歷史需專案擁有者執行（BUG-02） | `.git` 歷史（不影響工作目錄任何檔案）|
+| 2026-08-08 | 六模型 Gemini 三層 RPM 自動切換與 429 重試 | 充份利用 15/5 RPM 額度，遇 429 延遲 1.5s 重試切換下一個模型（**v1.3.1 文件更正**：原記錄誤植為「九模型」，經比對 `gas/Code.gs` 原始碼後確認實際為 6 個模型） | `gas/Code.gs`、`doc/architecture.md` |
 | 2026-08-08 | 學號格式強驗證：1 位英文字母 + 7 位數字 | 對齊校方學號標準格式（如 `D1234567`），前後端雙重 RegEx 驗證 | `index.html`、`js/report.js`、`gas/Code.gs` |
 | 2026-08-08 | 19 語系 Rule-based 備援分類器 | 確保 Gemini 失敗時仍可精準回應各國籍學生 | `gas/Code.gs`、`README.md` |
 | 2026-08-08 | 建置 Node.js 原生單元測試與 ESLint 9 Flat Config | 建立 `gas-mocks.js` 模擬 GAS 全域環境，確保 CI/CD 自動化測試通過 | `package.json`、`eslint.config.js`、`test/` |
@@ -40,3 +50,8 @@
 
 - GitHub Pages 為靜態托管，**無法在前端執行伺服器端邏輯**
 - GAS 免費版每日執行次數限制：6 分鐘執行時間，每日可處理約 500+ 次分類
+- **Git 歷史清除的殘留風險（v1.3.1 新增）**：即使用 `git-filter-repo` 清除機密後
+  force push 到 GitHub，已關閉／已合併 PR 的「Files changed」分頁、第三方封存
+  服務（如 Software Heritage）、其他人的 fork，仍可能保留舊版明碼內容，
+  Git 層級操作無法強制觸及這些位置。真正解除風險的關鍵是**輪替 Spreadsheet
+  ID 本身**，而非僅依賴歷史清除。
