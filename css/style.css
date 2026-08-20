@@ -1182,3 +1182,54 @@ span.text-en:not([aria-hidden]) {
 .recaptcha-disclosure a:hover {
   color: var(--color-accent-blue);
 }
+
+/* ── Query Modal ── */
+.query-modal-container {
+  max-width: 420px;
+}
+
+.query-form {
+  padding: 20px 24px 28px;
+}
+
+/* ── Query Result Cards（聊天泡泡中的案件卡片）── */
+.msg-bubble .query-case-card {
+  background: rgba(56, 189, 248, 0.06);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.msg-bubble .query-case-card + .query-case-card {
+  margin-top: 10px;
+}
+
+.query-case-card .status-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.query-case-card .status-tag.pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.query-case-card .status-tag.dispatched {
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--color-accent-blue);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.query-case-card .status-tag.completed {
+  background: rgba(74, 222, 128, 0.12);
+  color: var(--color-success);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}

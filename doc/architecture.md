@@ -1,7 +1,7 @@
 # 架構設計文件 (Architecture Design Document)
 
-**版本 / Version**：v1.3.1  
-**最後更新 / Last Updated**：2026-08-09（v1.3.1: Backend Validation Bypass Fix, Error-Info Disclosure Fix, i18n Key Alignment, Teams Popup-block Fix, Counter Rate-limit Fix, Gemini Model List Correction, Git History Scrub, CSS Variable Cleanup, ESLint Zero-warning）
+**版本 / Version**：v1.4.0  
+**最後更新 / Last Updated**：2026-08-21（v1.4.0: 新增報修案件查詢功能、全面稽核與安全修復）
 
 ---
 
@@ -13,6 +13,7 @@ graph TD
     GHP -->|"fetch GET ?action=get_token"| GAS["Google Apps Script\nWeb App (doGet / doPost)"]
     GHP -->|"fetch POST body {action:'classify', token, clientId, msg}\n(Content-Type: text/plain)"| GAS
     GHP -->|"fetch POST body {action:'report', token, clientId, recaptchaToken, payload}\n(Content-Type: text/plain)"| GAS
+    GHP -->|"fetch POST body {action:'query', token, clientId, studentId}\n(Content-Type: text/plain)"| GAS
     GHP -->|"fetch GET ?action=counter_*"| GAS
     GHP -->|"grecaptcha.execute()"| reCAPTCHA["Google reCAPTCHA v3\n隱形驗證服務"]
     GAS -->|"雙層限流 (User & Global)"| RateLimit["Rate Limiter\n(CacheService)"]
@@ -59,11 +60,12 @@ graph TD
 | 函式 / Function | 職責 / Responsibilities |
 |---|---|
 | `doGet(e)` | 處理 `get_token` 發放及 `counter_*` 計數（拒絕敏感的 classify/report 請求）；`counter_get`／`counter_increment` 皆需帶 `clientId` 查詢參數以套用個別限流 |
-| `doPost(e)` | 解析 `text/plain` POST Body，執行 `_consumeToken` 驗證，路由至 `classify` / `report` |
-| `_checkRateLimit(action, limitPerMin, id, globalLimit)` | 雙層每分鐘請求速率限制（`classify`: 使用者 12/min·全域 60/min；`report`: 使用者 5/min·全域 20/min；`counter_get`: 使用者 30/min·全域 120/min；`counter_increment`: 使用者 3/min·全域 500/min）|
+| `doPost(e)` | 解析 `text/plain` POST Body，執行 `_consumeToken` 驗證，路由至 `classify` / `report` / `query` |
+| `_checkRateLimit(action, limitPerMin, id, globalLimit)` | 雙層每分鐘請求速率限制（`classify`: 使用者 12/min・全域 60/min；`report`: 使用者 5/min・全域 20/min；`query`: 使用者 10/min・全域 40/min；`counter_get`: 使用者 30/min・全域 120/min；`counter_increment`: 使用者 3/min・全域 500/min）|
 | `_verifyRecaptcha(token, action)` | 呼叫 Google siteverify API 驗證 reCAPTCHA v3 token、action 及風險分數 (score ≥ 0.5) |
 | `classifyIntent(msg, clientId)` | 依序呼叫 6 個 Gemini 模型，若配額用盡自動降級至 19 語系 Rule-based 備援分類器 |
 | `writeReport(data, clientId, recaptchaToken)` | reCAPTCHA 驗證、後端「先必填、後格式」二階段驗證（姓名/學號/房號/床號/手機/問題描述皆為必填，未填一律拒絕，非僅格式檢查）、長度截斷寫入試算表 |
+| `queryReport(studentId, clientId)` | 學生輸入學號查詢自己的報修案件；僅回傳安全欄位（日期/時間/房號/床號/問題描述/是否派人/是否完成/備註），不含手機、姓名等敏感個資 |
 | `getCounter() / incrementCounter()` | Atomic LockService 防競態寫入計數器 |
 
 > ⚠️ **v1.3.1**：所有函式的 `catch` 區塊已統一改為僅回傳固定代碼 `'INTERNAL_ERROR'`
@@ -106,12 +108,12 @@ graph TD
 ```
 使用者輸入
 → chat.js _handleTextInput()
-→ 顯示打字指示器
+→ 顯示打字中
 → intent.js classify()（AbortController 25 秒 Timeout）
 → POST GAS（Body: text/plain，內容：{action:"classify", msg, token, clientId}）
 → GAS doPost() 驗證 token（_consumeToken）
 → classifyIntent()：雙層流量限制（使用者 12/分鐘、全域 60/分鐘）
-→ 依序嘗試 9 個 Gemini 模型（429 自動重試切換）
+→ 依序嘗試 6 個 Gemini 模型（429 自動重試切換）
 → 全部失敗 → 降級 _ruleBasedClassify()（19 語系關鍵字比對）
 → 回傳 { intent, confidence, needsConfirmation, topic }
 → token 失效（INVALID_TOKEN）時前端自動重取 token 並重試一次
@@ -132,6 +134,23 @@ graph TD
   → 寫入試算表（先設定儲存格為純文字格式，避免手機號碼開頭 0 被吃掉）
 → 回傳 {success:true}
 → Modal 顯示成功畫面（2 秒進度條後自動關閉）
+```
+
+### 4.4 報修案件查詢
+```
+使用者點擊「🔍 查詢案件」按鈕（或 AI 辨識為 BUTTON_QUERY 意圖）
+→ chat.js 開啟 query Modal（QueryCase.open()）
+→ 學生輸入學號，query.js 前端驗證（非空 + 格式 1字母+7數字）
+→ POST GAS（Body: text/plain，內容：{action:"query", studentId, token, clientId}，
+  AbortController 15 秒 Timeout）
+→ GAS doPost() 驗證 token → queryReport()：
+  → 雙層流量限制（使用者 10/分鐘、全域 40/分鐘）
+  → 學號格式驗證（toUpperCase + /^[A-Z][0-9]{7}$/）
+  → 讀取試算表全部資料列，篩選匹配學號的列
+  → 僅回傳安全欄位（日期/時間/房號/床號/問題描述/是否派人/是否完成/備註）
+  → 不回傳手機號碼、姓名（防第三方惡意按學號試探取得他人個資）
+→ 回傳 { success: true, cases: [...] }
+→ query.js 關閉 Modal，在聊天區渲染案件卡片（所有欄位已 HTML 轉義防 XSS）
 ```
 
 ---

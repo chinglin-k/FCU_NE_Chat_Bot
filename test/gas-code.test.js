@@ -519,3 +519,176 @@ test('doPost：合法 token 搭配未知 action 時回傳明確錯誤', () => {
     restore();
   }
 });
+
+// ══════════════════════════════════════════════
+// 7. 報修案件查詢（queryReport）
+// ══════════════════════════════════════════════
+test('queryReport：學號格式驗證 — 空字串時回傳錯誤', () => {
+  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  try {
+    const result = exported.queryReport('', 'test-client');
+    assert.equal(result.success, false);
+    assert.match(result.error, /請輸入學號/);
+  } finally {
+    restore();
+  }
+});
+
+test('queryReport：學號格式驗證 — 格式錯誤時回傳錯誤', () => {
+  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  try {
+    const result = exported.queryReport('12345678', 'test-client');
+    assert.equal(result.success, false);
+    assert.match(result.error, /學號格式錯誤/);
+  } finally {
+    restore();
+  }
+});
+
+test('queryReport：空試算表查詢回傳空陣列', () => {
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  try {
+    // 空表只有標題列
+    const sheet = mocks._internal.mockSheet;
+    sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
+
+    const result = exported.queryReport('D1234567', 'test-client');
+    assert.equal(result.success, true);
+    assert.deepEqual(result.cases, []);
+    assert.ok(result.message);
+  } finally {
+    restore();
+  }
+});
+
+test('queryReport：有匹配案件時回傳正確資料', () => {
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  try {
+    const sheet = mocks._internal.mockSheet;
+    // 標題列
+    sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
+    // 匹配資料列
+    sheet._rows.push(['2026/08/20', '14:30:00', 'D1234567', '王小明', 'A101', '1', '0912345678', '18:00-21:00', '網路斷線', '是', '', '已排定']);
+    // 不匹配資料列
+    sheet._rows.push(['2026/08/21', '10:00:00', 'D7654321', '李小花', 'B202', '2', '0987654321', '18:00-21:00', 'IP 貼紙缺漏', '', '', '']);
+
+    const result = exported.queryReport('D1234567', 'test-client');
+    assert.equal(result.success, true);
+    assert.equal(result.cases.length, 1);
+    assert.equal(result.cases[0].date, '2026/08/20');
+    assert.equal(result.cases[0].room, 'A101');
+    assert.equal(result.cases[0].description, '網路斷線');
+    assert.equal(result.cases[0].dispatched, '是');
+    assert.equal(result.cases[0].note, '已排定');
+  } finally {
+    restore();
+  }
+});
+
+test('queryReport：回傳欄位安全性 — 不含手機號碼與姓名', () => {
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  try {
+    const sheet = mocks._internal.mockSheet;
+    sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
+    sheet._rows.push(['2026/08/20', '14:30:00', 'D1234567', '王小明', 'A101', '1', '0912345678', '18:00-21:00', '網路斷線', '', '', '']);
+
+    const result = exported.queryReport('D1234567', 'test-client');
+    assert.equal(result.success, true);
+    assert.equal(result.cases.length, 1);
+
+    const c = result.cases[0];
+    // 確認不含手機號碼與姓名
+    assert.equal(c.phone, undefined, '不應回傳手機號碼');
+    assert.equal(c.name, undefined, '不應回傳姓名');
+    // 確認有回傳安全欄位
+    assert.ok(c.date !== undefined, '應回傳日期');
+    assert.ok(c.room !== undefined, '應回傳房號');
+    assert.ok(c.description !== undefined, '應回傳問題描述');
+    assert.ok(c.dispatched !== undefined, '應回傳是否派人');
+    assert.ok(c.completed !== undefined, '應回傳是否完成');
+  } finally {
+    restore();
+  }
+});
+
+test('queryReport：頻率限制 — 超過限制時回傳錯誤', () => {
+  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  try {
+    // queryReport 的使用者級上限是 10 次/分鐘
+    for (let i = 0; i < 10; i++) {
+      exported.queryReport('D1234567', 'rate-test-user');
+    }
+    const result = exported.queryReport('D1234567', 'rate-test-user');
+    assert.equal(result.success, false);
+    assert.match(result.error, /請求過於頻繁/);
+  } finally {
+    restore();
+  }
+});
+
+test('queryReport：學號大小寫不敏感 — 小寫輸入也能匹配', () => {
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  try {
+    const sheet = mocks._internal.mockSheet;
+    sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
+    sheet._rows.push(['2026/08/20', '14:30:00', 'D1234567', '王小明', 'A101', '1', '0912345678', '18:00-21:00', '網路斷線', '', '', '']);
+
+    const result = exported.queryReport('d1234567', 'test-client');
+    assert.equal(result.success, true);
+    assert.equal(result.cases.length, 1);
+  } finally {
+    restore();
+  }
+});
+
+test('doPost：query action 路由正常運作', () => {
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  try {
+    // 先準備試算表資料
+    const sheet = mocks._internal.mockSheet;
+    sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
+    sheet._rows.push(['2026/08/20', '14:30:00', 'D1234567', '王小明', 'A101', '1', '0912345678', '18:00-21:00', '網路斷線', '是', '是', '已修復']);
+
+    // 取得 token
+    const token = callDoGet(exported, { action: 'get_token' }).token;
+
+    // 透過 doPost 查詢
+    const data = callDoPost(exported, { action: 'query', studentId: 'D1234567', token });
+    assert.equal(data.success, true);
+    assert.equal(data.cases.length, 1);
+    assert.equal(data.cases[0].completed, '是');
+  } finally {
+    restore();
+  }
+});
+
+// ── _ruleBasedClassify: BUTTON_QUERY 關鍵字測試 ──
+test('ruleBasedClassify：「查詢案件」辨識為 BUTTON_QUERY', () => {
+  const { exported, restore } = loadGasCode();
+  try {
+    const result = exported._ruleBasedClassify('查詢案件');
+    assert.equal(result.intent, 'BUTTON_QUERY');
+  } finally {
+    restore();
+  }
+});
+
+test('ruleBasedClassify：「repair status」辨識為 BUTTON_QUERY', () => {
+  const { exported, restore } = loadGasCode();
+  try {
+    const result = exported._ruleBasedClassify('repair status');
+    assert.equal(result.intent, 'BUTTON_QUERY');
+  } finally {
+    restore();
+  }
+});
+
+test('ruleBasedClassify：「修好了沒」辨識為 BUTTON_QUERY（不被 BUTTON_REPORT 誤吸）', () => {
+  const { exported, restore } = loadGasCode();
+  try {
+    const result = exported._ruleBasedClassify('修好了沒');
+    assert.equal(result.intent, 'BUTTON_QUERY');
+  } finally {
+    restore();
+  }
+});

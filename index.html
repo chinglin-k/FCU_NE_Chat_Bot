@@ -195,6 +195,40 @@
       </div>
     </div>
 
+    <!-- ── Query Case Modal ── -->
+    <div class="modal-overlay" id="query-modal" role="dialog" aria-modal="true" aria-labelledby="query-modal-title" hidden>
+      <div class="modal-container query-modal-container">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title" id="query-modal-title" data-i18n="query.modal.title">🔍 查詢報修案件</h2>
+            <p class="modal-subtitle" data-i18n="query.modal.subtitle">請輸入學號以查詢您的報修進度。</p>
+          </div>
+          <button class="modal-close" id="query-modal-close-btn" data-i18n-aria-label="query.modal.close.aria" aria-label="關閉查詢視窗">✕</button>
+        </div>
+
+        <form class="report-form query-form" id="query-form" novalidate>
+          <div class="form-group">
+            <label for="query-student-id"><span data-i18n="query.studentId.label">學號</span> <span class="required" aria-label="必填">*</span></label>
+            <input type="text" id="query-student-id" name="queryStudentId" data-i18n-placeholder="query.studentId.placeholder" placeholder="例：D1234567" required maxlength="8" pattern="[A-Za-z][0-9]{7}" autocomplete="off">
+          </div>
+
+          <div id="query-error-msg" class="form-error" role="alert" hidden></div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" id="query-cancel-btn" data-i18n="query.cancel">取消</button>
+            <button type="submit" class="btn-primary" id="query-submit-btn">
+              <span class="btn-text" data-i18n="query.submit">查詢</span>
+              <span class="btn-loading" hidden>
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+                <span class="loading-dot"></span>
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- ── Input Area ── -->
     <footer class="chat-footer" role="contentinfo">
       <div class="input-container">
@@ -229,6 +263,7 @@
   <script src="js/counter.js"></script>
   <script src="js/intent.js"></script>
   <script src="js/report.js"></script>
+  <script src="js/query.js"></script>
   <script src="js/teams.js"></script>
   <script src="js/chat.js"></script>
 </body>

@@ -253,6 +253,12 @@ const Chat = (() => {
       return;
     }
 
+    // 「開啟查詢視窗」特殊處理：只靜默重開 Modal，不停用按鈕群組，不顯示使用者訊息
+    if (action === 'open-query') {
+      QueryCase.open();
+      return;
+    }
+
     // 防止並發：處理中時忽略新的點擊
     if (_isProcessing) return;
     _isProcessing = true;
@@ -338,6 +344,18 @@ const Chat = (() => {
           addBotMessage(_R().BACK_TO_MAIN);
           _showMainButtons();
           break;
+
+        case 'query':
+          _showTyping();
+          await _delay(500);
+          _hideTyping();
+          addBotMessage(_R().QUERY_PROMPT);
+          QueryCase.open();
+          _addButtonGroup([
+            { id: 'btn-open-query',      icon: '🔍', label: _B().QUERY,     action: 'open-query'   },
+            { id: 'btn-back-main-query', icon: '🏠', label: _B().BACK_MAIN, action: 'back-to-main' }
+          ]);
+          break;
       }
     } finally {
       _isProcessing = false;
@@ -352,7 +370,8 @@ const Chat = (() => {
     _addButtonGroup([
       { id: 'btn-teach',   icon: '📚', label: _B().TEACH,                              action: 'teach'   },
       { id: 'btn-setting', icon: '⚙️', label: _B().SETTING,                                action: 'setting' },
-      { id: 'btn-report',  icon: '🔧', label: _B().REPORT, action: 'report',  primary: true }
+      { id: 'btn-report',  icon: '🔧', label: _B().REPORT, action: 'report',  primary: true },
+      { id: 'btn-query',   icon: '🔍', label: _B().QUERY,  action: 'query' }
     ]);
   }
 
@@ -456,6 +475,15 @@ const Chat = (() => {
           ]);
           break;
 
+        case INTENTS.BUTTON_QUERY:
+          addBotMessage(_R().QUERY_PROMPT);
+          QueryCase.open();
+          _addButtonGroup([
+            { id: 'btn-open-query-txt',      icon: '🔍', label: _B().QUERY,     action: 'open-query'   },
+            { id: 'btn-back-main-query-txt', icon: '🏠', label: _B().BACK_MAIN, action: 'back-to-main' }
+          ]);
+          break;
+
         case INTENTS.NON_NETWORK:
           addBotMessage(_R().NON_NETWORK);
           _addButtonGroup([
@@ -492,6 +520,7 @@ const Chat = (() => {
       BUTTON_TEACH:   'teach',
       BUTTON_SETTING: 'setting',
       BUTTON_REPORT:  'report',
+      BUTTON_QUERY:   'query',
       STICKER_PORT:   'report',
       NON_NETWORK:    'back-to-main'
     };
@@ -540,6 +569,9 @@ const Chat = (() => {
 
     /* 報修表單 */
     ReportForm.init();
+
+    /* 查詢案件 */
+    QueryCase.init();
 
     /* 送出按鈕 */
     sendBtnEl()?.addEventListener('click', () => {

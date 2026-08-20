@@ -1,7 +1,7 @@
 # 開發待辦清單（todo.md）
 
-**版本 / Version**：v1.3.1  
-**最後更新 / Last Updated**：2026-08-09
+**版本 / Version**：v1.4.0  
+**最後更新 / Last Updated**：2026-08-21
 
 ---
 
@@ -94,12 +94,24 @@
 
 ---
 
+## G 輪：報修案件查詢功能、全面稽核與安全修復（2026-08-21 / v1.4.0）
+
+| 功能 | 狀態 | 說明 |
+|---|---|---|
+| 報修案件查詢 | ✅ Done | 學生輸入學號可查詢自己的報修案件狀態；`queryReport()` 後端、`query.js` 前端、`BUTTON_QUERY` 意圖辨識 |
+| XSS 修復（BUG-13） | ✅ Done | `query.js` `_renderResults()` 對試算表欄位做 HTML 轉義，防止使用者可控資料觸發 XSS |
+| 前端驗證語意修復（BUG-12） | ✅ Done | `query.js` `_validate()` 分拆學號空白 vs 格式錯誤兩種訊息，與後端一致 |
+| 文件對齊（BUG-14, 18, 19） | ✅ Done | `doc/architecture.md` 補 `queryReport()` 函式、資料流、Mermaid 圖；修正 §4.2 遺留的「9 個模型」錯誤；`AGENTS.md` / `README.md` 補查詢功能說明 |
+| 全站版本號對齊 v1.4.0 | ✅ Done | 所有 `.md`、`package.json` 版本號統一為 v1.4.0 |
+| 單元測試增至 53 項 | ✅ Done | `npm test` 53 pass / 0 fail；`npm run lint` 0 error / 0 warning |
+
+---
+
 ## 未來優化（v2）
 
 | 功能 | 說明 |
 |---|---|
 | 多輪對話記憶 | 記錄本次 session 對話歷史 |
-| 報修案件查詢 | 學生輸入學號可查詢自己的案件狀態 |
 | 管理員後台 | 網管人員專用的案件管理頁面 |
 | LINE / Email 通知 | 報修成功後自動通知網管人員 |
 | 對話紀錄寫入 | 將分類結果寫入第二個試算表 |

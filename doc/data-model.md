@@ -1,8 +1,8 @@
-# 資料模型文件 (Data Model Specification)
+﻿# 資料模型文件 (Data Model Specification)
 
-**版本 / Version**：v1.3.1  
+**版本 / Version**：v1.4.0  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-08-09 (v1.3.1: writeReport Required-field Validation Fix, Counter Rate-limit Adjustment)
+**最後更新 / Last Updated**：2026-08-21 (v1.4.0: 查詢功能、全面稽核與安全修復)
 
 ---
 
@@ -124,3 +124,4 @@ studentId / phone / bedNumber / roomNumber / name / description 皆為**空字�
 |---|---|---|---|
 | 報修案件 | 使用者送出表單時（經 reCAPTCHA v3 + Token 驗證） | 網管人員手動更新試算表 | 不刪除（永久保存） |
 | 累積計數器 | 首次呼叫 increment 時 | 每次新 session (Atomic LockService) | 不刪除 |
+

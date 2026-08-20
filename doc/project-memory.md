@@ -1,10 +1,10 @@
-# 專案決策記錄（project-memory.md）
+﻿# 專案決策記錄（project-memory.md）
 
 > 僅在確認新決策、修改既有決策或發現重要限制時更新。
 > 每次更新須記錄日期、原因與影響範圍。
 
-**版本 / Version**：v1.3.1  
-**最後更新 / Last Updated**：2026-08-09
+**版本 / Version**：v1.4.0  
+**最後更新 / Last Updated**：2026-08-21
 
 ---
 
@@ -55,3 +55,4 @@
   服務（如 Software Heritage）、其他人的 fork，仍可能保留舊版明碼內容，
   Git 層級操作無法強制觸及這些位置。真正解除風險的關鍵是**輪替 Spreadsheet
   ID 本身**，而非僅依賴歷史清除。
+

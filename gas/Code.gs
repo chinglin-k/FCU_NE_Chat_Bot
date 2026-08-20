@@ -229,13 +229,15 @@ function doPost(e) {
       // recaptchaToken：reCAPTCHA v3 執行後取得的一次性 token，僅 report 需要
       const recaptchaToken = (data.recaptchaToken || '').toString().trim();
 
-      // ── Token 驗證（classify 與 report 皆須帶合法 token）──
+      // ── Token 驗證（classify、report、query 皆須帶合法 token）──
       if (!_consumeToken(token)) {
         result = { success: false, error: 'INVALID_TOKEN' };
       } else if (action === 'classify') {
         result = classifyIntent(data.msg || '', clientId);
       } else if (action === 'report') {
         result = writeReport(data.payload || {}, clientId, recaptchaToken);
+      } else if (action === 'query') {
+        result = queryReport(data.studentId || '', clientId);
       } else {
         result = { success: false, error: `doPost 不支援 action: ${action}` };
       }
@@ -294,6 +296,7 @@ function classifyIntent(message, clientId) {
 - BUTTON_TEACH：詢問如何設定網路、網路連線教學、如何使用網路、不會連網路、怎麼設定、設定步驟、教我連網路、網路設定教學、要怎麼上網
 - BUTTON_SETTING：詢問常見問題、轉接器沒有網路、USB 轉接器問題、RJ45 轉換器、驅動程式問題、WiFi 帳號密碼、NID 密碼、轉換頭沒反應、帳號是什麼、密碼忘了、接了沒網路、fcu帳號、上網帳號
 - BUTTON_REPORT：明確說要報修、需要實體協助、要有人來看、我要報修、幫我修、請人來看、需要幫忙處理、有人可以來嗎、找人修、報修、網路壞了請來修、需要支援
+- BUTTON_QUERY：查詢報修進度、案件狀態、我的報修、報修查詢、查詢進度、案件進度、案件查詢、查一下我的報修、我之前報修的怎樣了、修好了沒、處理了沒
 - STICKER_PORT：缺少 IP 貼紙、沒有貼紙、網路孔壞了、插孔故障、網路插口故障、沒有 IP、插座沒反應、牆上的網路孔、牆孔、插頭插了沒用、找不到 IP 貼紙、網路插孔
 - NON_NETWORK：詢問冷氣、洗手台、熱水、電燈、宿舍設施、寢室電器、洗衣機、熱水器、燈不亮等非網路問題
 - UNKNOWN：無法判斷意圖、不屬於以上任何類別、問候語、閒聊、或其他校務問題
@@ -372,7 +375,7 @@ function classifyIntent(message, clientId) {
     const confidence = isNaN(rawConf) ? 0.5 : Math.min(1.0, Math.max(0.0, rawConf));
     const rawTopic   = (parts[2] || '').trim().toUpperCase();
 
-    const VALID_INTENTS = ['BUTTON_TEACH', 'BUTTON_SETTING', 'BUTTON_REPORT', 'STICKER_PORT', 'NON_NETWORK', 'UNKNOWN'];
+    const VALID_INTENTS = ['BUTTON_TEACH', 'BUTTON_SETTING', 'BUTTON_REPORT', 'BUTTON_QUERY', 'STICKER_PORT', 'NON_NETWORK', 'UNKNOWN'];
     const VALID_TOPICS  = ['ACCOUNT', 'ADAPTER', 'WIFI_SIGNAL', 'AC_BILLING', 'ALL', 'NONE'];
 
     const intent            = VALID_INTENTS.includes(rawIntent) ? rawIntent : 'UNKNOWN';
@@ -581,6 +584,82 @@ function writeReport(reportData, clientId, recaptchaToken) {
 }
 
 /**
+ * 報修案件查詢：學生輸入學號查詢自己的案件狀態
+ * 僅回傳安全欄位（不含手機號碼、姓名），避免個資外洩
+ * 已加入頻率限制：依 clientId 每人每分鐘最多 10 次，全體使用者每分鐘總計最多 40 次
+ *
+ * @param {string} studentId  - 學號
+ * @param {string} [clientId] - 前端產生的裝置識別碼（非個資），用於依使用者區分限流
+ * @returns {{ success: boolean, cases?: Array, message?: string, error?: string }}
+ */
+function queryReport(studentId, clientId) {
+  // 頻率限制：單一使用者每分鐘 10 次／全體使用者每分鐘 40 次
+  if (!_checkRateLimit('query', 10, clientId, 40)) {
+    return { success: false, error: '請求過於頻繁，請稍後再試' };
+  }
+
+  // 學號格式驗證（先 trim，再檢查必填與格式）
+  const sid = String(studentId || '').trim().toUpperCase();
+  if (!sid) {
+    return { success: false, error: '請輸入學號' };
+  }
+  if (!/^[A-Z][0-9]{7}$/.test(sid)) {
+    return { success: false, error: '學號格式錯誤（需為 1 位英文字母 + 7 位數字，如 D1234567）' };
+  }
+
+  try {
+    const spreadsheet = SpreadsheetApp.openById(_getSpreadsheetId());
+    const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+
+    if (!sheet) {
+      const errMsg = `找不到工作表「${SHEET_NAME}」，請確認 SHEET_NAME 設定或試算表結構。`;
+      Logger.log('[queryReport] ' + errMsg);
+      return { success: false, error: errMsg };
+    }
+
+    const lastRow = sheet.getLastRow();
+    // 空表或只有標題列時，直接回傳空結果
+    if (lastRow <= 1) {
+      return { success: true, cases: [], message: '查無該學號的報修案件' };
+    }
+
+    // 讀取所有資料列（跳過標題列）
+    const dataRange = sheet.getRange(2, 1, lastRow - 1, 12);
+    const allRows   = dataRange.getValues();
+
+    // 篩選匹配學號的案件（第 3 欄 = index 2 = 學號）
+    const matched = [];
+    for (let i = 0; i < allRows.length; i++) {
+      const rowStudentId = String(allRows[i][2] || '').trim().toUpperCase();
+      if (rowStudentId === sid) {
+        matched.push({
+          date:        String(allRows[i][0] || ''),
+          time:        String(allRows[i][1] || ''),
+          room:        String(allRows[i][4] || ''),
+          bed:         String(allRows[i][5] || ''),
+          description: String(allRows[i][8] || ''),
+          dispatched:  String(allRows[i][9] || ''),
+          completed:   String(allRows[i][10] || ''),
+          note:        String(allRows[i][11] || '')
+        });
+      }
+    }
+
+    if (matched.length === 0) {
+      return { success: true, cases: [], message: '查無該學號的報修案件' };
+    }
+
+    Logger.log(`[queryReport] 學號=${sid} 查詢到 ${matched.length} 筆案件`);
+    return { success: true, cases: matched };
+
+  } catch (err) {
+    // 同上（BUG-03）：不回傳原始例外內容給前端，僅記錄於 Logger。
+    Logger.log('[queryReport] 錯誤: ' + err.toString());
+    return { success: false, error: 'INTERNAL_ERROR' };
+  }
+}
+
+/**
  * 取得累積使用人數
  *
  * @returns {{ success: boolean, count: number, error?: string }}
@@ -651,6 +730,12 @@ function incrementCounter() {
 function _ruleBasedClassify(msg) {
   const text = msg.toLowerCase();
 
+  // 0. 查詢案件意圖 (BUTTON_QUERY) — 必須在 BUTTON_REPORT 之前，
+  //    避免「報修查詢」被誤吸到 BUTTON_REPORT
+  if (/(查詢案件|案件查詢|報修進度|案件狀態|查詢進度|查詢報修|報修查詢|我的報修|查一下|修好了沒|處理了沒|進度查詢|查案件|案件进度|报修进度|查询案件|查询进度|查询报修|报修查询|我的报修|修好了没|处理了没|查一下我的|查吓|修好未|搞掂未|案件點樣|case status|check status|my repair|query repair|repair status|track repair|repair progress|check my case|修理の状況|状況確認|進捗確認|semak status|periksa status|수리 상태|수리 조회|진행 상황|cek status|lacak perbaikan|status ng ayos|ตรวจสอบสถานะ|สถานะการซ่อม|kontroleer status|état de réparation|statut|isimo sokulungisa|trạng thái sửa|kiểm tra tiến độ|estado de reparación|consultar|засварын явц|статус|حالة التصليح|تتبع الصيانة)/.test(text)) {
+    return { success: true, intent: 'BUTTON_QUERY', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
+  }
+
   // 1. 報修意圖 (BUTTON_REPORT)
   if (/(報修|修復|幫我修|派人|實體協助|故障|壞掉|無法連線|斷線|網路壞了|網路問題|維修|报修|修复|帮我修|实体协助|坏了|无法连接|网络坏了|网络问题|壞咗|冇網|駁唔到|冇網絡|搵人修|repair|fix|broken|technician|not working|offline|connection issue|maintenance|修理|つながらない|障害|点検|baiki|rosak|terputus|수리|고장|연결 오류|점검|고쳐주|perbaiki|rusak|gangguan|ayusin|sira|kumpuni|ซ่อม|เสีย|แจ้งซ่อม|ช่าง|herstel|regmaak|gebreek|réparer|panne|cassé|dysfonctionnement|kulungisa|kuphuka|sửa|hỏng|báo hỏng|reparar|arreglar|falla|avería|maane|засвар|гэмтэл|засах|تصليح|عطل|مش شغال|صيانة)/.test(text)) {
     return { success: true, intent: 'BUTTON_REPORT', confidence: 0.95, needsConfirmation: false, topic: 'NONE' };
@@ -714,6 +799,7 @@ if (typeof module !== 'undefined' && module.exports) {
     doPost,
     classifyIntent,
     writeReport,
+    queryReport,
     getCounter,
     incrementCounter,
     _checkRateLimit,

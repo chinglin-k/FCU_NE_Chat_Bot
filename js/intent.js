@@ -19,6 +19,7 @@ const Intent = (() => {
     BUTTON_TEACH:   'BUTTON_TEACH',    // 教學相關
     BUTTON_SETTING: 'BUTTON_SETTING',  // 常見問題（轉接器、WiFi 帳號、寢室 WiFi 等）
     BUTTON_REPORT:  'BUTTON_REPORT',   // 明確要報修
+    BUTTON_QUERY:   'BUTTON_QUERY',    // 查詢報修案件狀態
     STICKER_PORT:   'STICKER_PORT',    // IP貼紙缺漏 / 網路孔故障
     NON_NETWORK:    'NON_NETWORK',     // 非網管業務（冷氣等）
     UNKNOWN:        'UNKNOWN'          // 無法判斷

@@ -2,13 +2,13 @@
 
 > 所有 AI 工具與開發者均須遵守此規範
 
-**版本 / Version**：v1.3.1  
+**版本 / Version**：v1.4.0  
 
 > [!WARNING]
 > **試算表 ID 安全性警告**
 > 舊版 commit 曾寫死真實的 Spreadsheet ID，請務必建立新試算表並輪替（Rotate）新的 SPREADSHEET_ID，勿將有存取權限的 ID 再次提交至 Git。
 
-**最後更新 / Last Updated**：2026-08-09
+**最後更新 / Last Updated**：2026-08-21
 
 ---
 
@@ -85,11 +85,11 @@ FCU_NE_Chat_Bot/
 ## GAS 開發規範
 
 - **路由原則**：`doGet` 只處理不含個資 / 使用者輸入的操作
-  （`get_token`、`counter_get`、`counter_increment`）；`classify` 與 `report`
+  （`get_token`、`counter_get`、`counter_increment`）；`classify`、`report`、`query`
   （含個資與使用者輸入文字）一律經 **`doPost`**，Body 格式為
   `Content-Type: text/plain;charset=utf-8`，內容為 JSON 字串。
-  **禁止**把 `classify`／`report` 改回 `doGet` 查詢字串傳遞，`doGet` 內已明確
-  拒絕這兩個 action。`counter_get`／`counter_increment` 呼叫時須帶
+  **禁止**把 `classify`／`report`／`query` 改回 `doGet` 查詢字串傳遞，`doGet` 內已明確
+  拒絕 `classify` 與 `report` 兩個 action（`query` 不走 doGet）。`counter_get`／`counter_increment` 呼叫時須帶
   `?clientId=...` 查詢參數，供後端套用個別限流（未帶則以 `'anonymous'` 視為
   單一共用識別碼，仍受全域上限保護但無法個別追蹤濫用來源）。
 
@@ -107,6 +107,8 @@ FCU_NE_Chat_Bot/
   「使用者級」+「全域級」兩層）：
   - `classify`：使用者級 12 次/分鐘、全域級 60 次/分鐘
   - `report`：使用者級 5 次/分鐘、全域級 20 次/分鐘
+  - `query`：使用者級 10 次/分鐘、全域級 40 次/分鐘
+    （v1.4.0 新增：學號查詢端點，不需 reCAPTCHA，依 clientId 個別限流）
   - `counter_get`：使用者級 30 次/分鐘、全域級 120 次/分鐘
   - `counter_increment`：使用者級 3 次/分鐘、全域級 500 次/分鐘
     （v1.3.1 修復：原本使用者級上限為 999999、識別碼固定為 `'anonymous'`，

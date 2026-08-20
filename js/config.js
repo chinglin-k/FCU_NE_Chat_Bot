@@ -62,6 +62,12 @@ const CONFIG = Object.freeze({
       CONFIRM_HINT:
         '🤔 我不太確定，你是不是想要「{INTENT_LABEL}」？\n請選擇或重新描述問題：',
       BACK_TO_MAIN: '還有其他問題嗎？請選擇：',
+      QUERY_PROMPT:
+        '📋 請輸入您的**學號**來查詢報修案件狀態。\n\n_僅顯示您本人的報修紀錄，不含手機號碼等敏感資訊。_',
+      QUERY_NO_RESULT:
+        '📭 查無該學號的報修案件。\n\n如果您已送出報修，可能需要一些時間處理，請稍後再查詢。',
+      QUERY_RESULT_HEADER: '📋 **您的報修案件紀錄**',
+      QUERY_ERROR: '⚠️ 查詢時發生問題，請稍後再試。',
       TEAMS_HEADER_LINK: '聯絡我們',
       TEAMS_FALLBACK:
         '💬 **Teams 備援步驟**\n\n如果 Teams App 沒有自動開啟，請手動操作：\n\n' +
@@ -77,7 +83,9 @@ const CONFIG = Object.freeze({
         BED_FORMAT: '床號格式錯誤（需為 1–3 位數字）',
         PHONE_FORMAT: '手機號碼格式錯誤（需為 10 位數字）',
         REPAIR_TIME_RANGE: '可維修時間必須在 0–23 時與 0–59 分之間',
-        DESCRIPTION_REQUIRED: '請描述您的網路問題'
+        DESCRIPTION_REQUIRED: '請描述您的網路問題',
+        QUERY_STUDENT_ID_REQUIRED: '請輸入學號',
+        QUERY_STUDENT_ID_FORMAT: '學號格式錯誤（需為 1 位英文字母 + 7 位數字，例如：D1234567）'
       })
     }),
     en: Object.freeze({
@@ -125,6 +133,12 @@ const CONFIG = Object.freeze({
       CONFIRM_HINT:
         '🤔 I\'m not sure — did you mean "{INTENT_LABEL}"?\nPlease choose or rephrase your question:',
       BACK_TO_MAIN: 'Any other questions? Please choose:',
+      QUERY_PROMPT:
+        '📋 Please enter your **Student ID** to check your repair case status.\n\n_Only your own records will be shown. Sensitive info like phone numbers is excluded._',
+      QUERY_NO_RESULT:
+        '📭 No repair cases found for this Student ID.\n\nIf you\'ve already submitted a request, it may take some time to process. Please check again later.',
+      QUERY_RESULT_HEADER: '📋 **Your Repair Case Records**',
+      QUERY_ERROR: '⚠️ An error occurred while querying. Please try again later.',
       TEAMS_HEADER_LINK: 'Contact Us',
       TEAMS_FALLBACK:
         '💬 **Teams Fallback Steps**\n\nIf Teams App did not open automatically, follow these steps:\n\n' +
@@ -140,7 +154,9 @@ const CONFIG = Object.freeze({
         BED_FORMAT: 'Invalid Bed Number (1-3 digits required)',
         PHONE_FORMAT: 'Invalid Mobile Number (10 digits required)',
         REPAIR_TIME_RANGE: 'Available time must be between 0-23 hours and 0-59 minutes',
-        DESCRIPTION_REQUIRED: 'Please describe your network issue'
+        DESCRIPTION_REQUIRED: 'Please describe your network issue',
+        QUERY_STUDENT_ID_REQUIRED: 'Please enter your Student ID',
+        QUERY_STUDENT_ID_FORMAT: 'Invalid Student ID (Format: 1 letter + 7 digits, e.g. D1234567)'
       })
     })
   }),
@@ -151,6 +167,7 @@ const CONFIG = Object.freeze({
       TEACH: '教學',
       SETTING: '常見問題',
       REPORT: '我要實體協助、報修',
+      QUERY: '查詢案件',
       TEACH_WIN: 'Windows 系統',
       TEACH_MAC: 'Mac 系統',
       NEED_HELP: '我需要協助',
@@ -164,6 +181,7 @@ const CONFIG = Object.freeze({
       TEACH: 'Tutorials',
       SETTING: 'FAQ',
       REPORT: 'Request On-site Help',
+      QUERY: 'Check My Cases',
       TEACH_WIN: 'Windows',
       TEACH_MAC: 'Mac',
       NEED_HELP: 'I Need Help',
@@ -180,6 +198,7 @@ const CONFIG = Object.freeze({
       BUTTON_TEACH: '網路教學',
       BUTTON_SETTING: '常見問題',
       BUTTON_REPORT: '我要協助報修',
+      BUTTON_QUERY: '案件查詢',
       STICKER_PORT: '貼紙/網路孔報修',
       NON_NETWORK: '非網管問題',
       UNKNOWN: '其他'
@@ -188,6 +207,7 @@ const CONFIG = Object.freeze({
       BUTTON_TEACH: 'Network Tutorial',
       BUTTON_SETTING: 'FAQ',
       BUTTON_REPORT: 'Repair Request',
+      BUTTON_QUERY: 'Case Query',
       STICKER_PORT: 'Port/Sticker Issue',
       NON_NETWORK: 'Non-network Issue',
       UNKNOWN: 'Other'

@@ -29,6 +29,7 @@ module.exports = [
         Chat: 'writable',
         Intent: 'readonly',
         ReportForm: 'writable',
+        QueryCase: 'writable',
         Counter: 'writable',
         Teams: 'writable',
         grecaptcha: 'readonly'

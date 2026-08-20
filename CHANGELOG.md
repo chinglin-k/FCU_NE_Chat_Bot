@@ -1,7 +1,36 @@
 # 更新日誌 (Changelog)
 
-**版本 / Version**：v1.3.1  
-**最後更新 / Last Updated**：2026-08-09
+**版本 / Version**：v1.4.0  
+**最後更新 / Last Updated**：2026-08-21
+
+---
+
+## [v1.4.0] - 2026-08-21 (Query Feature, Security Fix & Full Audit)
+
+本版本新增報修案件查詢功能，並對全程式碼庫進行 360° 稽核，修復安全漏洞、前後端語意不一致、文件過時等問題。
+
+### ✨ 新功能 (New Feature)
+- **報修案件查詢**：學生輸入學號可查詢自己的報修案件狀態。
+  - 後端：`gas/Code.gs` 新增 `queryReport()`（學號語法驗證、雙層限流 10/40 次/分鐘、僅回傳安全欄位）
+  - 前端：新增 `js/query.js` 查詢模組（Modal + API 呼叫 + 結果渲染）
+  - 意圖辨識：`BUTTON_QUERY` 意圖加入 Gemini Prompt 與 Rule-based 備援分類器
+  - CSS：新增查詢 Modal 與案件狀態標籤樣式（✅ 已完成 / 🔧 已派人 / ⏳ 待處理）
+
+### 🛡️ 安全性修復 (Security Fixes)
+- **[BUG-13/高] 修復 `_renderResults()` XSS 漏洞**：`js/query.js` 將試算表欄位（使用者可控資料）嵌入 template string 前先做 HTML 轉義（`_esc()`）。防止惡意學生在報修表單填入 `<script>` 等內容觸發 XSS。
+
+### 🐛 功能性錯誤修復 (Bug Fixes)
+- **[BUG-12/中] 修復前端學號驗證語意不一致**：`query.js` `_validate()` 原本對空學號與格式錯誤顯示相同訊息（「格式錯誤」），現分拆為兩種訊息：空學號→「請輸入學號」、格式錯誤→「學號格式錯誤」，與後端 GAS 回傳語意一致。
+
+### 📄 文件修正 (Documentation Fixes)
+- **[BUG-14] 修復 `doc/architecture.md` §4.2 殘留的「9 個模型」**：v1.3.1 已於 §3.3 修正此誤，但 §4.2 資料流段落漏更，現一併修正為「6 個模型」。
+- **[BUG-15] 修復 `doc/todo.md` 查詢功能狀態**：查詢功能已完成，從「未來優化（v2）」移至 G 輪已完成清單。
+- **[BUG-18] `AGENTS.md` 路由原則補充 `query` action 說明**，並補上流量限制參數。
+- **[BUG-19] 全站文件補入 `queryReport()` 該功能說明**：`README.md` 功能特色、安全表格；`AGENTS.md` 流量限制說明；`doc/architecture.md` 後端函式表、資料流 §4.4、Mermaid 架構圖。
+- **全站版本號統一升級為 v1.4.0**：`package.json`、`README.md`、`CHANGELOG.md`、`AGENTS.md`、`doc/architecture.md`、`doc/todo.md`、`doc/requirements.md`、`doc/project-memory.md`。
+
+### 🧪 測試
+- `npm test` 53 pass / 0 fail；`npm run lint` 0 error / 0 warning
 
 ---
 

@@ -64,7 +64,14 @@ const I18N = (() => {
         '本網站受 reCAPTCHA 保護，並適用 Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">隱私權政策</a>與<a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">服務條款</a>。',
       'langToggle.aria': '切換語言為 English',
       'langToggle.label': 'EN',
-      'typing.aria': '正在輸入'
+      'typing.aria': '正在輸入',
+      'query.modal.title': '🔍 查詢報修案件',
+      'query.modal.subtitle': '請輸入學號以查詢您的報修進度。',
+      'query.modal.close.aria': '關閉查詢視窗',
+      'query.studentId.label': '學號',
+      'query.studentId.placeholder': '例：D1234567',
+      'query.submit': '查詢',
+      'query.cancel': '取消'
     },
     en: {
       'header.title': 'FCU Fuxing Dormitory Network Repair Assistant',
@@ -113,7 +120,14 @@ const I18N = (() => {
         'This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> apply.',
       'langToggle.aria': 'Switch language to Chinese',
       'langToggle.label': '中',
-      'typing.aria': 'Typing'
+      'typing.aria': 'Typing',
+      'query.modal.title': '🔍 Check Repair Cases',
+      'query.modal.subtitle': 'Enter your Student ID to check your repair progress.',
+      'query.modal.close.aria': 'Close query window',
+      'query.studentId.label': 'Student ID',
+      'query.studentId.placeholder': 'e.g. D1234567',
+      'query.submit': 'Search',
+      'query.cancel': 'Cancel'
     }
   };
 

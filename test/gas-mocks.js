@@ -79,12 +79,23 @@ function createGasMocks(overrides = {}) {
     return {
       getLastRow: () => rows.length,
       appendRow:  (row) => { rows.push(row); },
-      getRange:   (row) => ({
+      getRange:   (row, col, numRows, numCols) => ({
         setFontWeight:   () => {},
         setBackground:   () => {},
         setFontColor:    () => {},
         setNumberFormat: () => {},
-        setValues:       (values) => { rows[row - 1] = values[0]; }
+        setValues:       (values) => { rows[row - 1] = values[0]; },
+        getValues:       () => {
+          // 支援 queryReport 讀取：回傳指定範圍的資料
+          const result = [];
+          for (let i = row - 1; i < Math.min(row - 1 + (numRows || 1), rows.length); i++) {
+            if (rows[i]) {
+              const r = rows[i].slice((col || 1) - 1, (col || 1) - 1 + (numCols || rows[i].length));
+              result.push(r);
+            }
+          }
+          return result;
+        }
       }),
       _rows: rows
     };
