@@ -1,4 +1,4 @@
-﻿# 資料模型文件 (Data Model Specification)
+# 資料模型文件 (Data Model Specification)
 
 **版本 / Version**：v1.4.0  
 **建立日期 / Created**：2026-07-17  
@@ -72,10 +72,8 @@ erDiagram
 |---|---|---|
 | USER_COUNT | String（parseInt 使用） | 累積服務人數，每次新 session +1 |
 
-> ⚠️ **v1.3.1**：`counter_increment` 端點原本的流量限制形同虛設（使用者級上限
-> 999999、且固定用單一識別碼 `'anonymous'`），已改為依前端 `clientId` 個別
-> 限流（每人每分鐘 3 次），全域上限為每分鐘 500 次（原訂 30 次，於新生入住
-> 等大量學生同時開啟頁面的尖峰時段容易誤擋合法計數，已於 v1.3.1 調升）。
+> 計數器流量限制依 `clientId` 個別計算（每人每分鐘 3 次），全域上限為每分鐘 500 次，
+> 透過 LockService 確保原子性寫入，防止競態條件（Race Condition）造成計數錯誤。
 
 ### 2.3 意圖分類（INTENT_LOG）
 
@@ -86,6 +84,7 @@ erDiagram
 | BUTTON_TEACH | 教學相關 | NONE |
 | BUTTON_SETTING | 常見問題（轉接器、WiFi 帳號密碼、寢室 WiFi 等） | ACCOUNT / ADAPTER / WIFI_SIGNAL / AC_BILLING / ALL |
 | BUTTON_REPORT | 主動要求報修 | NONE |
+| BUTTON_QUERY | 報修案件查詢（v1.4.0 新增） | NONE |
 | STICKER_PORT | IP 貼紙缺漏 / 網路孔故障 | NONE |
 | NON_NETWORK | 非網管業務 | NONE |
 | UNKNOWN | 無法判斷 | ALL |

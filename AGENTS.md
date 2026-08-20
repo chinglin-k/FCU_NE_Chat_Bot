@@ -4,10 +4,6 @@
 
 **版本 / Version**：v1.4.0  
 
-> [!WARNING]
-> **試算表 ID 安全性警告**
-> 舊版 commit 曾寫死真實的 Spreadsheet ID，請務必建立新試算表並輪替（Rotate）新的 SPREADSHEET_ID，勿將有存取權限的 ID 再次提交至 Git。
-
 **最後更新 / Last Updated**：2026-08-21
 
 ---
