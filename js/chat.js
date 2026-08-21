@@ -368,10 +368,10 @@ const Chat = (() => {
 
   function _showMainButtons() {
     _addButtonGroup([
-      { id: 'btn-teach',   icon: '📚', label: _B().TEACH,                              action: 'teach'   },
-      { id: 'btn-setting', icon: '⚙️', label: _B().SETTING,                                action: 'setting' },
-      { id: 'btn-report',  icon: '🔧', label: _B().REPORT, action: 'report',  primary: true },
-      { id: 'btn-query',   icon: '🔍', label: _B().QUERY,  action: 'query' }
+      { id: 'btn-teach',   icon: '📚', label: _B().TEACH,   action: 'teach'   },
+      { id: 'btn-setting', icon: '⚙️', label: _B().SETTING, action: 'setting' },
+      { id: 'btn-query',   icon: '🔍', label: _B().QUERY,   action: 'query' },
+      { id: 'btn-report',  icon: '🔧', label: _B().REPORT,  action: 'report',  primary: true }
     ]);
   }
 

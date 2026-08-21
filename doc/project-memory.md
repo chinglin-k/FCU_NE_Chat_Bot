@@ -1,4 +1,4 @@
-﻿# 專案決策記錄（project-memory.md）
+# 專案決策記錄（project-memory.md）
 
 > 僅在確認新決策、修改既有決策或發現重要限制時更新。
 > 每次更新須記錄日期、原因與影響範圍。
@@ -32,6 +32,9 @@
 | 2026-08-08 | 學號格式強驗證：1 位英文字母 + 7 位數字 | 對齊校方學號標準格式（如 `D1234567`），前後端雙重 RegEx 驗證 | `index.html`、`js/report.js`、`gas/Code.gs` |
 | 2026-08-08 | 19 語系 Rule-based 備援分類器 | 確保 Gemini 失敗時仍可精準回應各國籍學生 | `gas/Code.gs`、`README.md` |
 | 2026-08-08 | 建置 Node.js 原生單元測試與 ESLint 9 Flat Config | 建立 `gas-mocks.js` 模擬 GAS 全域環境，確保 CI/CD 自動化測試通過 | `package.json`、`eslint.config.js`、`test/` |
+| 2026-08-21 | 新增報修案件查詢功能 (`queryReport`) | 學生輸入學號即可查詢自己的報修進度；回傳欄位刻意排除姓名與手機號碼（個資最小化），所有欄位值前端渲染前做 HTML 轉義（`_esc()`，BUG-13 XSS 防護）；頻率限制 10/分鐘·40/分鐘 | `gas/Code.gs`、`js/query.js`、`js/chat.js`、`js/config.js`、`index.html` |
+| 2026-08-21 | Gemini 意圖分類新增 `BUTTON_QUERY` 代碼 | Prompt 與 `_ruleBasedClassify()` 同步新增，涵蓋 19 語系備援關鍵字 | `gas/Code.gs`、`js/intent.js`、`js/config.js` |
+| 2026-08-21 | 主選單按鈕順序調整：查詢在報修前 | 查詢是唯讀操作、使用門檻較低，放在報修前可提高可見度 | `js/chat.js` |
 
 ---
 
