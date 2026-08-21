@@ -1,6 +1,6 @@
 # 開發待辦清單（todo.md）
 
-**版本 / Version**：v1.4.0  
+**版本 / Version**：v1.4.1  
 **最後更新 / Last Updated**：2026-08-21
 
 ---
@@ -104,6 +104,18 @@
 | 文件對齊（BUG-14, 18, 19） | ✅ Done | `doc/architecture.md` 補 `queryReport()` 函式、資料流、Mermaid 圖；修正 §4.2 遺留的「9 個模型」錯誤；`AGENTS.md` / `README.md` 補查詢功能說明 |
 | 全站版本號對齊 v1.4.0 | ✅ Done | 所有 `.md`、`package.json` 版本號統一為 v1.4.0 |
 | 單元測試增至 53 項 | ✅ Done | `npm test` 53 pass / 0 fail；`npm run lint` 0 error / 0 warning |
+
+---
+
+## H 輪：UI/UX 微調與文件/安全性收尾 (2026-08-21 / v1.4.1)
+
+| 功能 | 狀態 | 說明 |
+|---|---|---|
+| 主選單 UI 順序調整 | ✅ Done | 查詢案件移至報修之前，以符合多數使用者的操作邏輯 (UI-01) |
+| Teams 複製按鈕圖示保留 | ✅ Done | `teams.js` 改用 `innerHTML` 替換 `textContent`，防止原 SVG 圖示在複製後遺失 (BUG-30) |
+| 後端錯誤訊息中文化修正 | ✅ Done | `gas/Code.gs` 將所有的驗證與限流錯誤改為英文大寫代碼 (如 `RATE_LIMITED`)，交由前端 `report.js` 與 `query.js` 翻譯，解決英文版畫面跳出中文錯誤的漏洞 (BUG-29) |
+| 工作表錯誤訊息資訊洩漏修復 | ✅ Done | 找不到工作表時改回傳 `SHEET_NOT_FOUND`，防止洩漏 `SHEET_NAME` 設定值 (BUG-28) |
+| 全專案文件漏列修復 | ✅ Done | 補上遺漏的 `js/query.js` 模組說明、五組限流數、測試數、載入順序等，並對齊所有檔案版本至 v1.4.1 (BUG-20~27, 31~33) |
 
 ---
 

@@ -2,7 +2,7 @@
 
 > 所有 AI 工具與開發者均須遵守此規範
 
-**版本 / Version**：v1.4.0  
+**版本 / Version**：v1.4.1  
 
 **最後更新 / Last Updated**：2026-08-21
 
@@ -47,6 +47,7 @@ FCU_NE_Chat_Bot/
 │   ├── chat.js            ← 主控制器（最後載入）；管理 Session Token 與 Client ID
 │   ├── intent.js          ← 意圖分類（回傳 {intent, confidence, needsConfirmation, isSystemError, topic})
 │   ├── report.js          ← 報修表單（含前端格式驗證、reCAPTCHA token 取得）
+│   ├── query.js           ← 報修查詢（Modal 介面與查詢結果渲染）
 │   ├── counter.js         ← 計數器
 │   └── teams.js           ← Teams 聯絡功能（chat 深連結 + 平台備援 + 複製）
 ├── gas/Code.gs            ← GAS 原始碼（不部署至 Pages），尾端含 module.exports 供 Node 測試

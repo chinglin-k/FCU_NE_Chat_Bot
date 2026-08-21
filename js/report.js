@@ -169,7 +169,15 @@ const ReportForm = (() => {
       //    其餘則是後端已組好的中文驗證訊息（如「手機號碼格式錯誤...」），
       //    可直接顯示給使用者。
       const _isInternalCode = (err) => typeof err === 'string' && /^[A-Z_]+$/.test(err);
-      const _friendlyError  = (err) => (_isInternalCode(err) ? _R().REPORT_ERROR : (err || _R().REPORT_ERROR));
+      const _friendlyError  = (err) => {
+        if (!_isInternalCode(err)) return err || _R().REPORT_ERROR;
+        if (err === 'RATE_LIMITED') return _R().SYSTEM_ERROR;
+        if (err.startsWith('VALIDATION_')) {
+          const key = err.replace('VALIDATION_', '');
+          if (_R().VALIDATION[key]) return _R().VALIDATION[key];
+        }
+        return _R().REPORT_ERROR;
+      };
 
       if (resData.error === 'INVALID_TOKEN') {
         const newToken = await Chat.refreshToken();

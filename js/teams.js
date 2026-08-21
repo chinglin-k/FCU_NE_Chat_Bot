@@ -91,11 +91,11 @@ const Teams = (() => {
     try {
       await navigator.clipboard.writeText(text);
       if (btnEl) {
-        const original = btnEl.textContent;
+        const originalHTML = btnEl.innerHTML;
         btnEl.textContent = CONFIG.RESPONSES[I18N.getLang()].TEAMS_COPY_SUCCESS;
         btnEl.disabled = true;
         setTimeout(() => {
-          btnEl.textContent = original;
+          btnEl.innerHTML = originalHTML;
           btnEl.disabled = false;
         }, 2500);
       }

@@ -156,7 +156,7 @@ function doGet(e) {
         const readClientId = (e.parameter.clientId || 'anonymous').toString();
         result = _checkRateLimit('counter_get', 30, readClientId, 120)
           ? getCounter()
-          : { success: false, count: 0, error: '請求過於頻繁，請稍後再試' };
+          : { success: false, count: 0, error: 'RATE_LIMITED' };
         break;
       }
 
@@ -172,7 +172,7 @@ function doGet(e) {
         const writeClientId = (e.parameter.clientId || 'anonymous').toString();
         result = _checkRateLimit('counter_increment', 3, writeClientId, 500)
           ? incrementCounter()
-          : { success: false, count: 0, error: '請求過於頻繁，請稍後再試' };
+          : { success: false, count: 0, error: 'RATE_LIMITED' };
         break;
       }
 
@@ -267,11 +267,11 @@ function doPost(e) {
 function classifyIntent(message, clientId) {
   // 頻率限制：單一使用者每分鐘 12 次／全體使用者每分鐘 60 次
   if (!_checkRateLimit('classify', 12, clientId, 60)) {
-    return { success: false, error: '請求過於頻繁，請稍後再試' };
+    return { success: false, error: 'RATE_LIMITED' };
   }
 
   if (!message || !message.trim()) {
-    return { success: false, error: '訊息不得為空' };
+    return { success: false, error: 'VALIDATION_MESSAGE_REQUIRED' };
   }
 
   // Prompt Injection 防護：截斷過長輸入、移除控制字元、移除 Unicode Zero-Width 字元
@@ -469,14 +469,14 @@ function _verifyRecaptcha(token, expectedAction) {
 function writeReport(reportData, clientId, recaptchaToken) {
   // 頻率限制：單一使用者每分鐘 5 次／全體使用者每分鐘 20 次
   if (!_checkRateLimit('report', 5, clientId, 20)) {
-    return { success: false, error: '請求過於頻繁，請稍後再試' };
+    return { success: false, error: 'RATE_LIMITED' };
   }
 
   // reCAPTCHA v3 驗證（GAS_URL 外洩後的第一道防線）
   const captcha = _verifyRecaptcha(recaptchaToken, 'submit_report');
   if (!captcha.success) {
     Logger.log(`[writeReport] reCAPTCHA 未通過: ${captcha.error}`);
-    return { success: false, error: '驗證失敗，請重新整理頁面後再試一次' };
+    return { success: false, error: 'RECAPTCHA_VERIFY_FAILED' };
   }
 
   try {
@@ -493,22 +493,22 @@ function writeReport(reportData, clientId, recaptchaToken) {
     const description = String(reportData.description || '').trim();
 
     if (!name) {
-      return { success: false, error: '請輸入姓名' };
+      return { success: false, error: 'VALIDATION_NAME_REQUIRED' };
     }
     if (!studentId || !/^[a-zA-Z][0-9]{7}$/.test(studentId)) {
-      return { success: false, error: '學號格式錯誤（需為 1 位英文字母 + 7 位數字，如 D1234567）' };
+      return { success: false, error: 'VALIDATION_STUDENT_ID_FORMAT' };
     }
     if (!roomNumber || !/^[A-Za-z0-9-]{1,8}$/.test(roomNumber)) {
-      return { success: false, error: '房號格式錯誤（僅限英數字與連字號，最長 8 碼）' };
+      return { success: false, error: 'VALIDATION_ROOM_FORMAT' };
     }
     if (!bedNumber || !/^[0-9]{1,3}$/.test(bedNumber)) {
-      return { success: false, error: '床號格式錯誤（需為 1–3 位數字）' };
+      return { success: false, error: 'VALIDATION_BED_FORMAT' };
     }
     if (!phone || !/^[0-9]{10}$/.test(phone)) {
-      return { success: false, error: '手機號碼格式錯誤（需為 10 位數字）' };
+      return { success: false, error: 'VALIDATION_PHONE_FORMAT' };
     }
     if (!description) {
-      return { success: false, error: '請描述您的網路問題' };
+      return { success: false, error: 'VALIDATION_DESCRIPTION_REQUIRED' };
     }
 
     const spreadsheet = SpreadsheetApp.openById(_getSpreadsheetId());
@@ -518,7 +518,7 @@ function writeReport(reportData, clientId, recaptchaToken) {
     if (!sheet) {
       const errMsg = `找不到工作表「${SHEET_NAME}」，請確認 SHEET_NAME 設定或試算表結構。`;
       Logger.log('[writeReport] ' + errMsg);
-      return { success: false, error: errMsg };
+      return { success: false, error: 'SHEET_NOT_FOUND' };
     }
 
     // 若試算表是空的，自動加上標題列
@@ -595,16 +595,16 @@ function writeReport(reportData, clientId, recaptchaToken) {
 function queryReport(studentId, clientId) {
   // 頻率限制：單一使用者每分鐘 10 次／全體使用者每分鐘 40 次
   if (!_checkRateLimit('query', 10, clientId, 40)) {
-    return { success: false, error: '請求過於頻繁，請稍後再試' };
+    return { success: false, error: 'RATE_LIMITED' };
   }
 
   // 學號格式驗證（先 trim，再檢查必填與格式）
   const sid = String(studentId || '').trim().toUpperCase();
   if (!sid) {
-    return { success: false, error: '請輸入學號' };
+    return { success: false, error: 'VALIDATION_QUERY_STUDENT_ID_REQUIRED' };
   }
   if (!/^[A-Z][0-9]{7}$/.test(sid)) {
-    return { success: false, error: '學號格式錯誤（需為 1 位英文字母 + 7 位數字，如 D1234567）' };
+    return { success: false, error: 'VALIDATION_QUERY_STUDENT_ID_FORMAT' };
   }
 
   try {
@@ -614,7 +614,7 @@ function queryReport(studentId, clientId) {
     if (!sheet) {
       const errMsg = `找不到工作表「${SHEET_NAME}」，請確認 SHEET_NAME 設定或試算表結構。`;
       Logger.log('[queryReport] ' + errMsg);
-      return { success: false, error: errMsg };
+      return { success: false, error: 'SHEET_NOT_FOUND' };
     }
 
     const lastRow = sheet.getLastRow();

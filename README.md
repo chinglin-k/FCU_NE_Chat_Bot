@@ -4,9 +4,10 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 [![Run Validation Unit Tests](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml/badge.svg)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/Version-v1.4.0-blue)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.4.1-blue.svg)](CHANGELOG.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**版本 / Version**：v1.4.0  
+**版本 / Version**：v1.4.1
 
 **最後更新 / Last Updated**：2026-08-21
 
@@ -150,14 +151,14 @@ GitHub → Settings → Pages → Source: **main** / **(root)**
 | reCAPTCHA Secret | 僅儲存於 GAS Script Properties，不寫入程式碼；前端僅持有公開的 Site Key |
 | 報修個資傳輸 | 全面採 **POST Body (text/plain)** 傳送，不暴露於瀏覽器網址列或伺服器 Access Log |
 | 請求授權 | 一次性 Session Token（120 秒有效、用一次即失效），配合裝置級 Client ID 做流量限制 |
-| 流量防護 | 四組雙層（使用者級＋全域級）CacheService 限流：`classify` 使用者 12/分鐘、全域 60/分鐘；`report` 使用者 5/分鐘、全域 20/分鐘；`query` 使用者 10/分鐘、全域 40/分鐘；`counter_get` 使用者 30/分鐘、全域 120/分鐘；`counter_increment` 使用者 3/分鐘、全域 500/分鐘（v1.3.1：修復原本使用者級上限 999999 形同不限制的缺陷，並將全域上限由 30 調升為 500，避免新生入住等尖峰時段誤擋合法計數）|
+| 流量防護 | 五組雙層（使用者級＋全域級）CacheService 限流：`classify` 使用者 12/分鐘、全域 60/分鐘；`report` 使用者 5/分鐘、全域 20/分鐘；`query` 使用者 10/分鐘、全域 40/分鐘；`counter_get` 使用者 30/分鐘、全域 120/分鐘；`counter_increment` 使用者 3/分鐘、全域 500/分鐘（v1.3.1：修復原本使用者級上限 999999 形同不限制的缺陷，並將全域上限由 30 調升為 500，避免新生入住等尖峰時段誤擋合法計數）|
 | 濫用防護（報修表單） | reCAPTCHA v3 隱形驗證（風險分數門檻 0.5），防止 GAS_URL 外洩後遭腳本大量送出假報修單 |
 | 學號 / 手機 / 床號 / 房號格式 | 前端與 GAS 端雙重驗證，且後端一律「先必填、後格式」（學號：1 字母+7 數字；手機：10 位數字；床號：1–3 位數字；房號：僅限英數字與連字號）。v1.3.1 修復：舊版後端寫法在欄位為空字串時會整段跳過驗證，等同必填形同虛設，現已修正 |
 | Prompt Injection | 輸入截斷 500 字、移除控制字元、Zero-Width 字元、引號隔離輸入 |
 | XSS | 使用者輸入經 `_escapeHTML` 處理（含 `"` `'` 轉義）；Bot 訊息來自內部常數，僅供內部常數使用 Markdown 渲染 |
 | 後端欄位驗證 | GAS `writeReport()` 先檢查必填（trim 後不得為空）、再檢查格式、最後截斷長度，三階段皆通過才寫入試算表（v1.3.1 修復必填繞過問題） |
 | 錯誤訊息資訊揭露 | 所有後端例外一律回傳固定代碼 `INTERNAL_ERROR`，不回傳原始例外內容給前端，避免內部實作細節外洩（CWE-209，v1.3.1 修復） |
-| Git 歷史機密殘留 | 舊版 commit 曾寫死真實 Spreadsheet ID；已用 `git-filter-repo` 於獨立環境清除並驗證，實際覆蓋 GitHub 遠端歷史需專案擁有者手動執行 force push（見上方 WARNING 區塊） |
+| Git 歷史機密殘留 | 舊版 commit 曾寫死真實 Spreadsheet ID；已用 `git-filter-repo` 於獨立環境清除並驗證，實際覆蓋 GitHub 遠端歷史已由專案擁有者手動執行 force push 完成（已無洩漏風險） |
 
 ---
 

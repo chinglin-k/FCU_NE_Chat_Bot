@@ -1,9 +1,29 @@
 # 更新日誌 (Changelog)
 
-**版本 / Version**：v1.4.0  
+**版本 / Version**：v1.4.1  
 **最後更新 / Last Updated**：2026-08-21
 
 ---
+
+## [v1.4.1] - 2026-08-21 (Post-release patch)
+
+本版本為 v1.4.0 發布後的修補更新，主要修正文件漏列、UI 順序與部分安全/一致性問題。
+
+### 🛡️ 安全性與一致性修復 (Security & Consistency Fixes)
+- **[BUG-28/中] 後端錯誤訊息資訊洩漏修復**：`gas/Code.gs` 的 `writeReport()` 與 `queryReport()` 中「找不到工作表」的錯誤訊息原本會將內部設定值（`SHEET_NAME`）原樣回傳給前端，現已改為回傳固定代碼 `SHEET_NOT_FOUND`，詳細內容僅留於 `Logger.log`（修復弱化版 CWE-209 缺陷）。
+- **[BUG-29/低] 修正英文介面下部分後端錯誤訊息顯示中文的問題**：後端的必填/格式驗證錯誤與頻率限制訊息（「請求過於頻繁...」）原本為寫死的繁體中文字串，現已改為固定大寫代碼（如 `RATE_LIMITED`、`VALIDATION_NAME_REQUIRED` 等），並在前端 `report.js` 與 `query.js` 中對應雙語文字。
+
+### 🐛 功能性錯誤修復 (Bug Fixes)
+- **[BUG-30/低] Teams 複製按鈕圖示還原修復**：`js/teams.js` 的 `copyAccountName()` 原本使用 `textContent` 還原內容，導致按鈕內的 SVG 圖示結構被攤平。現改用 `innerHTML` 儲存並還原，確保 DOM 結構完整。
+- **[UI-01] 主選單按鈕順序調整**：`js/chat.js` 主選單按鈕順序改為「教學 → 常見問題 → **查詢案件** → **報修**」（原為報修在查詢前）。
+
+### 📄 文件修正 (Documentation Fixes)
+- **[BUG-20] `intent.js` 備援模型數註解修正**：修正註解中殘留的「9 個模型」為「6 個模型」。
+- **[BUG-21~26] `doc/requirements.md` 與 `doc/project-memory.md` 更新**：補上 v1.4.0 遺漏的查詢功能按鈕與需求說明、限流數（4→5）、測試數（42→53），並於 `project-memory.md` 補齊 v1.4.0 的技術決策。
+- **[BUG-27] `index.html` 腳本載入順序註解修正**：補上漏列的 `i18n` 與 `query`。
+- **[BUG-31] `README.md` 限流分組數修正**：第 153 行的限流組數由「四組」修正為「五組」，與實際程式碼及其他文件一致。
+- **[BUG-32] `AGENTS.md` 檔案結構圖修正**：補上漏列的 `js/query.js` 模組。
+- **[BUG-33] `README.md` 斷鏈引用修正**：移除「Git 歷史機密殘留」表格中失效的「見上方 WARNING 區塊」引用。
 
 ## [v1.4.0] - 2026-08-21 (Query Feature, Security Fix & Full Audit)
 

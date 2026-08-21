@@ -1,9 +1,9 @@
 # 逢甲大學福星宿舍網路報修 Chatbot — 需求規格書
 # FCU Fuxing Dormitory Network Repair Assistant — Requirements Specification
 
-**版本 / Version**：v1.4.0  
+**版本 / Version**：v1.4.1  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-08-21 (v1.4.0: 查詢功能、全面稽核與安全修復)  
+**最後更新 / Last Updated**：2026-08-21 (v1.4.1: UI/UX 微調與安全性收尾)  
 **專案倉庫 / Repository**：https://github.com/chinglin-k/FCU_NE_Chat_Bot
 
 ---

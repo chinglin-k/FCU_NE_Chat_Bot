@@ -224,7 +224,7 @@ test('writeReport：手機號碼格式錯誤時拒絕', () => {
     const payload = { ...validReportPayload(), phone: '12345' };
     const result = exported.writeReport(payload, 'user-b', 'good-token');
     assert.equal(result.success, false);
-    assert.match(result.error, /手機號碼格式錯誤/);
+    assert.match(result.error, /VALIDATION_PHONE_FORMAT/);
   } finally {
     restore();
   }
@@ -239,7 +239,7 @@ test('writeReport：學號格式錯誤時拒絕', () => {
     const payload = { ...validReportPayload(), studentId: '12345678' };
     const result = exported.writeReport(payload, 'user-c', 'good-token');
     assert.equal(result.success, false);
-    assert.match(result.error, /學號格式錯誤/);
+    assert.match(result.error, /VALIDATION_STUDENT_ID_FORMAT/);
   } finally {
     restore();
   }
@@ -257,7 +257,7 @@ test('writeReport：studentId 為空字串時應拒絕（BUG-01 迴歸測試）'
     const payload = { ...validReportPayload(), studentId: '' };
     const result = exported.writeReport(payload, 'user-f', 'good-token');
     assert.equal(result.success, false);
-    assert.match(result.error, /學號格式錯誤/);
+    assert.match(result.error, /VALIDATION_STUDENT_ID_FORMAT/);
   } finally {
     restore();
   }
@@ -270,11 +270,11 @@ test('writeReport：phone / bedNumber / roomNumber 為空字串時應拒絕（BU
   try {
     mockPassingRecaptcha(mocks);
     const cases = [
-      { field: 'phone', overrides: { phone: '' }, expected: /手機號碼格式錯誤/ },
-      { field: 'bedNumber', overrides: { bedNumber: '' }, expected: /床號格式錯誤/ },
-      { field: 'roomNumber', overrides: { roomNumber: '' }, expected: /房號格式錯誤/ },
-      { field: 'name', overrides: { name: '' }, expected: /請輸入姓名/ },
-      { field: 'description', overrides: { description: '' }, expected: /請描述您的網路問題/ }
+      { field: 'phone', overrides: { phone: '' }, expected: /VALIDATION_PHONE_FORMAT/ },
+      { field: 'bedNumber', overrides: { bedNumber: '' }, expected: /VALIDATION_BED_FORMAT/ },
+      { field: 'roomNumber', overrides: { roomNumber: '' }, expected: /VALIDATION_ROOM_FORMAT/ },
+      { field: 'name', overrides: { name: '' }, expected: /VALIDATION_NAME_REQUIRED/ },
+      { field: 'description', overrides: { description: '' }, expected: /VALIDATION_DESCRIPTION_REQUIRED/ }
     ];
     for (const { field, overrides, expected } of cases) {
       const payload = { ...validReportPayload(), ...overrides };
@@ -316,7 +316,7 @@ test('writeReport：超過個人頻率限制時直接拒絕（不觸發 reCAPTCH
     }
     const result = exported.writeReport(validReportPayload(), 'user-e', 'good-token');
     assert.equal(result.success, false);
-    assert.match(result.error, /請求過於頻繁/);
+    assert.match(result.error, /RATE_LIMITED/);
   } finally {
     restore();
   }
@@ -344,7 +344,7 @@ test('classifyIntent：超過個人頻率限制（12 次/分鐘）時拒絕', ()
     }
     const result = exported.classifyIntent('網路壞了', 'user-f');
     assert.equal(result.success, false);
-    assert.match(result.error, /請求過於頻繁/);
+    assert.match(result.error, /RATE_LIMITED/);
   } finally {
     restore();
   }
@@ -355,7 +355,7 @@ test('classifyIntent：空白訊息回傳錯誤', () => {
   try {
     const result = exported.classifyIntent('   ', 'user-g');
     assert.equal(result.success, false);
-    assert.match(result.error, /訊息不得為空/);
+    assert.match(result.error, /VALIDATION_MESSAGE_REQUIRED/);
   } finally {
     restore();
   }
@@ -462,7 +462,7 @@ test('doGet：counter_increment 依 clientId 個別限流，超過上限即拒�
     }
     const fourth = callDoGet(exported, { action: 'counter_increment', clientId });
     assert.equal(fourth.success, false, '第 4 次應被限流拒絕');
-    assert.match(fourth.error, /請求過於頻繁/);
+    assert.match(fourth.error, /RATE_LIMITED/);
   } finally {
     restore();
   }
@@ -528,7 +528,7 @@ test('queryReport：學號格式驗證 — 空字串時回傳錯誤', () => {
   try {
     const result = exported.queryReport('', 'test-client');
     assert.equal(result.success, false);
-    assert.match(result.error, /請輸入學號/);
+    assert.match(result.error, /VALIDATION_QUERY_STUDENT_ID_REQUIRED/);
   } finally {
     restore();
   }
@@ -539,7 +539,7 @@ test('queryReport：學號格式驗證 — 格式錯誤時回傳錯誤', () => {
   try {
     const result = exported.queryReport('12345678', 'test-client');
     assert.equal(result.success, false);
-    assert.match(result.error, /學號格式錯誤/);
+    assert.match(result.error, /VALIDATION_QUERY_STUDENT_ID_FORMAT/);
   } finally {
     restore();
   }
@@ -620,7 +620,7 @@ test('queryReport：頻率限制 — 超過限制時回傳錯誤', () => {
     }
     const result = exported.queryReport('D1234567', 'rate-test-user');
     assert.equal(result.success, false);
-    assert.match(result.error, /請求過於頻繁/);
+    assert.match(result.error, /RATE_LIMITED/);
   } finally {
     restore();
   }

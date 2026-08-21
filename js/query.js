@@ -218,10 +218,18 @@ const QueryCase = (() => {
 
       // 頻率限制或其他錯誤
       const _isInternalCode = (err) => typeof err === 'string' && /^[A-Z_]+$/.test(err);
+      const _friendlyError  = (err) => {
+        if (!_isInternalCode(err)) return err || _R().QUERY_ERROR;
+        if (err === 'RATE_LIMITED') return _R().SYSTEM_ERROR;
+        if (err.startsWith('VALIDATION_')) {
+          const key = err.replace('VALIDATION_', '');
+          if (_R().VALIDATION[key]) return _R().VALIDATION[key];
+        }
+        return _R().QUERY_ERROR;
+      };
 
       if (!data.success) {
-        const errText = _isInternalCode(data.error) ? _R().QUERY_ERROR : (data.error || _R().QUERY_ERROR);
-        _showError(errText);
+        _showError(_friendlyError(data.error));
         _setLoading(false);
         return;
       }

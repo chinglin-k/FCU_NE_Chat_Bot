@@ -112,7 +112,7 @@ const Intent = (() => {
       }
 
       // 頻率限制錯誤
-      if (!data.success && data.error === '請求過於頻繁，請稍後再試') {
+      if (!data.success && data.error === 'RATE_LIMITED') {
         console.warn('[Intent][頻率限制]', data.error);
         return _systemErrorFallback;
       }
