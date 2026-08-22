@@ -1,7 +1,7 @@
 # 架構設計文件 (Architecture Design Document)
 
-**版本 / Version**：v1.4.2  
-**最後更新 / Last Updated**：2026-08-22（v1.4.2: 文件一致性全面稽核、CSS 亂碼修復、Git 歷史殘留風險釐清）
+**版本 / Version**：v1.4.3  
+**最後更新 / Last Updated**：2026-08-23（v1.4.3: 系統架構概覽與需求文件的查詢功能一致性修正）
 
 ---
 
@@ -20,7 +20,7 @@ graph TD
     GAS -->|"siteverify API (score >= 0.5)"| reCAPTCHA
     GAS -->|"REST API (6-Model Fallback)"| Gemini["Gemini API\n(六模型三層 RPM 備援)"]
     GAS -->|"19 語系關鍵字匹配"| RuleEngine["Rule-based 備援分類器\n(19-Language Classifier)"]
-    GAS -->|"格式雙重強驗證 & 寫入"| Sheet["Google 試算表\n(報修案件記錄)"]
+    GAS -->|"報修：格式雙重強驗證 & 寫入 / 查詢：學號比對後讀取"| Sheet["Google 試算表\n(報修案件記錄)"]
     GAS -->|"讀寫計數器"| Props["Script Properties\n(USER_COUNT)"]
     Admin["👤 網管人員"] -->|"查看 / 更新狀態"| Sheet
 ```

@@ -1,7 +1,7 @@
 # 開發待辦清單（todo.md）
 
-**版本 / Version**：v1.4.2  
-**最後更新 / Last Updated**：2026-08-22
+**版本 / Version**：v1.4.3  
+**最後更新 / Last Updated**：2026-08-23
 
 ---
 

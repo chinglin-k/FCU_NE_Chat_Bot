@@ -1,16 +1,16 @@
 # 逢甲大學福星宿舍網路報修 Chatbot — 需求規格書
 # FCU Fuxing Dormitory Network Repair Assistant — Requirements Specification
 
-**版本 / Version**：v1.4.2  
+**版本 / Version**：v1.4.3  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-08-22 (v1.4.2: 文件一致性全面稽核與安全修復)  
+**最後更新 / Last Updated**：2026-08-23 (v1.4.3: 系統角色與功能背景補上查詢功能)  
 **專案倉庫 / Repository**：https://github.com/chinglin-k/FCU_NE_Chat_Bot
 
 ---
 
 ## 1. 專案背景 (Project Background)
 
-@chinglin-k 需要一套自動化工具，協助學生快速取得網路相關教學資源，並能自助發起報修通報，減少處理重複性問題的時間。
+@chinglin-k 需要一套自動化工具，協助學生快速取得網路相關教學資源，並能自助發起報修通報與查詢自己的報修案件進度，減少處理重複性問題的時間。
 
 ---
 
@@ -18,7 +18,7 @@
 
 | 角色 / Role | 說明 / Description |
 |---|---|
-| **學生（使用者）/ Student User** | 透過 Chatbot 自助查詢教學文件、查詢常見問題，或發起報修通報（介面全面支援中英雙語對照 / Fully bilingual UI）|
+| **學生（使用者）/ Student User** | 透過 Chatbot 自助查詢教學文件、查詢常見問題、發起報修通報，或查詢自己的報修案件進度（介面全面支援中英雙語對照 / Fully bilingual UI）|
 | **管理員（網管人員）/ Network Admin** | 接收 Google 試算表中的通報案件，進行派人維修與案件追蹤 / Receive & manage repair requests |
 
 ---

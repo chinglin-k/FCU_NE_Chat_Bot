@@ -1,8 +1,8 @@
 # 資料模型文件 (Data Model Specification)
 
-**版本 / Version**：v1.4.2  
+**版本 / Version**：v1.4.3  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-08-22 (v1.4.2: 版本號對齊與文件一致性稽核)
+**最後更新 / Last Updated**：2026-08-23 (v1.4.3: 版本號對齊)
 
 ---
 

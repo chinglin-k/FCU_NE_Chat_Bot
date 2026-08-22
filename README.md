@@ -4,12 +4,12 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 [![Run Validation Unit Tests](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml/badge.svg)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-v1.4.2-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.4.3-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**版本 / Version**：v1.4.2
+**版本 / Version**：v1.4.3
 
-**最後更新 / Last Updated**：2026-08-22
+**最後更新 / Last Updated**：2026-08-23
 
 ---
 
@@ -29,7 +29,7 @@
 - 🛡️ **多層安全防護**：
   * 個資與使用者輸入一律透過 POST Body 傳送，不暴露於瀏覽器網址列或伺服器 Log
   * 一次性 Session Token（120 秒有效、用一次即失效）防止偽造請求
-  * 裝置級 Client ID (`localStorage`) + 全域級雙層流量限制（CacheService，涵蓋 classify / report / counter_get / counter_increment 四個端點）
+  * 裝置級 Client ID (`localStorage`) + 全域級雙層流量限制（CacheService，涵蓋 classify / report / query / counter_get / counter_increment 五個端點）
   * reCAPTCHA v3 隱形驗證，防止 GAS Web App URL 外洩後遭腳本大量濫用
   * Prompt Injection 防護（長度截斷 500 字、控制字元 / Zero-Width 字元清除、引號隔離）
   * 學號 / 手機 / 床號 / 房號前後端雙重格式驗證，後端一律先必填、後格式

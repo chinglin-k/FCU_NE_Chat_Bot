@@ -1,11 +1,25 @@
 # 更新日誌 (Changelog)
 
-**版本 / Version**：v1.4.2  
-**最後更新 / Last Updated**：2026-08-22
+**版本 / Version**：v1.4.3  
+**最後更新 / Last Updated**：2026-08-23
 
 ---
 
+## [v1.4.3] - 2026-08-23 (Query Feature Documentation Consistency Sweep)
+
+本版本針對「查詢案件」功能（v1.4.0 新增）在各文件**頂層總覽/摘要章節**是否同步更新，進行全庫掃描；重點檢查模式為「細節章節已正確描述查詢功能，但頂層總覽/摘要未同步」是否重複發生於其他文件。
+
+### 📄 文件正確性修復 (Documentation Correctness Fixes)
+- **[BUG-41/低] `doc/architecture.md` §1 系統架構概覽圖修正**：頂層 mermaid 圖中 `GAS -> Sheet` 的邊僅標示「格式雙重強驗證 & 寫入」，未反映 `queryReport()` 實際會讀取試算表全部資料列並篩選比對學號的行為（§4.4 文字資料流原本就正確描述此讀取行為，僅頂層圖未同步）。已修正邊標籤為「報修：格式雙重強驗證 & 寫入 / 查詢：學號比對後讀取」。
+- **[BUG-42/低] `README.md` 端點計數自相矛盾修正**：「功能特色」章節（第 32 行）宣稱雙層流量限制「涵蓋 classify / report / counter_get / counter_increment **四個端點**」，漏列 `query`；此描述與同份文件「已知安全性說明」章節（第 154 行）正確寫的「**五組**雙層限流…`query` 使用者 10/分鐘、全域 40/分鐘」自相矛盾。已修正為「五個端點」並補上 `query`。
+- **[BUG-43/低] `doc/requirements.md` §1／§2 補上查詢功能**：§1 專案背景與 §2 系統角色（學生角色說明）僅提及「教學文件查詢、常見問題、發起報修通報」，未提及「查詢自己的報修案件進度」——這是 v1.4.0 就存在、且 §3.6 已有完整規格的核心功能，僅頂層背景/角色總覽未同步。已補上。
+
+### ✅ 本次掃描確認無問題的文件 (Verified Clean — No Action Needed)
+- `doc/data-model.md`、`doc/project-memory.md`、`doc/todo.md`、`AGENTS.md`：查詢功能相關內容（實體、決策記錄、開發輪次、檔案結構、限流表）均已正確涵蓋，未發現同類疏漏。
+- `doc/architecture.md` §3.1（前端模組表）、§4.4（查詢資料流）、§5.4.1（限流表）、§5.5.3（查詢學號驗證）、§5.6（查詢結果個資最小化）、§5.9（安全測試覆蓋）、§5.10（OWASP 對照）：皆已正確涵蓋查詢功能，無需修改。
+
 ## [v1.4.2] - 2026-08-22 (Full Codebase-vs-Documentation Audit)
+
 
 本版本為全專案「程式碼 vs. 文件」逐行一致性稽核，範圍涵蓋全部原始碼、`doc/*.md`、`AGENTS.md`、`CHANGELOG.md`、`README.md`。稽核過程執行了完整測試（53/53 通過）、ESLint（0 error/0 warning）、`git blame`/`git log` 歷史考古，以及對 GitHub 遠端 PR ref 的實際機密殘留驗證。
 
