@@ -3,8 +3,8 @@
 > 僅在確認新決策、修改既有決策或發現重要限制時更新。
 > 每次更新須記錄日期、原因與影響範圍。
 
-**版本 / Version**：v1.4.1  
-**最後更新 / Last Updated**：2026-08-21
+**版本 / Version**：v1.4.2  
+**最後更新 / Last Updated**：2026-08-22
 
 ---
 
@@ -53,9 +53,14 @@
 
 - GitHub Pages 為靜態托管，**無法在前端執行伺服器端邏輯**
 - GAS 免費版每日執行次數限制：6 分鐘執行時間，每日可處理約 500+ 次分類
-- **Git 歷史清除的殘留風險（v1.3.1 新增）**：即使用 `git-filter-repo` 清除機密後
-  force push 到 GitHub，已關閉／已合併 PR 的「Files changed」分頁、第三方封存
-  服務（如 Software Heritage）、其他人的 fork，仍可能保留舊版明碼內容，
-  Git 層級操作無法強制觸及這些位置。真正解除風險的關鍵是**輪替 Spreadsheet
-  ID 本身**，而非僅依賴歷史清除。
+- **Git 歷史清除的殘留風險（v1.3.1 新增；v1.4.2 實測確認並由專案擁有者澄清）**：
+  即使用 `git-filter-repo` 清除機密後 force push 到 GitHub，已關閉／已合併 PR 的
+  `refs/pull/*/head` 參照、第三方封存服務（如 Software Heritage）、其他人的
+  fork，仍可能保留舊版明碼內容，Git 層級操作無法強制觸及這些位置。
+  **v1.4.2 稽核時已用 `git ls-remote` + `git fetch refs/pull/*/head` 實際驗證**：
+  真實 Spreadsheet ID（`1BUnG_NNaxU-oBFPKY-rZ0xWyxAzG-A_AVOsw07X79uI`）確實仍可
+  透過 PR ref 取得。**專案擁有者已確認該 ID 已完成輪替，舊 ID 已失效**，故此
+  殘留參照目前僅為歷史資訊、無實質風險；`README.md`／`doc/architecture.md`
+  已於 v1.4.2 更新為反映此現況。若未來有其他機密（API Key 等）誤入歷史，
+  仍建議洽 GitHub Support 清除 PR ref 層級快取，而非僅依賴歷史清除 + 輪替。
 

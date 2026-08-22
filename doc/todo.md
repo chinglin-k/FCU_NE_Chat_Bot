@@ -1,7 +1,7 @@
 # 開發待辦清單（todo.md）
 
-**版本 / Version**：v1.4.1  
-**最後更新 / Last Updated**：2026-08-21
+**版本 / Version**：v1.4.2  
+**最後更新 / Last Updated**：2026-08-22
 
 ---
 
@@ -87,8 +87,8 @@
 
 | 功能 | 狀態 | 說明 |
 |---|---|---|
-| viewport maximum-scale=1.0 | ✅ Done | 防止 iOS 打字時自動放大（`index.html` meta 標籤） |
-| input/textarea font-size 16px | ✅ Done | iOS 觸發自動縮放實際規則，手機下強制 16px（`css/style.css`） |
+| viewport maximum-scale=1.0 | ⚠️ 已移除 | 原用於防止 iOS 打字時自動放大，但因違反 WCAG 1.4.4 無障礙縮放需求，已於 2026-08-08 從 `index.html` meta 標籤移除，改由下一項 font-size 技巧達成同等效果 |
+| input/textarea font-size 16px | ✅ Done | 取代 `maximum-scale=1.0` 的無障礙友善做法：手機下強制 16px 避免 iOS 觸發自動縮放，同時保留使用者手動縮放能力（`css/style.css`） |
 | 窄螢幕完全隱藏計數器 | ✅ Done | 寬度 ≤640px 時 `.header-counter { display: none }`，JS 仍照常計數（`css/style.css`） |
 | GitHub Pages CDN 快取清除 | ✅ Done | 舊版 CSS（480px 斷點）被 CDN 快取，更新 CSS 頂部時間戳記強制重新部署 |
 

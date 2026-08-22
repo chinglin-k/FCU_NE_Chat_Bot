@@ -1,7 +1,7 @@
 # 架構設計文件 (Architecture Design Document)
 
-**版本 / Version**：v1.4.0  
-**最後更新 / Last Updated**：2026-08-21（v1.4.0: 新增報修案件查詢功能、全面稽核與安全修復）
+**版本 / Version**：v1.4.2  
+**最後更新 / Last Updated**：2026-08-22（v1.4.2: 文件一致性全面稽核、CSS 亂碼修復、Git 歷史殘留風險釐清）
 
 ---
 
@@ -52,6 +52,7 @@ graph TD
 | `chat.js` | 對話流程控制、Token 初始化管理 (`_fetchToken`, `getToken`, `refreshToken`)、Client ID 管理 (`getClientId`) |
 | `intent.js` | 發送 POST Body (含 Token + Client ID) 呼叫 GAS 進行意圖分類，支援 25s Timeout 與 Token 重試 |
 | `report.js` | 報修表單 Modal 開關、學號/電話/床號前端格式強驗證、reCAPTCHA token 取得、POST Body 送出 |
+| `query.js` | 報修案件查詢 Modal 開關、學號前端格式驗證、POST Body 送出、查詢結果渲染（含 `_esc()` HTML 轉義防 XSS） |
 | `counter.js` | 讀取 / 累加使用人數，更新 Header 雙語數字 |
 | `teams.js` | 開啟 Teams chat 深連結、平台備援跳轉、一鍵複製帳號名稱 |
 
@@ -176,7 +177,7 @@ graph TD
 
 **控制措施**：
 - 所有機密值均**不寫入任何程式碼、commit、或文件**；`.env` 加入 `.gitignore`
-- Git 歷史中原曾硬編碼的 Spreadsheet ID 已完成輪替（Rotate）並重新部署
+- Git 歷史中原曾硬編碼的 Spreadsheet ID：`main`／tag 歷史已用 `git-filter-repo` 清除並 force push；該 ID 實測仍可透過 GitHub 已關閉／已合併 PR 的 `refs/pull/*/head` 參照查得（`git-filter-repo` 無法觸及 PR ref），**但專案擁有者已確認完成 ID 輪替（Rotate）並重新部署，舊 ID 已失效，故該殘留參照已無實質風險**
 
 ---
 
@@ -381,7 +382,7 @@ finally { lock.releaseLock(); }
 | 並發防護 | `_isProcessing` flag 防止使用者在請求進行中重複送出，避免重複計費或重複報修 |
 | 防雙擊提交 | `submitBtn.disabled = true`（loading 期間），前後端均有防重複機制 |
 | `'use strict'` | 全部 JS 模組頂層宣告嚴格模式，防止靜默失敗與全域變數污染 |
-| Viewport 防縮放 | `maximum-scale=1.0` 防止 iOS 表單觸發自動縮放，同時避免介面破版 |
+| iOS 表單自動縮放防護 | `index.html` 的 viewport meta 標籤**已於 2026-08-08 移除** `maximum-scale=1.0`（避免違反 WCAG 1.4.4 使用者縮放需求），改由 `css/style.css` 於 ≤640px 寬度時將所有 `input`/`textarea`/`.chat-input` 的 `font-size` 強制設為 16px，達到相同的「防止 iOS Safari 自動放大」效果，同時保留使用者手動縮放能力 |
 | `.gitignore` | `.env` 已加入 `.gitignore`，防止環境變數檔意外提交至 Git |
 
 ---

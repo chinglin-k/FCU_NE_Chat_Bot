@@ -1,11 +1,34 @@
 # 更新日誌 (Changelog)
 
-**版本 / Version**：v1.4.1  
-**最後更新 / Last Updated**：2026-08-21
+**版本 / Version**：v1.4.2  
+**最後更新 / Last Updated**：2026-08-22
 
 ---
 
+## [v1.4.2] - 2026-08-22 (Full Codebase-vs-Documentation Audit)
+
+本版本為全專案「程式碼 vs. 文件」逐行一致性稽核，範圍涵蓋全部原始碼、`doc/*.md`、`AGENTS.md`、`CHANGELOG.md`、`README.md`。稽核過程執行了完整測試（53/53 通過）、ESLint（0 error/0 warning）、`git blame`/`git log` 歷史考古，以及對 GitHub 遠端 PR ref 的實際機密殘留驗證。
+
+### 🛡️ 安全性修復與釐清 (Security Fixes & Clarifications)
+- **[BUG-34/資訊] Git 歷史機密殘留範圍釐清**：實測以 `git ls-remote` + `git fetch refs/pull/*/head` 驗證，確認舊版 Spreadsheet ID 目前仍可透過 GitHub 已關閉／已合併 PR 的 `refs/pull/*/head` 參照取得——這是 `git-filter-repo` + force push 的已知限制（無法觸及 PR ref），過去 `README.md`／`doc/architecture.md` 「已無洩漏風險」「已完成輪替」等描述未精確反映此限制。經與專案擁有者確認，**該 Spreadsheet ID 已完成輪替、舊 ID 已失效**，故已將三份文件（`README.md`、`doc/architecture.md`、`doc/project-memory.md`）更新為如實反映「PR ref 殘留但因輪替已無實質風險」的現況，而非模糊帶過。
+- **[BUG-35/低] CSP `connect-src` 移除不必要的網域**：`index.html` 的 Content-Security-Policy 原本白名單 `https://generativelanguage.googleapis.com`，但前端 JS 從未直接呼叫 Gemini API（僅 `gas/Code.gs` 後端呼叫），此為不必要的權限放寬，已移除，符合最小權限原則。
+- **[BUG-36/低] `.env.example` 補上遺漏的 `RECAPTCHA_SECRET_KEY`**：`AGENTS.md`／`gas/Code.gs` 皆將其列為必要的 Script Property（與 `GEMINI_API_KEY`、`SPREADSHEET_ID` 並列），但 `.env.example` 範本先前漏列，已補上並註明其為 Secret Key（非公開的 Site Key）。
+
+### 🐛 文件正確性修復 (Documentation Correctness Fixes)
+- **[BUG-37/中] CSS 亂碼註解全面修復**：`CHANGELOG.md` v1.3.1（BUG-09）曾宣稱已完成全站亂碼掃描修復，但本次稽核發現 `css/style.css` 仍有 14 處編碼損毀的中文註解殘留（第 84、633–635、820、835、915、921–923、932、949、960、962、964、966、995、1033 行），經 `git blame` 追蹤至 commit `ae2a0f3`（2026-08-09）引入且未被後續稽核抓出。原始正確文字已無法完整復原（損毀早於該 commit），已依上下文語意重建為可讀的繁體中文註解，不影響任何 CSS 選擇器或樣式規則。
+- **[BUG-38/低] `doc/architecture.md` §3.1 前端模組表補上 `js/query.js`**：該模組已在文件其他章節（§3.2、§4.4、§5.5.3、§5.10）與 `AGENTS.md` 檔案樹中提及，但主要模組總覽表遺漏此列，`CHANGELOG.md` BUG-32 僅修補了 `AGENTS.md`，未同步此表。
+- **[BUG-39/低] `maximum-scale=1.0` 過時敘述修正**：`doc/architecture.md` §5.8 與 `doc/todo.md` G 輪皆仍描述「viewport `maximum-scale=1.0`」為目前防止 iOS 自動縮放的機制，但經 `git log` 追蹤，此設定已於 2026-08-08 因違反 WCAG 1.4.4（使用者縮放）無障礙需求而移除，改由 `css/style.css` 於 ≤640px 寬度強制 `input`/`textarea` 使用 16px 字體達成同等效果。`doc/requirements.md` 已正確反映此變更，另兩份文件已同步修正。
+- **[BUG-40/低] 全站版本號統一升級為 v1.4.2**：`package.json`、`README.md`、`CHANGELOG.md`、`AGENTS.md`、`doc/architecture.md`、`doc/data-model.md`、`doc/project-memory.md`、`doc/requirements.md`、`doc/todo.md`。（升版前 `doc/architecture.md`／`doc/data-model.md` 仍停留在 v1.4.0，與其餘文件的 v1.4.1 不一致，一併修正。）
+
+### ✅ 本次稽核確認無問題的項目 (Verified Clean — No Action Needed)
+- `chat.js`／`query.js` 的 XSS 防護模式（`_esc()` 轉義 → `_renderMarkdown()` 渲染的順序）邏輯正確，未發現注入風險。
+- 目前工作目錄與 `main`／tag 分支歷史中無其他明碼機密（已用正則掃描 API Key、Spreadsheet ID 樣式）。
+- 速率限制（雙層 `_checkRateLimit`）、reCAPTCHA v3 驗證、一次性 token 機制、後端三段式驗證（必填→格式→截斷）均與文件描述一致。
+- `.github/workflows/test.yml` 已正確設定 `permissions: contents: read`（對應既有 BUG-17 修復）。
+- 測試套件（53 項）與 ESLint 3-environment flat config 均正常運作，符合文件宣稱。
+
 ## [v1.4.1] - 2026-08-21 (Post-release patch)
+
 
 本版本為 v1.4.0 發布後的修補更新，主要修正文件漏列、UI 順序與部分安全/一致性問題。
 

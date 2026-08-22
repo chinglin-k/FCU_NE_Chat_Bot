@@ -4,12 +4,12 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 [![Run Validation Unit Tests](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml/badge.svg)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-v1.4.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.4.2-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**版本 / Version**：v1.4.1
+**版本 / Version**：v1.4.2
 
-**最後更新 / Last Updated**：2026-08-21
+**最後更新 / Last Updated**：2026-08-22
 
 ---
 
@@ -158,7 +158,7 @@ GitHub → Settings → Pages → Source: **main** / **(root)**
 | XSS | 使用者輸入經 `_escapeHTML` 處理（含 `"` `'` 轉義）；Bot 訊息來自內部常數，僅供內部常數使用 Markdown 渲染 |
 | 後端欄位驗證 | GAS `writeReport()` 先檢查必填（trim 後不得為空）、再檢查格式、最後截斷長度，三階段皆通過才寫入試算表（v1.3.1 修復必填繞過問題） |
 | 錯誤訊息資訊揭露 | 所有後端例外一律回傳固定代碼 `INTERNAL_ERROR`，不回傳原始例外內容給前端，避免內部實作細節外洩（CWE-209，v1.3.1 修復） |
-| Git 歷史機密殘留 | 舊版 commit 曾寫死真實 Spreadsheet ID；已用 `git-filter-repo` 於獨立環境清除並驗證，實際覆蓋 GitHub 遠端歷史已由專案擁有者手動執行 force push 完成（已無洩漏風險） |
+| Git 歷史機密殘留 | ✅ 已解除：舊版 commit 曾寫死真實 Spreadsheet ID。`main`／tag 歷史已用 `git-filter-repo` 於獨立沙盒環境清除並驗證，已由專案擁有者 force push 完成。該 ID 目前仍可透過 GitHub `refs/pull/*/head`（已關閉／已合併 PR 的參照）查得——這是 `git-filter-repo` + force push 的已知限制，無法觸及 PR ref——**但專案擁有者已確認完成 Spreadsheet ID 輪替，舊 ID 已失效，故該殘留參照已無實質風險**。建議仍可洽 GitHub Support 清除 PR ref 快取以求乾淨，但非急迫項目 |
 
 ---
 
