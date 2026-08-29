@@ -32,6 +32,7 @@ module.exports = [
         QueryCase: 'writable',
         Counter: 'writable',
         Teams: 'writable',
+        WifiModal: 'writable',
         grecaptcha: 'readonly'
       }
     },

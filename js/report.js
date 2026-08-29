@@ -12,7 +12,6 @@ const ReportForm = (() => {
   const cancelBtn = document.getElementById('form-cancel-btn');
   const submitBtn = document.getElementById('form-submit-btn');
   const errorMsg = document.getElementById('form-error-msg');
-  const successView = document.getElementById('modal-success-view');
 
   function _R() { return CONFIG.RESPONSES[I18N.getLang()]; }
 
@@ -32,9 +31,6 @@ const ReportForm = (() => {
 
   function _resetForm() {
     form.reset();
-    form.removeAttribute('hidden');
-    successView.classList.add('is-hidden');
-    modal.classList.remove('has-success');
     _hideError();
     _setLoading(false);
 

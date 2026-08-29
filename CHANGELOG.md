@@ -1,7 +1,77 @@
 # 更新日誌 (Changelog)
 
-**版本 / Version**：v1.4.3  
-**最後更新 / Last Updated**：2026-08-23
+**版本 / Version**：v1.4.5  
+**最後更新 / Last Updated**：2026-08-29
+
+---
+
+## [v1.4.5] - 2026-08-29 (Wi-Fi Setup Guide, Post-Release Audit & CI Fix / Wi-Fi 設定教學、上線後全面稽核與 CI 修復)
+
+### 繁體中文
+
+本版本包含兩部分：(1) 追溯補齊上一版本上線後未同步文件化的「Wi-Fi 機設定教學」功能與「查詢完成後續按鈕」修復；(2) 針對上線後程式碼庫進行的全面稽核，修復 CI 失敗、i18n 涵蓋率缺口、無障礙焦點管理缺陷、註解錯字與死碼殘留。
+
+#### ✨ 新功能（回補文件 / Newly Documented Features）
+
+- **Wi-Fi 機設定教學 Modal**：教學選單新增第三個選項「Wi-Fi 機」，與既有 Windows / Mac 系統選項並列。純前端靜態 4 步驟圖文教學（① 連接電源與網路線 ② 連接裝置 ③ 進入後台管理介面 ④ 設定路由器模式與固定 IP），不呼叫 GAS 後端、不消耗任何頻率限制配額，Modal 支援 X 按鈕／關閉按鈕／遮罩點擊／ESC 四種關閉方式，並提供完整繁中英文對照（`js/wifi-modal.js`、`js/chat.js`、`js/config.js`、`js/i18n.js`、`index.html`、`css/style.css`）。
+- **查詢案件完成後顯示後續按鈕**：查詢報修案件狀態完成後，補上「回主選單／報修」按鈕，避免對話流程中斷，與報修成功後的體驗一致（`js/chat.js`、`js/query.js`）。
+
+#### 🛠️ 本次稽核修復（Audit Fixes）
+
+- **[BUG-44／高] CI Lint 失敗修復**：`eslint.config.js` 的瀏覽器端全域清單漏列新增的 `WifiModal` 模組，導致 `npx eslint .` 對 `js/chat.js` 回報 `no-undef` 錯誤，`.github/workflows/test.yml` 的 `npm run lint` 步驟因而失敗。已補上宣告，`npm test`（53/53）與 `npm run lint`（0 error）皆恢復綠燈。
+- **[BUG-45／中] 房號／床號／手機號碼欄位 i18n 缺口**：報修表單中 `field-room`、`field-bed`、`field-phone` 三個欄位的 placeholder 原為寫死英文（如 `"e.g. A123"`），缺少 `data-i18n-placeholder` 屬性與對應字典項目，導致繁體中文介面下仍顯示英文提示文字，與其餘欄位（姓名、學號）行為不一致。已補上 `form.room.placeholder`／`form.bed.placeholder`／`form.phone.placeholder` 中英字典項目與對應屬性。
+- **[BUG-46／中] 打字指示器 aria-label 語言切換失效**：`_showTyping()` 每次建立新的打字指示器 DOM 節點時，`aria-label` 屬性寫死中文「正在輸入」，僅在「語言切換當下」該節點恰好存在時才會被 `_applyToDom()` 重新掃描修正——但該節點屬短暫顯示元素，實務上幾乎不會遇到這個時機，導致英文介面下螢幕閱讀器仍朗讀中文。已改為建立當下即以 `I18N.t('typing.aria')` 依目前語言取值。
+- **[BUG-47／中] Wi-Fi 教學 Modal 無障礙焦點失效**：`WifiModal.open()` 呼叫 `document.getElementById('wifi-modal-title').focus()`，但該 `<h2>` 元素未加上 `tabindex="-1"`，屬不可程式化聚焦元素，`.focus()` 呼叫實際上靜默無效，鍵盤／螢幕閱讀器使用者開啟 Modal 時焦點不會被帶入。已於 `index.html` 補上 `tabindex="-1"`。同時補上開關時的 `document.body.style.overflow` 背景捲動鎖定／解除，與報修表單、查詢案件兩個既有 Modal 行為一致。
+- **[BUG-48／低] 註解錯字修正**：`js/intent.js` 「防止無限**迄迴**」修正為「防止無限**循環**」；`js/query.js` 「查詢**完是**：顯示返回主選單和報修按鈕」修正為「查詢**完成後**：顯示返回主選單和報修按鈕」。
+- **[BUG-49／低] 後端錯誤代碼一致性修正**：`gas/Code.gs` 的 `classifyIntent()` 在 `GEMINI_API_KEY` 未設定時，原本直接回傳完整中文句子作為 `error` 欄位（`'GEMINI_API_KEY 未在 Script Properties 中設定'`），與專案自 BUG-28／BUG-29 起確立的「一律回傳固定大寫代碼、詳細訊息僅記錄於 Logger」慣例不一致（雖然此路徑目前前端未直接顯示該文字，僅記錄於瀏覽器 console，非使用者可見的資訊揭露，但仍應統一慣例避免未來被誤用）。已改為固定代碼 `GEMINI_API_KEY_NOT_CONFIGURED`。
+- **[BUG-50／低] 死碼清理：報修表單 Modal 內成功畫面**：`index.html` 的 `#modal-success-view`、`js/report.js` 的 `successView` 變數與 `.has-success`／`.is-hidden` 樣式切換、`css/style.css` 對應的整段樣式與動畫（`.modal-success-view`、`.success-icon-wrap`、`.success-title` 等），以及僅供其使用的 `js/i18n.js` 字典項目 `success.title`／`success.desc`，經逐一 `grep` 確認自 v1.1.0 行為回復後已無任何程式路徑會觸發，予以移除。另移除同一區塊內完全未被任何 HTML 元素使用的 `.text-en` 樣式類別。
+- **[BUG-51／低] README 多語系備援分類器表格修復**：「🌐 多國語言備援分類器支援」表格第 19 項合併列出「埃及阿拉伯文」與「厄瓜多西班牙文」，但範例關鍵字欄位僅提供阿拉伯文範例、缺漏西班牙文範例，格式不完整。已補上西班牙文範例關鍵字，並加註說明：厄瓜多西班牙文與第 16 項墨西哥西班牙文共用同一組通用西班牙語關鍵字（未另外建置地區專屬詞彙），故兩者合併計為第 19 項、不獨立計數。
+
+#### 📄 文件同步（Documentation Sync）
+
+- `AGENTS.md` 檔案結構樹補上 `js/wifi-modal.js`
+- `doc/architecture.md` §3.1 前端模組表補上 `wifi-modal.js` 一列
+- `doc/requirements.md` §3.1 教學按鈕說明補上 Wi-Fi 機選項；新增 §3.7 Wi-Fi 機設定教學 Modal 需求說明
+- `doc/project-memory.md` 補上本次 Wi-Fi Modal 功能與稽核修復的決策記錄
+- `doc/todo.md` 新增「I 輪：Wi-Fi 機設定教學、查詢後續按鈕、全面稽核」章節
+- 全站（`package.json`、`README.md`、`CHANGELOG.md`、`AGENTS.md`、`doc/*.md`）版本號統一升級為 **v1.4.5**
+
+#### ⚠️ 待專案擁有者確認（本次稽核未逕行處理）
+
+- `doc/project-memory.md` 內記載一組專案擁有者已確認完成輪替、目前已失效的 Google Spreadsheet ID 明碼，用於說明 GitHub PR ref 歷史殘留議題。此做法與 `AGENTS.md` 規範 5「試算表 ID… 不得硬編碼於程式碼或任何文件（含 `doc/*.md`）中」字面上牴觸——即使該 ID 已失效，仍建議改為遮蔽格式（如 `1BUnG_...79uI`）以符合文件自身規範。本次稽核未逕行修改此段落，待專案擁有者確認後再處理。
+
+### English
+
+This release has two parts: (1) retroactively documenting the previously undocumented **Wi-Fi router setup guide** feature and the **post-query follow-up buttons** fix that shipped after v1.4.3; and (2) a full post-release audit that fixes a broken CI pipeline, i18n coverage gaps, an accessibility focus-management defect, stale comments, and orphaned dead code.
+
+#### ✨ New Features (Retroactively Documented)
+
+- **Wi-Fi router setup guide modal**: a third option, "Wi-Fi Router," was added to the Tutorials menu alongside the existing Windows/Mac options. It is a purely front-end, static 4-step walkthrough (power & cable, device connection, admin interface, router mode & static IP) that never calls the GAS backend and consumes no rate-limit quota. The modal supports four ways to close (✕ button, Close button, backdrop click, Escape key) and is fully bilingual (`js/wifi-modal.js`, `js/chat.js`, `js/config.js`, `js/i18n.js`, `index.html`, `css/style.css`).
+- **Follow-up buttons after a case query**: after a repair-case query completes, "Back to Main Menu" and "Request Repair" buttons are now shown, matching the experience after a successful repair submission and preventing the conversation from dead-ending (`js/chat.js`, `js/query.js`).
+
+#### 🛠️ Audit Fixes
+
+- **[BUG-44/High] Broken CI lint step**: `eslint.config.js`'s browser-global list never added the newly introduced `WifiModal` module, so `npx eslint .` reported a `no-undef` error in `js/chat.js`, failing the `npm run lint` step in `.github/workflows/test.yml`. Fixed by declaring the global; `npm test` (53/53) and `npm run lint` (0 errors) are green again.
+- **[BUG-45/Medium] Missing i18n on Room/Bed/Phone fields**: the `field-room`, `field-bed`, and `field-phone` inputs had hardcoded English placeholders (e.g. `"e.g. A123"`) with no `data-i18n-placeholder` attribute or dictionary entry, unlike the Name/Student-ID fields — so the Traditional Chinese UI still showed English placeholder text. Added `form.room.placeholder`/`form.bed.placeholder`/`form.phone.placeholder` entries in both languages and wired up the attributes.
+- **[BUG-46/Medium] Typing indicator aria-label ignored current language**: `_showTyping()` hardcoded `aria-label="正在輸入"` (Chinese) at element-creation time; it would only be corrected via `data-i18n-aria-label` if a language toggle happened to fire while the transient element existed, which in practice almost never happens — so screen-reader users on the English UI still heard Chinese. Fixed by reading `I18N.t('typing.aria')` at creation time.
+- **[BUG-47/Medium] Wi-Fi modal focus management broken**: `WifiModal.open()` called `.focus()` on `<h2 id="wifi-modal-title">`, but that element lacked `tabindex="-1"` and is therefore not programmatically focusable, so the call silently did nothing — keyboard/screen-reader users got no focus movement when the modal opened. Added `tabindex="-1"`. Also added the same background-scroll lock/unlock (`document.body.style.overflow`) used by the other two modals, which this one was missing.
+- **[BUG-48/Low] Comment typos**: fixed a garbled/nonsensical phrase in `js/intent.js` ("無限迄迴" → "無限循環", i.e. "infinite loop") and in `js/query.js` ("查詢完是" → "查詢完成後", i.e. "after the query completes").
+- **[BUG-49/Low] Backend error-code consistency**: `classifyIntent()` in `gas/Code.gs` returned a full Chinese sentence as the `error` field when `GEMINI_API_KEY` was unset, instead of the all-caps code convention established since BUG-28/29. Changed to `GEMINI_API_KEY_NOT_CONFIGURED` (this path isn't shown to end users today, only logged to the browser console, but the inconsistency was a latent risk).
+- **[BUG-50/Low] Dead code removal — in-modal success screen**: `#modal-success-view` in `index.html`, the `successView` variable and `.has-success`/`.is-hidden` toggles in `js/report.js`, the corresponding ~70-line CSS block and animations in `css/style.css`, and the `success.title`/`success.desc` i18n dictionary entries that existed only to feed it, were all verified (via exhaustive grep) to be unreachable since the success flow reverted to v1.1.0 behavior (chat-bubble success message instead of an in-modal screen). Removed. Also removed the entirely unused `.text-en` CSS class from the same region.
+- **[BUG-51/Low] README multilingual fallback table formatting**: row 19 of the "Multilingual Fallback Classifier" table combines "Egyptian Arabic" and "Ecuadorian Spanish" but only listed Arabic sample keywords, omitting Spanish examples. Added the missing Spanish examples and a footnote clarifying that Ecuadorian Spanish shares the same generic Spanish keyword set as row 16 (Mexican Spanish) rather than having its own region-specific vocabulary, which is why the two are counted as a single numbered entry.
+
+#### 📄 Documentation Sync
+
+- Added `js/wifi-modal.js` to the file tree in `AGENTS.md`
+- Added a `wifi-modal.js` row to the frontend module table in `doc/architecture.md` §3.1
+- Updated the Tutorials button description in `doc/requirements.md` §3.1 and added new §3.7 covering the Wi-Fi setup guide requirements
+- Added decision-log entries in `doc/project-memory.md` for both the Wi-Fi modal feature and this audit's fixes
+- Added a new "Round I" section to `doc/todo.md`
+- Bumped every version string across `package.json`, `README.md`, `CHANGELOG.md`, `AGENTS.md`, and `doc/*.md` to **v1.4.5**
+
+#### ⚠️ Flagged for Owner Confirmation (Not Acted On)
+
+- `doc/project-memory.md` documents a literal Google Spreadsheet ID that the project owner has confirmed is already rotated and no longer live, used as evidence for the GitHub PR-ref history-leak discussion. This literally contradicts `AGENTS.md` Rule 5 ("Spreadsheet ID... must not be hardcoded in code or any documentation, including `doc/*.md`"). Even though the ID is inactive, we recommend redacting it (e.g. `1BUnG_...79uI`) to comply with the project's own stated policy. This audit did not modify that passage; awaiting owner confirmation.
 
 ---
 

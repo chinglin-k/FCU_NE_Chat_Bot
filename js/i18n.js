@@ -37,8 +37,11 @@ const I18N = (() => {
       'form.studentId.label': '學號',
       'form.studentId.placeholder': '例：D1234567',
       'form.room.label': '房號',
+      'form.room.placeholder': '例：A123',
       'form.bed.label': '床號',
+      'form.bed.placeholder': '例：1',
       'form.phone.label': '手機號碼',
+      'form.phone.placeholder': '例：0912345678',
       'form.repairTime.label': '可維修時間',
       'form.repairTime.range': '可維修時間範圍',
       'form.repairTime.startHour.aria': '開始小時（0-23）',
@@ -56,8 +59,6 @@ const I18N = (() => {
       'form.required.aria': '必填',
       'form.cancel': '取消',
       'form.submit': '送出報修',
-      'success.title': '報修成功！',
-      'success.desc': '感謝您的回報，<br>網管人員收到後會盡快與您聯絡。',
       'footer.note':
         '本服務由 <a href="https://github.com/chinglin-k" target="_blank" rel="noopener noreferrer">@chinglin-k</a> 提供 · 僅限逢甲大學福星宿舍網路相關問題',
       'recaptcha.disclosure':
@@ -108,8 +109,11 @@ const I18N = (() => {
       'form.studentId.label': 'Student ID',
       'form.studentId.placeholder': 'e.g. D1234567',
       'form.room.label': 'Room No.',
+      'form.room.placeholder': 'e.g. A123',
       'form.bed.label': 'Bed No.',
+      'form.bed.placeholder': 'e.g. 1',
       'form.phone.label': 'Mobile Number',
+      'form.phone.placeholder': 'e.g. 0912345678',
       'form.repairTime.label': 'Available Repair Time',
       'form.repairTime.range': 'Available repair time range',
       'form.repairTime.startHour.aria': 'Start Hour (0-23)',
@@ -127,8 +131,6 @@ const I18N = (() => {
       'form.required.aria': 'Required',
       'form.cancel': 'Cancel',
       'form.submit': 'Submit Request',
-      'success.title': 'Request Submitted!',
-      'success.desc': 'Thank you! Our network admin<br>will contact you shortly.',
       'footer.note':
         'Provided by <a href="https://github.com/chinglin-k" target="_blank" rel="noopener noreferrer">@chinglin-k</a> · For FCU Fuxing Dormitory network issues only',
       'recaptcha.disclosure':

@@ -116,17 +116,17 @@
           <div class="form-row">
             <div class="form-group">
               <label for="field-room"><span data-i18n="form.room.label">房號</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
-              <input type="text" id="field-room" name="roomNumber" placeholder="e.g. A123" required maxlength="8" pattern="[A-Za-z0-9-]{1,8}">
+              <input type="text" id="field-room" name="roomNumber" data-i18n-placeholder="form.room.placeholder" placeholder="例：A123" required maxlength="8" pattern="[A-Za-z0-9-]{1,8}">
             </div>
             <div class="form-group">
               <label for="field-bed"><span data-i18n="form.bed.label">床號</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
-              <input type="text" id="field-bed" name="bedNumber" placeholder="e.g. 1" required maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}">
+              <input type="text" id="field-bed" name="bedNumber" data-i18n-placeholder="form.bed.placeholder" placeholder="例：1" required maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}">
             </div>
           </div>
 
           <div class="form-group">
             <label for="field-phone"><span data-i18n="form.phone.label">手機號碼</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
-            <input type="tel" id="field-phone" name="phone" placeholder="e.g. 0912345678" required autocomplete="tel" maxlength="10" inputmode="numeric" pattern="[0-9]{10}">
+            <input type="tel" id="field-phone" name="phone" data-i18n-placeholder="form.phone.placeholder" placeholder="例：0912345678" required autocomplete="tel" maxlength="10" inputmode="numeric" pattern="[0-9]{10}">
           </div>
 
           <div class="form-group">
@@ -182,16 +182,6 @@
           </div>
         </form>
 
-        <!-- ── 送出成功畫面（送出後顯示，取代表單）── -->
-        <div id="modal-success-view" class="modal-success-view is-hidden">
-          <div class="success-icon-wrap" aria-hidden="true">✅</div>
-          <h3 class="success-title" data-i18n="success.title">報修成功！</h3>
-          <p class="success-desc" data-i18n="success.desc">感謝您的回報，<br>網管人員收到後會盡快與您聯絡。</p>
-          <div class="success-bar-wrap" aria-label="自動關閉進度 / Auto-close progress">
-            <div class="success-bar" id="success-progress-bar"></div>
-          </div>
-        </div>
-
       </div>
     </div>
 
@@ -234,7 +224,7 @@
       <div class="modal-container wifi-modal-container">
         <div class="modal-header">
           <div>
-            <h2 class="modal-title" id="wifi-modal-title" data-i18n="wifi.modal.title">📡 Wi-Fi 機設定教學</h2>
+            <h2 class="modal-title" id="wifi-modal-title" tabindex="-1" data-i18n="wifi.modal.title">📡 Wi-Fi 機設定教學</h2>
             <p class="modal-subtitle" data-i18n="wifi.modal.subtitle">請依步驟完成設定，如有疑問請聯絡網管。</p>
           </div>
           <button class="modal-close" id="wifi-modal-close-btn" data-i18n-aria-label="wifi.modal.close.aria" aria-label="關閉 Wi-Fi 機教學">✕</button>

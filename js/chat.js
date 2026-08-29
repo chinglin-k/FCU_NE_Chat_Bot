@@ -193,12 +193,17 @@ const Chat = (() => {
     wrapper.innerHTML = `
       <div class="msg-avatar" aria-hidden="true">🤖</div>
       <div class="msg-content">
-        <div class="typing-indicator" aria-label="正在輸入" data-i18n-aria-label="typing.aria">
+        <div class="typing-indicator" data-i18n-aria-label="typing.aria">
           <span class="typing-dot"></span>
           <span class="typing-dot"></span>
           <span class="typing-dot"></span>
         </div>
       </div>`;
+    // ⚠️ 修正：aria-label 不可寫死中文常數，否則英文介面下，打字指示器
+    // 每次重新建立時仍會朗讀中文（data-i18n-aria-label 只在語言「切換」當下
+    // 重新掃描 DOM 才會生效，但此元素多為短暫顯示，切換當下通常不存在）。
+    // 改為建立當下就以目前語言取值。
+    wrapper.querySelector('.typing-indicator').setAttribute('aria-label', I18N.t('typing.aria'));
     typingEl = wrapper;
     _append(wrapper);
   }

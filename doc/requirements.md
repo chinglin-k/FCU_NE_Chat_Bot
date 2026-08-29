@@ -1,9 +1,9 @@
 # 逢甲大學福星宿舍網路報修 Chatbot — 需求規格書
 # FCU Fuxing Dormitory Network Repair Assistant — Requirements Specification
 
-**版本 / Version**：v1.4.3  
+**版本 / Version**：v1.4.5  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-08-23 (v1.4.3: 系統角色與功能背景補上查詢功能)  
+**最後更新 / Last Updated**：2026-08-29 (v1.4.5: 補上 Wi-Fi 機設定教學需求說明)  
 **專案倉庫 / Repository**：https://github.com/chinglin-k/FCU_NE_Chat_Bot
 
 ---
@@ -31,7 +31,7 @@ Chatbot 啟動後顯示四個主要選項按鈕，Header 右上角另有 Teams �
 
 | 按鈕 / Button | 觸發行為 / Action |
 |---|---|
-| 📚 教學 / Tutorials | 顯示 Windows / Mac 系統選擇，提供 PDF 教學文件連結 |
+| 📚 教學 / Tutorials | 顯示 Windows / Mac / Wi-Fi 機三個系統選擇；Windows、Mac 提供 PDF 教學文件連結，Wi-Fi 機顯示站內 4 步驟設定教學 Modal（v1.4.4 新增） |
 | ⚙️ 常見問題 / FAQ | 常見問題一覽：WiFi 帳號密碼、轉接器驅動程式、寢室 WiFi 訊號、冷氣電費儲值等 |
 | 🔍 查詢案件 / Check My Cases | 開啟查詢 Modal，輸入學號查詢報修案件狀態（v1.4.0 新增） |
 | 🔧 我要實體協助、報修 / Request On-site Help | 開啟報修表單 Modal |
@@ -80,6 +80,16 @@ Chatbot 啟動後顯示四個主要選項按鈕，Header 右上角另有 Teams �
 - 所有欄位值在前端渲染前均做 HTML 轉義（`_esc()`），防止試算表資料觸發 XSS
 - 已加入頻率限制：依 clientId 每人每分鐘最多 10 次，全體使用者每分鐘總計最多 40 次
 - 管理者操作：在試算表的「是否派人」/「是否完成」/「備註」欄位填寫內容，學生即可透過查詢功能看到進度
+
+### 3.7 Wi-Fi 機設定教學 Modal (Wi-Fi Router Setup Guide — v1.4.4)
+
+- 於「教學」選單新增第三個選項「Wi-Fi 機」，與 Windows / Mac 並列
+- 純前端靜態內容，不呼叫 GAS 後端、不消耗任何頻率限制配額
+- 4 步驟圖文教學：① 連接電源與網路線 ② 連接裝置（電腦 / 手機兩種情境）
+  ③ 進入後台管理介面 ④ 設定路由器模式與固定 IP
+- Modal 支援 X 按鈕、「關閉」按鈕、遮罩點擊、ESC 鍵四種關閉方式，
+  與報修表單 Modal、查詢案件 Modal 的互動模式一致
+- 全部步驟文字提供繁體中文與英文對照
 
 ---
 

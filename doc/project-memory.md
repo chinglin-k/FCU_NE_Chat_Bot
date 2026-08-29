@@ -3,8 +3,8 @@
 > 僅在確認新決策、修改既有決策或發現重要限制時更新。
 > 每次更新須記錄日期、原因與影響範圍。
 
-**版本 / Version**：v1.4.3  
-**最後更新 / Last Updated**：2026-08-23
+**版本 / Version**：v1.4.5  
+**最後更新 / Last Updated**：2026-08-29
 
 ---
 
@@ -63,4 +63,15 @@
   殘留參照目前僅為歷史資訊、無實質風險；`README.md`／`doc/architecture.md`
   已於 v1.4.2 更新為反映此現況。若未來有其他機密（API Key 等）誤入歷史，
   仍建議洽 GitHub Support 清除 PR ref 層級快取，而非僅依賴歷史清除 + 輪替。
+
+---
+
+## v1.4.4／v1.4.5 決策記錄（2026-08-29）
+
+| 日期 | 決策 | 理由 | 影響檔案 |
+|---|---|---|---|
+| 2026-08-29 | 新增 Wi-Fi 機設定教學 Modal（`js/wifi-modal.js`） | 教學選單原僅有 Windows / Mac 兩個系統別 PDF 連結，Wi-Fi 分享器設定缺乏站內圖文教學；改為純前端靜態 4 步驟 Modal，不呼叫 GAS，不消耗任何頻率限制配額 | `js/wifi-modal.js`（新增）、`js/chat.js`、`js/config.js`、`js/i18n.js`、`index.html`、`css/style.css` |
+| 2026-08-29 | 查詢案件完成後補上「回主選單／報修」按鈕 | 原本查詢完成後對話即中斷，使用者需自行輸入文字才能繼續操作；`Chat.onQuerySuccess()` 補上按鈕群組，與報修成功後的體驗一致 | `js/chat.js`、`js/query.js` |
+| 2026-08-29 | 全面稽核修復（BUG-44~51，詳見 `CHANGELOG.md`） | 例行程式碼 vs. 文件一致性稽核，本次聚焦新功能（Wi-Fi Modal）上線後遺漏的 `eslint.config.js` 全域宣告、i18n 涵蓋率、無障礙焦點管理、死碼清理 | 詳見 `CHANGELOG.md` v1.4.5 |
+| 2026-08-29 | 移除報修表單「Modal 內成功畫面」死碼 | `_handleSuccess()` 自 v1.1.0 行為回復後即直接關閉 Modal、於聊天區顯示成功訊息，`#modal-success-view`／`.is-hidden`／`.has-success`／`.text-en` 等標記與樣式已無任何程式路徑會觸發，經逐一 `grep` 確認零引用後移除 | `index.html`、`js/report.js`、`js/i18n.js`、`css/style.css` |
 

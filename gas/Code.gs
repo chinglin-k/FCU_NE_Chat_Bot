@@ -282,7 +282,10 @@ function classifyIntent(message, clientId) {
 
   const apiKey = (PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY') || '').trim();
   if (!apiKey) {
-    return { success: false, error: 'GEMINI_API_KEY 未在 Script Properties 中設定' };
+    // ⚠️ 修正：比照 BUG-28/29 慣例，一律回傳固定大寫代碼，不將 Script Properties
+    // 設定細節（即使是「未設定」這種提示訊息）原樣回傳給前端。
+    Logger.log('[classifyIntent] GEMINI_API_KEY 未在 Script Properties 中設定');
+    return { success: false, error: 'GEMINI_API_KEY_NOT_CONFIGURED' };
   }
 
   // 要求 Gemini 回傳「代碼|信心分數|子主題」三欄格式（例：BUTTON_SETTING|0.92|ADAPTER）

@@ -98,7 +98,7 @@ const Intent = (() => {
 
       let data = await res.json();
 
-      // Token 失效：自動重取後重試一次（防止無限迄迴）
+      // Token 失效：自動重取後重試一次（僅重試一次，防止無限循環）
       if (data.error === 'INVALID_TOKEN') {
         console.warn('[Intent][Token] INVALID_TOKEN，重取 token 後重試一次...');
         const newToken = await Chat.refreshToken();
