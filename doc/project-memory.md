@@ -58,7 +58,7 @@
   `refs/pull/*/head` 參照、第三方封存服務（如 Software Heritage）、其他人的
   fork，仍可能保留舊版明碼內容，Git 層級操作無法強制觸及這些位置。
   **v1.4.2 稽核時已用 `git ls-remote` + `git fetch refs/pull/*/head` 實際驗證**：
-  真實 Spreadsheet ID（`1BUnG_NNaxU-oBFPKY-rZ0xWyxAzG-A_AVOsw07X79uI`）確實仍可
+  真實 Spreadsheet ID（`1BUnG_...79uI`，已遮蔽，v1.4.5 依 AGENTS.md 規範修訂）確實仍可
   透過 PR ref 取得。**專案擁有者已確認該 ID 已完成輪替，舊 ID 已失效**，故此
   殘留參照目前僅為歷史資訊、無實質風險；`README.md`／`doc/architecture.md`
   已於 v1.4.2 更新為反映此現況。若未來有其他機密（API Key 等）誤入歷史，
