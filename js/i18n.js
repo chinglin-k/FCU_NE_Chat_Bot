@@ -71,7 +71,22 @@ const I18N = (() => {
       'query.studentId.label': '學號',
       'query.studentId.placeholder': '例：D1234567',
       'query.submit': '查詢',
-      'query.cancel': '取消'
+      'query.cancel': '取消',
+      'wifi.modal.title': '📡 Wi-Fi 機設定教學',
+      'wifi.modal.subtitle': '請依步驟完成設定，如有疑問請聯絡網管。',
+      'wifi.modal.close.aria': '關閉 Wi-Fi 機教學',
+      'wifi.step1.title': '連接電源與網路線',
+      'wifi.step1.desc': '將 Wi-Fi 機的電源線接上插座，並將網路線插入 Wi-Fi 機的 <strong>WAN 孔</strong>。',
+      'wifi.step2.title': '連接裝置',
+      'wifi.step2.li1': '<strong>使用電腦：</strong>將另一條網路線一端接到電腦，另一端接到 Wi-Fi 機的 <strong>LAN 孔</strong>。',
+      'wifi.step2.li2': '<strong>使用手機：</strong>進入手機「設定」➡️「Wi-Fi」，搜尋並連接該 Wi-Fi 機的無線網路。',
+      'wifi.step3.title': '進入後台管理介面',
+      'wifi.step3.desc': '開啟瀏覽器，在網址列輸入 Wi-Fi 機背面標示的<strong>後台管理網址</strong>，即可進入設定頁面。',
+      'wifi.step4.title': '設定路由器模式與固定 IP',
+      'wifi.step4.li1': '在後台介面中選擇「<strong>路由器模式</strong>」',
+      'wifi.step4.li2': '找到「<strong>設定 IP 介面</strong>」選項',
+      'wifi.step4.li3': '選擇「<strong>固定 IP</strong>」，並依照網路孔旁貼紙上標示的資訊完整填寫',
+      'wifi.modal.cancel': '關閉'
     },
     en: {
       'header.title': 'FCU Fuxing Dormitory Network Repair Assistant',
@@ -127,7 +142,22 @@ const I18N = (() => {
       'query.studentId.label': 'Student ID',
       'query.studentId.placeholder': 'e.g. D1234567',
       'query.submit': 'Search',
-      'query.cancel': 'Cancel'
+      'query.cancel': 'Cancel',
+      'wifi.modal.title': '📡 Wi-Fi Router Setup Guide',
+      'wifi.modal.subtitle': 'Follow the steps to complete setup. Contact network admin if needed.',
+      'wifi.modal.close.aria': 'Close Wi-Fi Router Guide',
+      'wifi.step1.title': 'Connect Power & Network Cable',
+      'wifi.step1.desc': 'Plug the Wi-Fi router\'s power cable into a socket, then insert the network cable into the router\'s <strong>WAN port</strong>.',
+      'wifi.step2.title': 'Connect Your Device',
+      'wifi.step2.li1': '<strong>Computer:</strong> Connect one end of another network cable to your computer, and the other end to the router\'s <strong>LAN port</strong>.',
+      'wifi.step2.li2': '<strong>Phone:</strong> Go to Settings ➡️ Wi-Fi, search for and connect to the router\'s wireless network.',
+      'wifi.step3.title': 'Open the Admin Interface',
+      'wifi.step3.desc': 'Open a browser and enter the <strong>admin URL</strong> printed on the back of the router to access the settings page.',
+      'wifi.step4.title': 'Set Router Mode & Static IP',
+      'wifi.step4.li1': 'Select <strong>Router Mode</strong> in the admin interface',
+      'wifi.step4.li2': 'Find the <strong>IP Settings</strong> option',
+      'wifi.step4.li3': 'Choose <strong>Static IP</strong> and fill in the details from the sticker next to the network port',
+      'wifi.modal.cancel': 'Close'
     }
   };
 

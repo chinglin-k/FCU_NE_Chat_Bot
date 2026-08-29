@@ -33,6 +33,10 @@ const CONFIG = Object.freeze({
         '[點此開啟 Mac 教學 PDF（Google Drive）]({MAC_URL})\n\n' +
         'WiFi 分享器設定請依照**該機種的說明書**操作。\n\n' +
         '如果看完文件還是無法解決，請選擇「我需要協助」。',
+      TEACH_WIFI:
+        '📶 **Wi-Fi 機設定教學**\n\n' +
+        '請點選下方按鈕查看詳細步驟說明。\n\n' +
+        '如果設定完成後仍無法上網，請選擇「我需要協助」。',
       SETTING_HEADER: '📋 **常見問題**',
       SETTING_ITEMS: Object.freeze({
         ACCOUNT: '**fcu、fcu auto 帳號與密碼**\n帳號 = 你的學號 密碼 = 你的 NID 密碼',
@@ -104,6 +108,10 @@ const CONFIG = Object.freeze({
         '[Open Mac PDF (Google Drive)]({MAC_URL})\n\n' +
         'For WiFi router setup, follow the manual of your specific device.\n\n' +
         'If the guide doesn\'t resolve your issue, tap "I Need Help".',
+      TEACH_WIFI:
+        '📶 **Wi-Fi Router Setup Guide**\n\n' +
+        'Tap the button below to view step-by-step instructions.\n\n' +
+        'If you still cannot connect after setup, tap "I Need Help".',
       SETTING_HEADER: '📋 **Frequently Asked Questions**',
       SETTING_ITEMS: Object.freeze({
         ACCOUNT: '**fcu / fcu auto Account**\nAccount: Student ID | Password: NID password',
@@ -170,6 +178,7 @@ const CONFIG = Object.freeze({
       QUERY: '查詢案件',
       TEACH_WIN: 'Windows 系統',
       TEACH_MAC: 'Mac 系統',
+      TEACH_WIFI: 'Wi-Fi 機',
       NEED_HELP: '我需要協助',
       BACK_MAIN: '回到主選單',
       OPEN_REPORT: '開啟報修表單',
@@ -184,6 +193,7 @@ const CONFIG = Object.freeze({
       QUERY: 'Check My Cases',
       TEACH_WIN: 'Windows',
       TEACH_MAC: 'Mac',
+      TEACH_WIFI: 'Wi-Fi Router',
       NEED_HELP: 'I Need Help',
       BACK_MAIN: 'Back to Main Menu',
       OPEN_REPORT: 'Open Repair Form',
