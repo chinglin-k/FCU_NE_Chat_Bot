@@ -278,8 +278,9 @@ const Chat = (() => {
           _hideTyping();
           addBotMessage(_R().TEACH_CHOOSE);
           _addButtonGroup([
-            { id: 'btn-teach-win', icon: '🪟', label: `${_B().TEACH_WIN}`, action: 'teach-windows' },
-            { id: 'btn-teach-mac', icon: '🍎', label: _B().TEACH_MAC,         action: 'teach-mac'    }
+            { id: 'btn-teach-win',  icon: '🪟', label: `${_B().TEACH_WIN}`,  action: 'teach-windows' },
+            { id: 'btn-teach-mac',  icon: '🍎', label: _B().TEACH_MAC,         action: 'teach-mac'    },
+            { id: 'btn-teach-wifi', icon: '📡', label: _B().TEACH_WIFI,        action: 'teach-wifi'   }
           ]);
           break;
 
@@ -333,6 +334,19 @@ const Chat = (() => {
           _addButtonGroup([
             { id: 'btn-need-help-mac', icon: '🆘', label: _B().NEED_HELP,        action: 'need-help'   },
             { id: 'btn-back-main-mac', icon: '🏠', label: _B().BACK_MAIN, action: 'back-to-main' }
+          ]);
+          break;
+        }
+
+        case 'teach-wifi': {
+          _showTyping();
+          await _delay(800);
+          _hideTyping();
+          addBotMessage(_R().TEACH_WIFI);
+          WifiModal.open();
+          _addButtonGroup([
+            { id: 'btn-need-help-wifi', icon: '🆘', label: _B().NEED_HELP,   action: 'need-help'   },
+            { id: 'btn-back-main-wifi', icon: '🏠', label: _B().BACK_MAIN,  action: 'back-to-main' }
           ]);
           break;
         }
@@ -443,8 +457,9 @@ const Chat = (() => {
         case INTENTS.BUTTON_TEACH:
           addBotMessage(_R().TEACH_CHOOSE);
           _addButtonGroup([
-            { id: 'btn-teach-win-txt', icon: '🪟', label: `${_B().TEACH_WIN}`, action: 'teach-windows' },
-            { id: 'btn-teach-mac-txt', icon: '🍎', label: _B().TEACH_MAC,         action: 'teach-mac'    }
+            { id: 'btn-teach-win-txt',  icon: '🪟', label: `${_B().TEACH_WIN}`, action: 'teach-windows' },
+            { id: 'btn-teach-mac-txt',  icon: '🍎', label: _B().TEACH_MAC,         action: 'teach-mac'    },
+            { id: 'btn-teach-wifi-txt', icon: '📡', label: _B().TEACH_WIFI,        action: 'teach-wifi'   }
           ]);
           break;
 

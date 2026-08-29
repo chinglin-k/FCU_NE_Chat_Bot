@@ -229,6 +229,67 @@
       </div>
     </div>
 
+    <!-- ── Wi-Fi 機教學 Modal ── -->
+    <div class="modal-overlay" id="wifi-modal" role="dialog" aria-modal="true" aria-labelledby="wifi-modal-title" hidden>
+      <div class="modal-container wifi-modal-container">
+        <div class="modal-header">
+          <div>
+            <h2 class="modal-title" id="wifi-modal-title" data-i18n="wifi.modal.title">📡 Wi-Fi 機設定教學</h2>
+            <p class="modal-subtitle" data-i18n="wifi.modal.subtitle">請依步驟完成設定，如有疑問請聯絡網管。</p>
+          </div>
+          <button class="modal-close" id="wifi-modal-close-btn" data-i18n-aria-label="wifi.modal.close.aria" aria-label="關閉 Wi-Fi 機教學">✕</button>
+        </div>
+
+        <div class="wifi-modal-body">
+
+          <div class="wifi-step">
+            <div class="wifi-step-header">
+              <span class="wifi-step-num">1</span>
+              <span class="wifi-step-title" data-i18n="wifi.step1.title">連接電源與網路線</span>
+            </div>
+            <p class="wifi-step-desc" data-i18n="wifi.step1.desc">將 Wi-Fi 機的電源線接上插座，並將網路線插入 Wi-Fi 機的 <strong>WAN 孔</strong>。</p>
+          </div>
+
+          <div class="wifi-step">
+            <div class="wifi-step-header">
+              <span class="wifi-step-num">2</span>
+              <span class="wifi-step-title" data-i18n="wifi.step2.title">連接裝置</span>
+            </div>
+            <ul class="wifi-step-list">
+              <li data-i18n="wifi.step2.li1"><strong>使用電腦：</strong>將另一條網路線一端接到電腦，另一端接到 Wi-Fi 機的 <strong>LAN 孔</strong>。</li>
+              <li data-i18n="wifi.step2.li2"><strong>使用手機：</strong>進入手機「設定」➡️「Wi-Fi」，搜尋並連接該 Wi-Fi 機的無線網路。</li>
+            </ul>
+          </div>
+
+          <div class="wifi-step">
+            <div class="wifi-step-header">
+              <span class="wifi-step-num">3</span>
+              <span class="wifi-step-title" data-i18n="wifi.step3.title">進入後台管理介面</span>
+            </div>
+            <p class="wifi-step-desc" data-i18n="wifi.step3.desc">開啟瀏覽器，在網址列輸入 Wi-Fi 機背面標示的<strong>後台管理網址</strong>，即可進入設定頁面。</p>
+          </div>
+
+          <div class="wifi-step">
+            <div class="wifi-step-header">
+              <span class="wifi-step-num">4</span>
+              <span class="wifi-step-title" data-i18n="wifi.step4.title">設定路由器模式與固定 IP</span>
+            </div>
+            <ol class="wifi-step-ol">
+              <li data-i18n="wifi.step4.li1">在後台介面中選擇「<strong>路由器模式</strong>」</li>
+              <li data-i18n="wifi.step4.li2">找到「<strong>設定 IP 介面</strong>」選項</li>
+              <li data-i18n="wifi.step4.li3">選擇「<strong>固定 IP</strong>」，並依照網路孔旁貼紙上標示的資訊完整填寫</li>
+            </ol>
+          </div>
+
+          <div class="wifi-modal-actions">
+            <button type="button" class="btn-secondary" id="wifi-modal-cancel-btn" data-i18n="wifi.modal.cancel">關閉</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
     <!-- ── Input Area ── -->
     <footer class="chat-footer" role="contentinfo">
       <div class="input-container">
@@ -265,6 +326,7 @@
   <script src="js/report.js"></script>
   <script src="js/query.js"></script>
   <script src="js/teams.js"></script>
+  <script src="js/wifi-modal.js"></script>
   <script src="js/chat.js"></script>
 </body>
 </html>

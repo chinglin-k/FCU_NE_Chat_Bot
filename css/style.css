@@ -1233,3 +1233,166 @@ span.text-en:not([aria-hidden]) {
   color: var(--color-success);
   border: 1px solid rgba(74, 222, 128, 0.3);
 }
+
+/* ============================================================
+   Wi-Fi 機教學 Modal
+   ============================================================ */
+
+/* 容器尺寸（對齊 query-modal-container 命名風格） */
+.wifi-modal-container {
+  max-width: 480px;
+}
+
+/* Modal 本體 padding */
+.wifi-modal-body {
+  padding: 20px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── 單一步驟卡片 ── */
+.wifi-step {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  transition: border-color 0.2s var(--ease-out);
+}
+
+.wifi-step:hover {
+  border-color: var(--glass-border-active);
+}
+
+/* ── 步驟標題列（編號 + 標題） ── */
+.wifi-step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* ── 步驟編號圓形標籤 ── */
+.wifi-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-accent-orange), var(--color-accent-orange-light));
+  color: var(--color-white);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+}
+
+/* ── 步驟標題文字 ── */
+.wifi-step-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+/* ── 步驟說明文字 ── */
+.wifi-step-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.wifi-step-desc strong {
+  color: var(--color-accent-blue);
+  font-weight: 600;
+}
+
+/* ── 步驟無序清單（連接裝置） ── */
+.wifi-step-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.wifi-step-list li::before {
+  content: '•';
+  color: var(--color-accent-orange);
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.wifi-step-list strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* ── 步驟有序清單（設定 IP） ── */
+.wifi-step-ol {
+  list-style: none;
+  counter-reset: wifi-step-counter;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.wifi-step-ol li {
+  counter-increment: wifi-step-counter;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.wifi-step-ol li::before {
+  content: counter(wifi-step-counter) '.';
+  color: var(--color-accent-orange);
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.wifi-step-ol strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+/* ── 操作按鈕區（僅「關閉」按鈕，靠右對齊） ── */
+.wifi-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+/* ── 響應式：窄螢幕調整 ── */
+@media (max-width: 640px) {
+  .wifi-modal-body {
+    padding: 16px 18px 24px;
+    gap: 12px;
+  }
+
+  .wifi-step {
+    padding: 12px 14px;
+  }
+
+  .wifi-step-title {
+    font-size: 13px;
+  }
+
+  .wifi-modal-actions {
+    justify-content: stretch;
+  }
+
+  .wifi-modal-actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
