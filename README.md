@@ -4,18 +4,18 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 [![Run Validation Unit Tests](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml/badge.svg)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-v1.4.3-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.4.5-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**版本 / Version**：v1.4.3
+**版本 / Version**：v1.4.5
 
-**最後更新 / Last Updated**：2026-08-23
+**最後更新 / Last Updated**：2026-08-29
 
 ---
 
 ## 功能特色
 
-- 📚 **網路教學**：提供 Windows / Mac 宿舍網路設定 PDF 教學
+- 📚 **網路教學**：提供 Windows / Mac 宿舍網路設定 PDF 教學，另有站內 **Wi-Fi 機設定教學 Modal**（4 步驟圖文說明，v1.4.4 新增）
 - ⚙️ **常見問題**：轉接器驅動程式、WiFi 帳號密碼、寢室 WiFi 訊號、冷氣電費儲值等常見問題解答
   * 🎯 支援「子主題精準回覆」：問轉接器只顯示轉接器卡片、問帳密只顯示帳密卡片
 - 🔧 **線上報修通報**：填寫報修表單自動寫入 Google 試算表（前後端雙重格式驗證：學號 1 字母+7 數字、手機 10 位數字、床號 1–3 位數字）
@@ -62,7 +62,11 @@
 | 16 | 墨西哥西班牙文 (Spanish - Mexico) | `es-MX` (墨西哥) | reparar, puerto de pared, adaptador, contraseña, manual |
 | 17 | 摩西文 / 法文 (Mooré / French) | `mos` (布吉納法索) | maane, prise murale, adaptateur, compte, manuel |
 | 18 | 蒙古文 (Mongolian) | `mn` | засвар, ханын порт, адаптер, нууц үг, заавар |
-| 19 | 埃及阿拉伯文 (Egyptian Arabic) & 厄瓜多西班牙文 (Spanish - Ecuador) | `ar-EG` / `es-EC` | تصليح, منفذ حائط, محول, كلمة السر, دليل |
+| 19 | 埃及阿拉伯文 (Egyptian Arabic) & 厄瓜多西班牙文 (Spanish - Ecuador) ¹ | `ar-EG` / `es-EC` | تصليح, منفذ حائط, محول, كلمة السر, دليل／reparar, avería, contraseña |
+
+¹ 埃及阿拉伯文與厄瓜多西班牙文合併列於同一編號：埃及阿拉伯文有專屬關鍵字（如「مش شغال」），
+厄瓜多西班牙文則與第 16 項墨西哥西班牙文共用同一組通用西班牙語關鍵字（西班牙語各地區用詞差異極小），
+未另外建置地區專屬詞彙，故合併計為 1 項、不獨立計數。
 
 ---
 

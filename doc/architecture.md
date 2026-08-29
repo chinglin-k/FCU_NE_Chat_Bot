@@ -1,7 +1,7 @@
 # 架構設計文件 (Architecture Design Document)
 
-**版本 / Version**：v1.4.3  
-**最後更新 / Last Updated**：2026-08-23（v1.4.3: 系統架構概覽與需求文件的查詢功能一致性修正）
+**版本 / Version**：v1.4.5  
+**最後更新 / Last Updated**：2026-08-29（v1.4.5: 新增 Wi-Fi 機設定教學模組、`WifiModal` ESLint 全域缺漏修復、全站版本號對齊）
 
 ---
 
@@ -55,6 +55,7 @@ graph TD
 | `query.js` | 報修案件查詢 Modal 開關、學號前端格式驗證、POST Body 送出、查詢結果渲染（含 `_esc()` HTML 轉義防 XSS） |
 | `counter.js` | 讀取 / 累加使用人數，更新 Header 雙語數字 |
 | `teams.js` | 開啟 Teams chat 深連結、平台備援跳轉、一鍵複製帳號名稱 |
+| `wifi-modal.js` | Wi-Fi 機設定教學 Modal 開關（X 按鈕／關閉按鈕／遮罩點擊／ESC 四種關閉方式），純靜態步驟說明，不呼叫 GAS（v1.4.4 新增） |
 
 ### 3.2 後端 (`gas/Code.gs`)
 

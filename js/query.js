@@ -243,7 +243,7 @@ const QueryCase = (() => {
         _renderResults(data.cases);
       }
 
-      // 查詢完是：顯示返回主選單和報修按鈕
+      // 查詢完成後：顯示返回主選單和報修按鈕
       Chat.onQuerySuccess();
 
     } catch (err) {

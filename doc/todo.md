@@ -1,7 +1,7 @@
 # 開發待辦清單（todo.md）
 
-**版本 / Version**：v1.4.3  
-**最後更新 / Last Updated**：2026-08-23
+**版本 / Version**：v1.4.5  
+**最後更新 / Last Updated**：2026-08-29
 
 ---
 
@@ -116,6 +116,30 @@
 | 後端錯誤訊息中文化修正 | ✅ Done | `gas/Code.gs` 將所有的驗證與限流錯誤改為英文大寫代碼 (如 `RATE_LIMITED`)，交由前端 `report.js` 與 `query.js` 翻譯，解決英文版畫面跳出中文錯誤的漏洞 (BUG-29) |
 | 工作表錯誤訊息資訊洩漏修復 | ✅ Done | 找不到工作表時改回傳 `SHEET_NOT_FOUND`，防止洩漏 `SHEET_NAME` 設定值 (BUG-28) |
 | 全專案文件漏列修復 | ✅ Done | 補上遺漏的 `js/query.js` 模組說明、五組限流數、測試數、載入順序等，並對齊所有檔案版本至 v1.4.1 (BUG-20~27, 31~33) |
+
+---
+
+## I 輪：Wi-Fi 機設定教學、查詢後續按鈕、全面稽核（2026-08-29 / v1.4.5）
+
+| 功能 | 狀態 | 說明 |
+|---|---|---|
+| Wi-Fi 機設定教學 Modal | ✅ Done | 教學選單新增第三選項，純前端 4 步驟圖文教學，不呼叫 GAS（`js/wifi-modal.js`） |
+| 查詢完成後顯示後續按鈕 | ✅ Done | `Chat.onQuerySuccess()` 補上「回主選單／報修」按鈕，與報修成功體驗一致 |
+| ESLint 全域缺漏修復（BUG-44） | ✅ Done | `eslint.config.js` 補上 `WifiModal` 全域宣告，修復 CI `npm run lint` 失敗（`no-undef`） |
+| 房號／床號／手機號碼欄位 i18n 修復（BUG-45） | ✅ Done | 三欄位 placeholder 原為寫死英文，改用 `data-i18n-placeholder` 並補上 `i18n.js` 對應中英文字串 |
+| 打字指示器 aria-label 修復（BUG-46） | ✅ Done | 原本建立當下寫死中文，英文介面下仍朗讀中文；改為建立當下即以 `I18N.t()` 取值 |
+| Wi-Fi Modal 無障礙焦點修復（BUG-47） | ✅ Done | `<h2>` 標題補上 `tabindex="-1"`，讓 `.focus()` 實際生效；並補上背景捲動鎖定（與另兩個 Modal 一致） |
+| 註解錯字修正（BUG-48） | ✅ Done | `intent.js`「無限迄迴」→「無限循環」；`query.js`「查詢完是」→「查詢完成後」 |
+| 後端錯誤代碼一致性修正（BUG-49） | ✅ Done | `classifyIntent()` 的 `GEMINI_API_KEY` 未設定訊息改為固定代碼 `GEMINI_API_KEY_NOT_CONFIGURED`，比照其餘錯誤路徑慣例 |
+| 死碼清理：報修表單 Modal 內成功畫面（BUG-50） | ✅ Done | 移除自 v1.1.0 行為回復後即無程式路徑觸發的 `#modal-success-view`／`.is-hidden`／`.has-success`／`.text-en` |
+| README 多語系備援表格式修復（BUG-51） | ✅ Done | 第 19 項合併埃及阿拉伯文與厄瓜多西班牙文，原表格缺西班牙語範例關鍵字；補上並加註說明合併計數原因 |
+| 全站文件補上 Wi-Fi Modal 說明 | ✅ Done | `AGENTS.md` 檔案樹、`doc/architecture.md` 模組表、`doc/requirements.md` §3.1/§3.7 補齊 |
+| 全站版本號對齊 v1.4.5 | ✅ Done | 所有 `.md`、`package.json` 版本號統一為 v1.4.5 |
+| 單元測試維持 53 項全數通過 | ✅ Done | `npm test` 53 pass / 0 fail；`npm run lint` 0 error / 0 warning（修復 BUG-44 後恢復綠燈） |
+
+> ⚠️ **待人工確認（未動作）**：`doc/project-memory.md` 內記載一組已輪替失效的
+> Spreadsheet ID 明碼，與 `AGENTS.md` 規範 5「不得硬編碼於任何文件」字面上牴觸；
+> 是否要改為遮蔽格式（如 `1BUnG_...79uI`），待專案擁有者確認後再處理。
 
 ---
 

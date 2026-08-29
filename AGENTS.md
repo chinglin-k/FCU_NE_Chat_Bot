@@ -2,9 +2,9 @@
 
 > 所有 AI 工具與開發者均須遵守此規範
 
-**版本 / Version**：v1.4.3  
+**版本 / Version**：v1.4.5  
 
-**最後更新 / Last Updated**：2026-08-23
+**最後更新 / Last Updated**：2026-08-29
 
 ---
 
@@ -49,7 +49,8 @@ FCU_NE_Chat_Bot/
 │   ├── report.js          ← 報修表單（含前端格式驗證、reCAPTCHA token 取得）
 │   ├── query.js           ← 報修查詢（Modal 介面與查詢結果渲染）
 │   ├── counter.js         ← 計數器
-│   └── teams.js           ← Teams 聯絡功能（chat 深連結 + 平台備援 + 複製）
+│   ├── teams.js           ← Teams 聯絡功能（chat 深連結 + 平台備援 + 複製）
+│   └── wifi-modal.js      ← Wi-Fi 機設定教學 Modal（開/關/ESC，v1.4.4 新增）
 ├── gas/Code.gs            ← GAS 原始碼（不部署至 Pages），尾端含 module.exports 供 Node 測試
 ├── test/                  ← Node.js 單元測試（含 gas-mocks.js，模擬 GAS 全域物件）
 ├── package.json           ← npm test / npm run lint 腳本

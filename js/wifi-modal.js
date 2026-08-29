@@ -18,7 +18,11 @@ const WifiModal = (() => {
     const overlay = _overlay();
     if (!overlay) return;
     overlay.removeAttribute('hidden');
+    // 與 report-modal / query-modal 一致：開啟時鎖定背景捲動
+    document.body.style.overflow = 'hidden';
     // 焦點移至標題（無障礙）
+    // ⚠️ 修正：<h2> 預設不可聚焦，.focus() 會靜默失效；
+    // 需搭配 index.html 上的 tabindex="-1" 才能讓標題可被程式化聚焦。
     const title = document.getElementById('wifi-modal-title');
     if (title) title.focus();
   }
@@ -28,6 +32,7 @@ const WifiModal = (() => {
     const overlay = _overlay();
     if (!overlay) return;
     overlay.setAttribute('hidden', '');
+    document.body.style.overflow = '';
   }
 
   /* ── 初始化事件監聽 ── */
