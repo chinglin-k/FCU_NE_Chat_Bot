@@ -558,6 +558,14 @@ const Chat = (() => {
     _showMainButtons();
   }
 
+  /* 公開 API：查詢成功回呼（查詢結果顯示完後顯示後續按鈕） */
+  function onQuerySuccess() {
+    _addButtonGroup([
+      { id: 'btn-back-main-after-query', icon: '🏠', label: _B().BACK_MAIN,  action: 'back-to-main' },
+      { id: 'btn-report-after-query',   icon: '🔧', label: _B().REPORT,     action: 'report',      primary: true }
+    ]);
+  }
+
   /* ══════════════════════════════════════
      初始化
   ══════════════════════════════════════ */
@@ -653,7 +661,7 @@ const Chat = (() => {
     }
   }
 
-  return { init, addBotMessage, addUserMessage, onReportSuccess, getToken, refreshToken, getClientId };
+  return { init, addBotMessage, addUserMessage, onReportSuccess, onQuerySuccess, getToken, refreshToken, getClientId };
 })();
 
 /* ── 啟動 ── */
