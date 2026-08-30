@@ -129,10 +129,10 @@ const Chat = (() => {
     const group = document.createElement('div');
     group.className = 'btn-group';
 
-    buttons.forEach(({ id, icon, label, action, primary = false }) => {
+    buttons.forEach(({ id, icon, label, action, primary = false, accent = false }) => {
       const btn = document.createElement('button');
       btn.id        = id;
-      btn.className = `quick-btn${primary ? ' primary' : ''}`;
+      btn.className = `quick-btn${primary ? ' primary' : ''}${accent ? ' accent' : ''}`;
       btn.setAttribute('data-action', action);
 
       // 安全組合 icon + label：用 DOM 操作避免 innerHTML XSS
@@ -387,7 +387,7 @@ const Chat = (() => {
 
   function _showMainButtons() {
     _addButtonGroup([
-      { id: 'btn-teach',   icon: '📚', label: _B().TEACH,   action: 'teach'   },
+      { id: 'btn-teach',   icon: '📚', label: _B().TEACH,   action: 'teach',   accent: true },
       { id: 'btn-setting', icon: '⚙️', label: _B().SETTING, action: 'setting' },
       { id: 'btn-query',   icon: '🔍', label: _B().QUERY,   action: 'query' },
       { id: 'btn-report',  icon: '🔧', label: _B().REPORT,  action: 'report',  primary: true }
@@ -451,7 +451,7 @@ const Chat = (() => {
         // 顯示推薦按鈕（依判斷到的意圖）+ 主選單三顆按鈕讓使用者自行選擇
         _addButtonGroup([
           { id: 'btn-confirm-intent', icon: '✅', label: `${_B().CONFIRM_YES_PREFIX} ${label}`, action: _intentToAction(intent), primary: true },
-          { id: 'btn-confirm-teach',   icon: '📚', label: _B().TEACH,                               action: 'teach'   },
+          { id: 'btn-confirm-teach',   icon: '📚', label: _B().TEACH,                               action: 'teach',   accent: true },
           { id: 'btn-confirm-setting', icon: '⚙️', label: _B().SETTING,                                 action: 'setting' },
           { id: 'btn-confirm-report',  icon: '🔧', label: _B().REPORT, action: 'report'  }
         ]);

@@ -482,6 +482,21 @@ a:hover {
   color: var(--color-white);
 }
 
+/* ── 教學按鈕：藍色強調樣式 ── */
+.quick-btn.accent {
+  background: linear-gradient(135deg, #0ea5e9, var(--color-accent-blue));
+  border-color: transparent;
+  color: var(--color-white);
+  box-shadow: 0 2px 12px rgba(56, 189, 248, 0.35);
+  font-weight: 600;
+}
+
+.quick-btn.accent:hover:not(:disabled) {
+  box-shadow: var(--glow-blue-strong), 0 4px 16px rgba(56, 189, 248, 0.45);
+  transform: translateY(-2px);
+  color: var(--color-white);
+}
+
 .quick-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
