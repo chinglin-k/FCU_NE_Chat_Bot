@@ -889,6 +889,23 @@ a:hover {
   box-shadow: none;
 }
 
+/* ── 填入時間按鈕群組（標籤 + 按鈕垂直堆疊） ── */
+.fill-now-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.fill-now-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
 /* ── 問題描述業務範圍聲明 ── */
 .field-scope-note {
   font-size: 12px;
