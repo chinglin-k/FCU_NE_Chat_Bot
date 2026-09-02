@@ -116,11 +116,11 @@
           <div class="form-row">
             <div class="form-group">
               <label for="field-room"><span data-i18n="form.room.label">房號</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
-              <input type="text" id="field-room" name="roomNumber" data-i18n-placeholder="form.room.placeholder" placeholder="例：A123" required maxlength="8" pattern="[A-Za-z0-9-]{1,8}">
+              <input type="text" id="field-room" name="roomNumber" data-i18n-placeholder="form.room.placeholder" placeholder="例：H0111、G4081、G408-1" required maxlength="8" autocomplete="off">
             </div>
             <div class="form-group">
               <label for="field-bed"><span data-i18n="form.bed.label">床號</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
-              <input type="text" id="field-bed" name="bedNumber" data-i18n-placeholder="form.bed.placeholder" placeholder="例：1" required maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}">
+              <input type="text" id="field-bed" name="bedNumber" data-i18n-placeholder="form.bed.placeholder" placeholder="例：1" required maxlength="1" inputmode="numeric" pattern="[0-9]{1}">
             </div>
           </div>
 
@@ -151,8 +151,11 @@
               <span class="repair-time-sep" aria-hidden="true" data-i18n="form.repairTime.min.placeholder">分</span>
             </div>
             <div class="repair-time-now-row">
-              <button type="button" id="btn-fill-now" class="btn-fill-now" aria-label="填入現在時間為可維修開始時間">
-                🕐 填入現在時間
+              <button type="button" id="btn-fill-now-start" class="btn-fill-now" aria-label="填入現在時間為可維修開始時間">
+                🕐 填入開始時間
+              </button>
+              <button type="button" id="btn-fill-now-end" class="btn-fill-now" aria-label="填入現在時間為可維修結束時間">
+                🕑 填入結束時間
               </button>
             </div>
             <p class="field-hint" id="repair-time-hint" data-i18n="form.repairTime.hint">
