@@ -150,6 +150,11 @@
                 maxlength="2" data-i18n-aria-label="form.repairTime.endMin.aria" aria-label="結束分鐘（0-59）" class="repair-time-input">
               <span class="repair-time-sep" aria-hidden="true" data-i18n="form.repairTime.min.placeholder">分</span>
             </div>
+            <div class="repair-time-now-row">
+              <button type="button" id="btn-fill-now" class="btn-fill-now" aria-label="填入現在時間為可維修開始時間">
+                🕐 填入現在時間
+              </button>
+            </div>
             <p class="field-hint" id="repair-time-hint" data-i18n="form.repairTime.hint">
               ⏰ 可維修時間請填寫 <strong>18:00–21:00</strong> 之間（本人需在場）。新生入住期間 12:00–17:00 收到後會盡速前往協助。
             </p>
@@ -157,6 +162,7 @@
 
           <div class="form-group">
             <label for="field-description"><span data-i18n="form.description.label">問題描述</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
+            <p class="field-scope-note"><strong>僅處理網路範圍內業務</strong></p>
             <textarea
               id="field-description"
               name="description"
