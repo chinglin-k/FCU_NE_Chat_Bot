@@ -256,6 +256,30 @@ const ReportForm = (() => {
       }
     });
 
+    /* ── 填入現在時間快捷按鈕 ── */
+    const fillNowBtn = document.getElementById('btn-fill-now');
+    if (fillNowBtn) {
+      fillNowBtn.addEventListener('click', () => {
+        const now = new Date();
+        const h = now.getHours();
+        const m = now.getMinutes();
+        const hStart = document.getElementById('field-repair-hour-start');
+        const mStart = document.getElementById('field-repair-min-start');
+        if (hStart) hStart.value = String(h);
+        if (mStart) mStart.value = String(m).padStart(2, '0');
+        // 短暫視覺回饋：按鈕文字改為已填入的時間
+        const orig = fillNowBtn.innerHTML;
+        fillNowBtn.innerHTML = `✅ 已填入 ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        fillNowBtn.style.borderColor = 'var(--color-success)';
+        fillNowBtn.style.color = 'var(--color-success)';
+        setTimeout(() => {
+          fillNowBtn.innerHTML = orig;
+          fillNowBtn.style.borderColor = '';
+          fillNowBtn.style.color = '';
+        }, 2000);
+      });
+    }
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       

@@ -847,6 +847,58 @@ a:hover {
   color: var(--color-accent-orange);
 }
 
+/* ── 填入現在時間快捷按鈕列 ── */
+.repair-time-now-row {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.btn-fill-now {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  background: rgba(56, 189, 248, 0.10);
+  border: 1px solid rgba(56, 189, 248, 0.30);
+  border-radius: 20px;
+  color: var(--color-accent-blue);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s var(--ease-out),
+              border-color 0.2s var(--ease-out),
+              transform 0.15s var(--ease-spring),
+              box-shadow 0.2s var(--ease-out);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn-fill-now:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: var(--color-accent-blue);
+  box-shadow: var(--glow-blue);
+  transform: translateY(-1px);
+}
+
+.btn-fill-now:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ── 問題描述業務範圍聲明 ── */
+.field-scope-note {
+  font-size: 12px;
+  color: var(--color-accent-orange);
+  margin: -2px 0 2px 0;
+  letter-spacing: 0.02em;
+}
+
+.field-scope-note strong {
+  font-weight: 700;
+}
+
 /* ── 表單錯誤訊息 ── */
 .form-error {
   font-size: 13px;
