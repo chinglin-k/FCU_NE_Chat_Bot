@@ -37,7 +37,7 @@ const I18N = (() => {
       'form.studentId.label': '學號',
       'form.studentId.placeholder': '例：D1234567',
       'form.room.label': '房號',
-      'form.room.placeholder': '例：A123',
+      'form.room.placeholder': '例：H0111、G4081、G408-1',
       'form.bed.label': '床號',
       'form.bed.placeholder': '例：1',
       'form.phone.label': '手機號碼',
