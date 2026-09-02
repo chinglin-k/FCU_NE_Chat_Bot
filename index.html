@@ -130,7 +130,7 @@
           </div>
 
           <div class="form-group">
-            <label><span data-i18n="form.repairTime.label">可維修時間</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
+            <label><span data-i18n="form.repairTime.label">可維修時間</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span> <strong class="form-24h-note" data-i18n="form.repairTime.24h">請依24小時制填寫時間</strong></label>
             <div class="repair-time-row" role="group" data-i18n-aria-label="form.repairTime.range" aria-label="可維修時間範圍">
               <input type="text" id="field-repair-hour-start" name="repairHourStart"
                 placeholder="00" required inputmode="numeric" pattern="([0-9]|1[0-9]|2[0-3])"
@@ -152,15 +152,15 @@
             </div>
             <div class="repair-time-now-row">
               <div class="fill-now-group">
-                <span class="fill-now-label">開始</span>
-                <button type="button" id="btn-fill-now-start" class="btn-fill-now" aria-label="填入現在時間為可維修開始時間">
-                  ⏰ 填入現在時間
+                <span class="fill-now-label" data-i18n="form.repairTime.fillStart">開始</span>
+                <button type="button" id="btn-fill-now-start" class="btn-fill-now" data-i18n-aria-label="form.repairTime.fillStart.aria" aria-label="填入現在時間為可維修開始時間">
+                  <span data-i18n="form.repairTime.fillNow">⏰ 填入現在時間</span>
                 </button>
               </div>
               <div class="fill-now-group">
-                <span class="fill-now-label">結束</span>
-                <button type="button" id="btn-fill-now-end" class="btn-fill-now" aria-label="填入現在時間為可維修結束時間">
-                  ⏰ 填入現在時間
+                <span class="fill-now-label" data-i18n="form.repairTime.fillEnd">結束</span>
+                <button type="button" id="btn-fill-now-end" class="btn-fill-now" data-i18n-aria-label="form.repairTime.fillEnd.aria" aria-label="填入現在時間為可維修結束時間">
+                  <span data-i18n="form.repairTime.fillNow">⏰ 填入現在時間</span>
                 </button>
               </div>
             </div>
@@ -171,7 +171,7 @@
 
           <div class="form-group">
             <label for="field-description"><span data-i18n="form.description.label">問題描述</span> <span class="required" data-i18n-aria-label="form.required.aria" aria-label="必填">*</span></label>
-            <p class="field-scope-note"><strong>僅處理網路範圍內業務</strong></p>
+            <p class="field-scope-note"><strong data-i18n="form.description.scopeNote">僅處理網路範圍內業務</strong></p>
             <textarea
               id="field-description"
               name="description"
