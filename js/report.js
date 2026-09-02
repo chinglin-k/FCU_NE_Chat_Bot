@@ -247,6 +247,16 @@ const ReportForm = (() => {
     closeBtn.addEventListener('click', close);
     cancelBtn.addEventListener('click', close);
 
+    /* ── 房號即時轉大寫（保留光標位置） ── */
+    const roomInput = document.getElementById('field-room');
+    if (roomInput) {
+      roomInput.addEventListener('input', () => {
+        const pos = roomInput.selectionStart;
+        roomInput.value = roomInput.value.toUpperCase();
+        roomInput.setSelectionRange(pos, pos);
+      });
+    }
+
     modal.addEventListener('click', (e) => {
       if (e.target === modal) close();
     });
@@ -319,7 +329,7 @@ const ReportForm = (() => {
       const data = {
         name: form.name.value.trim(),
         studentId: form.studentId.value.trim().toUpperCase(),
-        roomNumber: form.roomNumber.value.trim(),
+        roomNumber: form.roomNumber.value.trim().toUpperCase(),
         bedNumber: form.bedNumber.value.trim(),
         phone: form.phone.value.trim(),
         repairTime: timeStr,
