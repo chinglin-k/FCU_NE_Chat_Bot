@@ -501,10 +501,17 @@ function writeReport(reportData, clientId, recaptchaToken) {
     if (!studentId || !/^[a-zA-Z][0-9]{7}$/.test(studentId)) {
       return { success: false, error: 'VALIDATION_STUDENT_ID_FORMAT' };
     }
-    if (!roomNumber || !/^[A-Za-z0-9-]{1,8}$/.test(roomNumber)) {
+    // ⚠️ 修正（BUG-ROOM-01）：原本 /^[A-Za-z0-9-]{1,8}$/ 過於寬鬆，
+    // 允許純數字（如 "229"）繞過前端驗證直接寫入試算表。
+    // 現改為與 report.js 前端驗證完全一致：
+    // 必須以 H、I、G、FA~FF 開頭，後接 1~4 位數字，可選一個連字號再接數字。
+    if (!roomNumber || !/^(H|I|G|F[ABCDEF])[0-9]{1,4}(-[0-9]+)?$/i.test(roomNumber)) {
       return { success: false, error: 'VALIDATION_ROOM_FORMAT' };
     }
-    if (!bedNumber || !/^[0-9]{1,3}$/.test(bedNumber)) {
+    // ⚠️ 修正（BUG-BED-01）：原本 /^[0-9]{1,3}$/ 允許 1~3 位數字，
+    // 而前端 report.js 僅允許 1 位數字（/^[0-9]$/），造成前後端不一致。
+    // 改為與前端一致：僅允許單一位數字（0~9）。
+    if (!bedNumber || !/^[0-9]$/.test(bedNumber)) {
       return { success: false, error: 'VALIDATION_BED_FORMAT' };
     }
     if (!phone || !/^[0-9]{10}$/.test(phone)) {

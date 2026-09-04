@@ -174,7 +174,7 @@ function validReportPayload() {
   return {
     studentId:  'D1234567',
     name:       '王小明',
-    roomNumber: 'A101',
+    roomNumber: 'H101', // 修正：A 開頭不合法，改為合法的 H 前綴（BUG-ROOM-01 對齊）
     bedNumber:  '2',
     phone:      '0912345678',
     repairTime: '18:00–21:00',
