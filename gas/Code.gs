@@ -463,6 +463,8 @@ function _verifyRecaptcha(token, expectedAction) {
  * 已加入頻率限制：依 clientId 每人每分鐘最多 5 次，全體使用者每分鐘總計最多 20 次
  * 已加入 reCAPTCHA v3 驗證：防止 GAS_URL 外洩後遭腳本大量濫用送出報修單
  * 已加入後端格式驗證：比照前端 report.js 的驗證規則
+ * 已加入去重防護（BUG-DUP-01）：120 秒內相同「學號+房號+問題描述」的重複請求
+ *   將直接回傳 DUPLICATE_REPORT，防止使用者或腳本在 2 分鐘內重複送出相同報修單
  *
  * @param {object} reportData      - 報修資料物件
  * @param {string} [clientId]      - 前端產生的裝置識別碼（非個資），用於依使用者區分限流
@@ -519,6 +521,22 @@ function writeReport(reportData, clientId, recaptchaToken) {
     }
     if (!description) {
       return { success: false, error: 'VALIDATION_DESCRIPTION_REQUIRED' };
+    }
+
+    // ── 去重防護（BUG-DUP-01）：120 秒內相同「學號 + 房號 + 描述前 50 字」禁止重複送出 ──
+    // 目的：防止使用者在送出後不小心（或惡意）在 2 分鐘內重複送出完全相同的報修單。
+    // 做法：以學號、房號、描述前 50 字組成字串，使用 MD5 雜湊後轉為 Base64WebSafe 作為 CacheService key，
+    //       首次成功寫入後存入快取 120 秒；快取命中則直接拒絕。
+    // 注意：此檢查在格式驗證通過後、寫入試算表前執行；
+    //       寫入成功後才真正寫入快取，避免驗證失敗的請求佔用去重配額。
+    const _dupCache = CacheService.getScriptCache();
+    const _dupRaw   = `${studentId}_${roomNumber}_${description.substring(0, 50)}`;
+    const _dupBytes = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, _dupRaw);
+    const _dupKey   = 'dedup_' + Utilities.base64EncodeWebSafe(_dupBytes);
+    
+    if (_dupCache.get(_dupKey)) {
+      Logger.log(`[writeReport] 攔截重複報修，指紋命中：${_dupKey}`);
+      return { success: false, error: 'DUPLICATE_REPORT' };
     }
 
     const spreadsheet = SpreadsheetApp.openById(_getSpreadsheetId());
@@ -582,6 +600,9 @@ function writeReport(reportData, clientId, recaptchaToken) {
     const targetRange = sheet.getRange(targetRow, 1, 1, rowValues.length);
     targetRange.setNumberFormat('@');     // ① 先設成純文字格式
     targetRange.setValues([rowValues]);   // ② 再寫入（取代 appendRow）
+
+    // 寫入成功後，將指紋存入快取 120 秒（2 分鐘），防止重複送出
+    _dupCache.put(_dupKey, '1', 120);
 
     Logger.log(`[writeReport] 新增報修：${reportData.name} ${reportData.roomNumber}-${reportData.bedNumber}`);
     return { success: true, message: '報修資料已成功寫入試算表' };

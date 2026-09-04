@@ -50,7 +50,10 @@ function createGasMocks(overrides = {}) {
   const Utilities = {
     getUuid:    () => crypto.randomUUID(),
     sleep:      () => {}, // 測試中不需要真的等待
-    formatDate: (date) => date.toISOString()
+    formatDate: (date) => date.toISOString(),
+    computeDigest: (algo, val) => crypto.createHash('md5').update(String(val)).digest(),
+    DigestAlgorithm: { MD5: 'MD5' },
+    base64EncodeWebSafe: (bytes) => Buffer.from(bytes).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
   };
 
   const ContentService = {
