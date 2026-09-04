@@ -16,7 +16,8 @@ function validatePhone(phone) {
 
 function validateBedNumber(bed) {
   if (!bed || typeof bed !== 'string') return false;
-  return /^[0-9]{1,3}$/.test(bed.trim());
+  // 修正（BUG-BED-01）：對齊後端 Code.gs 與前端 report.js，僅允許單一位數字
+  return /^[0-9]$/.test(bed.trim());
 }
 
 test('Student ID validation (1 letter + 7 digits)', () => {
@@ -35,10 +36,12 @@ test('Phone validation (10 digits)', () => {
   assert.equal(validatePhone('abc0912345'), false, 'Letters in phone should fail');
 });
 
-test('Bed number validation (1-3 digits)', () => {
+test('Bed number validation (1 digit only)', () => {
   assert.equal(validateBedNumber('1'), true, '1 digit');
-  assert.equal(validateBedNumber('12'), true, '2 digits');
-  assert.equal(validateBedNumber('123'), true, '3 digits');
+  assert.equal(validateBedNumber('9'), true, 'single digit 9');
+  assert.equal(validateBedNumber('0'), true, 'single digit 0');
+  assert.equal(validateBedNumber('12'),  false, '2 digits should fail (front+backend now consistent)');
+  assert.equal(validateBedNumber('123'), false, '3 digits should fail (front+backend now consistent)');
   assert.equal(validateBedNumber('1234'), false, '4 digits should fail');
   assert.equal(validateBedNumber('A'), false, 'Non-digits should fail');
 });
