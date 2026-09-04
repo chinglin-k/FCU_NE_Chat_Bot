@@ -89,7 +89,8 @@ const CONFIG = Object.freeze({
         REPAIR_TIME_RANGE: '可維修時間必須在 0–23 時與 0–59 分之間',
         DESCRIPTION_REQUIRED: '請描述您的網路問題',
         QUERY_STUDENT_ID_REQUIRED: '請輸入學號',
-        QUERY_STUDENT_ID_FORMAT: '學號格式錯誤（需為 1 位英文字母 + 7 位數字，例如：D1234567）'
+        QUERY_STUDENT_ID_FORMAT: '學號格式錯誤（需為 1 位英文字母 + 7 位數字，例如：D1234567）',
+        DUPLICATE_REPORT: '您剛剛已送出過相同的報修單，請勿在 2 分鐘內重複送出。若確認報修已登錄，可使用「查詢案件」功能查看。'
       })
     }),
     en: Object.freeze({
@@ -164,7 +165,8 @@ const CONFIG = Object.freeze({
         REPAIR_TIME_RANGE: 'Available time must be between 0-23 hours and 0-59 minutes',
         DESCRIPTION_REQUIRED: 'Please describe your network issue',
         QUERY_STUDENT_ID_REQUIRED: 'Please enter your Student ID',
-        QUERY_STUDENT_ID_FORMAT: 'Invalid Student ID (Format: 1 letter + 7 digits, e.g. D1234567)'
+        QUERY_STUDENT_ID_FORMAT: 'Invalid Student ID (Format: 1 letter + 7 digits, e.g. D1234567)',
+        DUPLICATE_REPORT: 'You just submitted an identical repair request. Please do not resubmit within 2 minutes. To confirm your request was recorded, use the “Check My Cases” feature.'
       })
     })
   }),

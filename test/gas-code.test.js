@@ -323,6 +323,47 @@ test('writeReport：超過個人頻率限制時直接拒絕（不觸發 reCAPTCH
 });
 
 // ══════════════════════════════════════════════
+// 3b. 去重防護（BUG-DUP-01）迴歸測試
+// ══════════════════════════════════════════════
+test('writeReport：120 秒內相同內容重複送出應回傳 DUPLICATE_REPORT（BUG-DUP-01 迴歸測試）', () => {
+  const { exported, mocks, restore } = loadGasCode({
+    scriptProperties: { SPREADSHEET_ID: 'sheet-id', RECAPTCHA_SECRET_KEY: 'secret' }
+  });
+  try {
+    mockPassingRecaptcha(mocks);
+    // 第一次：應該成功
+    const first = exported.writeReport(validReportPayload(), 'user-dup', 'token-1');
+    assert.equal(first.success, true, '第一次送出應成功');
+
+    // 第二次送出完全相同的內容（不同 clientId 也應被攔截，去重依內容不依使用者）
+    const second = exported.writeReport(validReportPayload(), 'user-dup2', 'token-2');
+    assert.equal(second.success, false, '相同內容第二次應被拒絕');
+    assert.match(second.error, /DUPLICATE_REPORT/, '錯誤碼應為 DUPLICATE_REPORT');
+  } finally {
+    restore();
+  }
+});
+
+test('writeReport：描述不同時不視為重複，應允許送出', () => {
+  const { exported, mocks, restore } = loadGasCode({
+    scriptProperties: { SPREADSHEET_ID: 'sheet-id', RECAPTCHA_SECRET_KEY: 'secret' }
+  });
+  try {
+    mockPassingRecaptcha(mocks);
+    const first = exported.writeReport(validReportPayload(), 'user-diff-1', 'token-a');
+    assert.equal(first.success, true, '第一次送出應成功');
+
+    // 描述不同 → 不視為重複
+    const diffPayload = { ...validReportPayload(), description: '不同的問題描述' };
+    const second = exported.writeReport(diffPayload, 'user-diff-2', 'token-b');
+    assert.equal(second.success, true, '描述不同的報修應允許通過');
+  } finally {
+    restore();
+  }
+});
+
+
+// ══════════════════════════════════════════════
 // 4. classifyIntent：頻率限制 + 未設定 API Key 時的行為
 // ══════════════════════════════════════════════
 test('classifyIntent：未設定 GEMINI_API_KEY 時回傳明確錯誤', () => {

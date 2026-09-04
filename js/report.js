@@ -169,6 +169,10 @@ const ReportForm = (() => {
       const _friendlyError  = (err) => {
         if (!_isInternalCode(err)) return err || _R().REPORT_ERROR;
         if (err === 'RATE_LIMITED') return _R().SYSTEM_ERROR;
+        // DUPLICATE_REPORT：去重防護觸發，屬使用者操作錯誤而非系統錯誤，顯示友善提示
+        if (err === 'DUPLICATE_REPORT' && _R().VALIDATION.DUPLICATE_REPORT) {
+          return _R().VALIDATION.DUPLICATE_REPORT;
+        }
         if (err.startsWith('VALIDATION_')) {
           const key = err.replace('VALIDATION_', '');
           if (_R().VALIDATION[key]) return _R().VALIDATION[key];
