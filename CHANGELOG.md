@@ -1,7 +1,91 @@
 # 更新日誌 (Changelog)
 
-**版本 / Version**：v1.4.5  
-**最後更新 / Last Updated**：2026-08-29
+**版本 / Version**：v1.4.6  
+**最後更新 / Last Updated**：2026-09-05
+
+---
+
+## [v1.4.6] - 2026-09-05 (Duplicate-Report Guard, Room/Bed Validation Alignment & Post-Release Documentation Audit / 重複送出防護、房號床號驗證對齊與上線後文件稽核)
+
+### 繁體中文
+
+本版本包含兩部分：(1) 追溯補齊 v1.4.5 發布後、本次正式發版前已合併上線但未同步文件化的兩項後端修復——**120 秒重複送出防護**與**房號／床號後端格式驗證對齊**；(2) 針對全專案原始碼與文件進行的逐行一致性稽核（涵蓋全部 `js/*.js`、`gas/Code.gs`、`css/style.css`、`index.html`、`test/*.js`、`AGENTS.md`、`README.md`、`CHANGELOG.md`、`doc/*.md`，並實際執行 `npm test`、`npm run lint`、`git log`/`git blame` 歷史比對），修復 7 處文件與程式碼不一致之處。本次稽核**未發現任何生產程式碼缺陷**；`css/style.css` 經比對後無需任何修改。
+
+#### ✨ 新功能（回補文件 / Newly Documented Features）
+
+- **報修表單 120 秒重複送出防護**：`gas/Code.gs` 的 `writeReport()` 新增去重機制——以「學號 + 房號 + 問題描述前 50 字」組成字串，取 MD5 雜湊後作為 `CacheService` key，120 秒內偵測到相同指紋即直接拒絕並回傳 `DUPLICATE_REPORT`，防止使用者手滑重複點擊送出或腳本短時間內重複寫入相同案件。僅於格式驗證通過、實際寫入試算表成功後才存入快取，避免驗證失敗的請求誤佔用去重配額。前端 `report.js` 已有對應的友善錯誤訊息（`CONFIG.RESPONSES.*.VALIDATION.DUPLICATE_REPORT`）。新增 2 組迴歸測試（`test/gas-code.test.js`）。
+- **房號／床號後端格式驗證對齊前端**：`gas/Code.gs` 的 `writeReport()` 後端正則式原本比前端寬鬆——房號僅檢查「英數字與連字號」（`/^[A-Za-z0-9-]{1,8}$/`）、床號允許 1–3 位數字（`/^[0-9]{1,3}$/`）——可被繞過前端直接對 GAS Web App 送出格式不符的資料並成功寫入試算表。現已收緊為與 `js/report.js`、`index.html` 的 `pattern` 屬性完全一致：房號 `/^(H|I|G|F[ABCDEF])[0-9]{1,4}(-[0-9]+)?$/i`（須以 H、I、G、FA~FF 開頭，後接 1–4 位數字，可選一個連字號再接數字）、床號 `/^[0-9]$/`（僅 1 位數字）。
+
+#### 🛠️ 本次稽核修復（Audit Fixes）
+
+- **[BUG-52／中] 床號格式描述全站過時**：`README.md`、`AGENTS.md`、`doc/architecture.md`（§5.5.2 驗證矩陣）、`doc/data-model.md`（ER 圖、§2.1、§3 驗證矩陣）、`doc/requirements.md`（§3.4）、`doc/project-memory.md`（已確認業務規則）共 6 份文件仍描述床號為「1–3 位數字」／`/^[0-9]{1,3}$/`，與上述 BUG-BED-01 修復後的實際規則（僅 1 位數字）不符。已全數更新為「1 位數字」／`/^[0-9]$/`。
+- **[BUG-53／中] 房號格式描述全站過時**：同一批文件仍描述房號格式為「僅限英數字與連字號」／`/^[A-Za-z0-9-]{1,8}$/`，與 BUG-ROOM-01 修復後的實際規則不符；`doc/data-model.md`、`doc/requirements.md` 內原有的房號範例「A123」在新規則下更是**不合法**範例（`A` 不在允許前綴 H/I/G/FA~FF 之列）。已全數更新為正確格式說明，範例改為合法的 `H0111`。
+- **[BUG-54／高] 報修成功畫面描述與 v1.4.5（BUG-50）已移除的實作直接矛盾**：`doc/project-memory.md`「已確認業務規則」章節、`doc/requirements.md` §3.4、`doc/architecture.md` §4.3 三處仍描述「送出成功後隱藏頂部標題列，僅保留『報修成功！』與進度條（2 秒後自動關閉）」——這正是 `CHANGELOG.md` v1.4.5（BUG-50）記載「經逐一 `grep` 確認零引用後移除」的死碼（`#modal-success-view`／`.has-success`／`.is-hidden`），且與 `project-memory.md` 自身下方 v1.4.4/v1.4.5 決策記錄章節的敘述自相矛盾。已更正為實際行為：送出成功後 Modal **立即關閉**，成功訊息以**聊天泡泡**（bot 訊息）呈現並顯示「回主選單／報修」按鈕，Header 標題列全程不受影響。
+- **[BUG-55／低] 單元測試數量全站過時**：`doc/architecture.md` §5.9、`doc/requirements.md` §4 仍寫「53 項／53/53」；因本版本新增的重複送出防護迴歸測試（見上方新功能），`npm test` 實測現為 **55 項全數通過**，`npm run lint` 維持 0 error / 0 warning。已更新兩份文件（`doc/todo.md` 既有的 G 輪／I 輪為歷史紀錄，維持原樣不予更動，另於下方新增的 J 輪記錄本次變動）。
+- **[BUG-56／低] `index.html` 腳本載入順序註解遺漏 `wifi-modal.js`**：第 326 行註解「載入順序：i18n → config → counter → intent → report → query → teams → chat」自 v1.4.4 新增 `js/wifi-modal.js` 以來就一直沒有把它加進這行列表（實際載入順序在 `teams` 與 `chat` 之間），與 v1.4.1（BUG-27）修復的是同一類別的遺漏，只是這次遺漏的是後來才加入的模組。已補上。
+- **[BUG-57／低] `test/validation.test.js` 的 `VALID_INTENTS` 白名單與正式程式碼不同步**：該測試檔並未 `require` `js/intent.js` 或 `gas/Code.gs`，而是自行重新實作一份驗證邏輯；其 `VALID_INTENTS` 陣列自建立以來僅有 6 項（缺少 `BUTTON_QUERY`），自 v1.4.0（commit `9be9b3a`）新增 `BUTTON_QUERY` 意圖後即與正式程式碼的 7 項不同步，歷經 v1.4.1／v1.4.2／v1.4.3／v1.4.5 多次稽核皆未發現。此缺口不影響 `npm test` 是否通過（無斷言檢查 `BUTTON_QUERY` 是否被此陣列接受），但代表「白名單過濾機制測試」實際涵蓋不完整。已補上 `BUTTON_QUERY` 並新增對應迴歸斷言。
+- **[BUG-58／低] `doc/architecture.md` §5.5.3 查詢學號驗證程式碼片段與實際邏輯不符**：文件內範例程式碼為單一 `if` 判斷合併「空值」與「格式錯誤」，且回傳寫死的中文句子 `'學號格式錯誤'`；但 `gas/Code.gs` 的 `queryReport()` 實際上是兩個獨立判斷、回傳兩種不同的全大寫錯誤代碼（`VALIDATION_QUERY_STUDENT_ID_REQUIRED`／`VALIDATION_QUERY_STUDENT_ID_FORMAT`），此即 v1.4.0（BUG-12）修復的核心，緊接在程式碼片段下方的文字說明其實已正確描述此點，僅程式碼片段本身未同步更新，兩者自相矛盾。已重寫程式碼片段以符合實際邏輯與錯誤代碼慣例。
+
+#### 📄 文件同步（Documentation Sync）
+
+- `README.md`：功能特色、已知安全性說明表格補上重複送出防護與正確的床號／房號格式
+- `AGENTS.md`：GAS 開發規範補上重複送出防護規則、修正床號／房號正則式
+- `doc/architecture.md`：新增 §5.4.3 重複送出防護小節；修正 §4.3 資料流（移除已不存在的「2 秒進度條」描述，改為聊天泡泡呈現；補上去重檢查步驟）；修正 §5.5.2 驗證矩陣、§5.5.3 程式碼片段；§5.9 測試數更新為 55；§5.10 OWASP 對照補上去重防護對應 A04
+- `doc/data-model.md`：修正 ER 圖床號註解、§2.1 房號範例與床號描述、§3 驗證矩陣；§4 資料生命週期補上去重防護說明
+- `doc/requirements.md`：§3.4 移除過時的成功畫面描述、修正房號／床號驗證規則與範例、補上重複送出防護說明；§4 測試數更新為 55
+- `doc/project-memory.md`：修正「已確認業務規則」章節的床號位數與報修成功畫面描述；新增「v1.4.6 決策記錄」章節記錄本次退補文件與稽核修復
+- `doc/todo.md`：新增「J 輪：重複送出防護、房號床號驗證對齊、文件稽核」章節（既有 A～I 輪維持原樣不予更動）
+- `test/validation.test.js`：`VALID_INTENTS` 補上 `BUTTON_QUERY`，新增對應迴歸斷言
+- `index.html`：腳本載入順序註解補上 `wifi-modal`
+- 全站（`package.json`、`package-lock.json`、`README.md`、`CHANGELOG.md`、`AGENTS.md`、`doc/*.md`）版本號統一升級為 **v1.4.6**
+
+#### ℹ️ 資訊性附註（供專案擁有者參考，本次稽核未逕行變更程式碼）
+
+- **Gemini 模型清單時效性查核**：以網路搜尋查證 Google 官方文件（2026-09），確認 `GEMINI_MODELS_FALLBACK` 現有 6 個模型（`gemini-3.5-flash-lite`、`gemini-3.1-flash-lite`、`gemini-3.6-flash`、`gemini-3.5-flash`、`gemini-3.1-pro-preview`、`gemini-3-flash-preview`）**目前皆仍為有效、正常運作的模型**，無任何一個已被官方宣告下架日期，本節無需修改程式碼。僅供參考：Google 已於 2026-08-13 發布 `gemini-3.7-flash`（官方描述為目前程式碼與 Agent 任務表現最佳的 Flash 模型），且 `gemini-3.1-flash-lite` 已有預告下架日期 2027-05-07（尚有 8 個月餘裕，非急迫）。是否要將 `gemini-3.7-flash` 納入備援清單或調整優先順序，屬於成本／配額層面的產品決策，建議由專案擁有者評估後另行處理，本次稽核不代為決定。
+
+#### 🧪 測試
+
+- `test/gas-code.test.js` 新增 2 組迴歸測試（BUG-DUP-01 去重機制），`test/validation.test.js` 新增 1 組迴歸斷言（BUG-57），總測試數由 53 增至 **55**，全數通過；`npm run lint` 維持 **0 error / 0 warning**。
+
+### English
+
+This release has two parts: (1) retroactively documenting two backend fixes that were merged after v1.4.5 but before this formal release — a **120-second duplicate-report guard** and **room/bed backend validation alignment**; and (2) a full line-by-line source-vs-documentation audit (covering every `js/*.js` file, `gas/Code.gs`, `css/style.css`, `index.html`, `test/*.js`, `AGENTS.md`, `README.md`, `CHANGELOG.md`, and `doc/*.md`, including actually running `npm test`, `npm run lint`, and cross-checking `git log`/`git blame` history) that fixed 7 documentation-vs-code inconsistencies. This audit **found no production code defects**; `css/style.css` required no changes after review.
+
+#### ✨ New Features (Retroactively Documented)
+
+- **120-second duplicate-report guard on the repair form**: `writeReport()` in `gas/Code.gs` now builds a fingerprint from "student ID + room number + first 50 characters of the description," MD5-hashes it, and uses it as a `CacheService` key. A repeat hit within 120 seconds is rejected outright with `DUPLICATE_REPORT`, preventing accidental double-submits or short-burst scripted resubmission of the same case. The fingerprint is only cached after validation passes and the row is actually written, so failed requests don't consume dedup quota. The frontend (`report.js`) already has a matching friendly error message (`CONFIG.RESPONSES.*.VALIDATION.DUPLICATE_REPORT`). Two new regression tests were added (`test/gas-code.test.js`).
+- **Room/bed backend validation aligned with the frontend**: `writeReport()`'s backend regexes were previously looser than the frontend's — room number only checked "alphanumeric plus hyphen" (`/^[A-Za-z0-9-]{1,8}$/`) and bed number allowed 1–3 digits (`/^[0-9]{1,3}$/`) — meaning a request that bypassed the frontend could hit the GAS Web App directly with out-of-spec data and still get written to the spreadsheet. Both are now tightened to exactly match the `pattern` attributes in `js/report.js`/`index.html`: room `/^(H|I|G|F[ABCDEF])[0-9]{1,4}(-[0-9]+)?$/i` (must start with H, I, G, or FA–FF, followed by 1–4 digits, with an optional dash and more digits) and bed `/^[0-9]$/` (a single digit only).
+
+#### 🛠️ Audit Fixes
+
+- **[BUG-52/Medium] Bed-number format stale across the docs**: `README.md`, `AGENTS.md`, `doc/architecture.md` (§5.5.2 validation matrix), `doc/data-model.md` (ER diagram, §2.1, §3 validation matrix), `doc/requirements.md` (§3.4), and `doc/project-memory.md` (confirmed business rules) — six files — still described bed number as "1–3 digits" / `/^[0-9]{1,3}$/`, which no longer matches the actual rule after the BUG-BED-01 fix above (single digit only). All updated to "1 digit" / `/^[0-9]$/`.
+- **[BUG-53/Medium] Room-number format stale across the docs**: the same set of files still described room format as "alphanumeric and hyphen only" / `/^[A-Za-z0-9-]{1,8}$/`, which no longer matches the BUG-ROOM-01 fix; the room example "A123" used in `doc/data-model.md` and `doc/requirements.md` is now actually **invalid** under the new rule (`A` isn't an allowed prefix). All updated with the correct format description and a valid example (`H0111`).
+- **[BUG-54/High] Success-screen description directly contradicts what v1.4.5 (BUG-50) already removed**: `doc/project-memory.md`'s "confirmed business rules" section, `doc/requirements.md` §3.4, and `doc/architecture.md` §4.3 all still described "the header is hidden after a successful submission, leaving only a 'Success!' message and a 2-second auto-closing progress bar" — but this is exactly the dead code that `CHANGELOG.md`'s v1.4.5 entry (BUG-50) documents as removed after an exhaustive grep confirmed zero references, and it directly contradicts `project-memory.md`'s own v1.4.4/v1.4.5 decision-log section further down the same file. Corrected to describe actual behavior: the modal closes **immediately** on success, the success message appears as a **chat bubble** (bot message) with "Back to Main Menu"/"Request Repair" buttons, and the header is never hidden.
+- **[BUG-55/Low] Unit test count stale across the docs**: `doc/architecture.md` §5.9 and `doc/requirements.md` §4 still said "53 / 53/53"; with the two new dedup regression tests above, `npm test` now shows **55 passing**, and `npm run lint` remains 0 errors/0 warnings. Both docs updated (`doc/todo.md`'s existing Round G/Round I entries are historical records and were left untouched; a new Round J entry below records this change).
+- **[BUG-56/Low] `index.html` script-load-order comment missing `wifi-modal.js`**: line 326's comment ("load order: i18n → config → counter → intent → report → query → teams → chat") was never updated when `js/wifi-modal.js` was added in v1.4.4 (it actually loads between `teams` and `chat`) — the same category of oversight as v1.4.1's BUG-27, just recurring for a module added later. Fixed.
+- **[BUG-57/Low] `test/validation.test.js`'s `VALID_INTENTS` whitelist out of sync with the real code**: this test file doesn't `require` `js/intent.js` or `gas/Code.gs` — it re-implements its own copy of the validation logic. Its `VALID_INTENTS` array has had only 6 entries (missing `BUTTON_QUERY`) since the file was created, and has been out of sync with the real 7-entry list since `BUTTON_QUERY` was added in v1.4.0 (commit `9be9b3a`) — a gap that survived the v1.4.1/v1.4.2/v1.4.3/v1.4.5 audits. It doesn't affect whether `npm test` passes (no assertion exercises `BUTTON_QUERY` against this array), but it meant the "intent whitelist filter" test wasn't actually covering all real intents. Added `BUTTON_QUERY` to the array plus a matching regression assertion.
+- **[BUG-58/Low] `doc/architecture.md` §5.5.3 code snippet doesn't match the real query-validation logic**: the documented snippet combines "empty" and "malformed" into a single `if` check and returns a hardcoded Chinese sentence, `'學號格式錯誤'`; the real `queryReport()` in `gas/Code.gs` actually uses two separate checks returning two distinct all-caps error codes (`VALIDATION_QUERY_STUDENT_ID_REQUIRED` / `VALIDATION_QUERY_STUDENT_ID_FORMAT`) — which is precisely what v1.4.0's BUG-12 fixed, and which the prose immediately below the snippet correctly describes, so the snippet contradicted the very next line. Rewritten to match the real logic and error-code convention.
+
+#### 📄 Documentation Sync
+
+- `README.md`: added the duplicate-report guard to the feature list and security table; corrected bed/room format
+- `AGENTS.md`: added the duplicate-report-guard rule to the GAS backend rules; corrected the bed/room regexes
+- `doc/architecture.md`: added new §5.4.3 on the duplicate-report guard; fixed §4.3 data flow (removed the no-longer-true "2-second progress bar," replaced with the chat-bubble behavior; added the dedup-check step); fixed the §5.5.2 validation matrix and §5.5.3 code snippet; §5.9 test count updated to 55; §5.10 OWASP mapping now references the dedup guard under A04
+- `doc/data-model.md`: fixed the ER diagram's bed-number annotation, §2.1's room example and bed description, and the §3 validation matrix; §4 lifecycle table now notes the dedup guard
+- `doc/requirements.md`: §3.4 no longer describes the removed success screen; room/bed rules and examples corrected; duplicate-report guard documented; §4 test count updated to 55
+- `doc/project-memory.md`: corrected the bed-digit-count and success-screen lines under "confirmed business rules"; added a new "v1.4.6 decision log" section documenting this release's retroactive documentation and audit fixes
+- `doc/todo.md`: added a new "Round J" section (Rounds A–I are historical and were left untouched)
+- `test/validation.test.js`: added `BUTTON_QUERY` to `VALID_INTENTS` plus a matching regression assertion
+- `index.html`: script-load-order comment now includes `wifi-modal`
+- Bumped every version string across `package.json`, `package-lock.json`, `README.md`, `CHANGELOG.md`, `AGENTS.md`, and `doc/*.md` to **v1.4.6**
+
+#### ℹ️ Informational Notes (For Owner Awareness — Not Acted On)
+
+- **Gemini model-list currency check**: web research against Google's official documentation (as of September 2026) confirms all 6 models in `GEMINI_MODELS_FALLBACK` (`gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-3.6-flash`, `gemini-3.5-flash`, `gemini-3.1-pro-preview`, `gemini-3-flash-preview`) are **currently valid and functioning**, with no announced shutdown date for any of them — no code change is needed here. For awareness only: Google released `gemini-3.7-flash` on 2026-08-13 (officially described as its strongest current Flash model for coding/agentic work), and `gemini-3.1-flash-lite` has an announced (non-urgent — over 8 months out) shutdown date of 2027-05-07. Whether to add `gemini-3.7-flash` to the fallback list or reorder priority is a cost/quota product decision left to the project owner; this audit did not act on it.
+
+#### 🧪 Testing
+
+- `test/gas-code.test.js` gained 2 new regression tests (BUG-DUP-01 dedup behavior); `test/validation.test.js` gained 1 new regression assertion (BUG-57). Total test count rose from 53 to **55**, all passing; `npm run lint` remains **0 errors / 0 warnings**.
 
 ---
 

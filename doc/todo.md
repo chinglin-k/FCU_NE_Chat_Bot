@@ -1,7 +1,7 @@
 # 開發待辦清單（todo.md）
 
-**版本 / Version**：v1.4.5  
-**最後更新 / Last Updated**：2026-08-29
+**版本 / Version**：v1.4.6  
+**最後更新 / Last Updated**：2026-09-05
 
 ---
 
@@ -140,6 +140,25 @@
 > ⚠️ **待人工確認（未動作）**：`doc/project-memory.md` 內記載一組已輪替失效的
 > Spreadsheet ID 明碼，與 `AGENTS.md` 規範 5「不得硬編碼於任何文件」字面上牴觸；
 > 是否要改為遮蔽格式（如 `1BUnG_...79uI`），待專案擁有者確認後再處理。
+
+---
+
+## J 輪：重複送出防護、房號床號驗證對齊、文件稽核（2026-09-05 / v1.4.6）
+
+| 功能 | 狀態 | 說明 |
+|---|---|---|
+| 報修表單 120 秒重複送出防護 | ✅ Done | `writeReport()` 以學號+房號+描述前 50 字 MD5 雜湊防重複，120 秒內命中回傳 `DUPLICATE_REPORT`（BUG-DUP-01，2026-09-04 上線、本輪回補文件） |
+| 房號／床號後端驗證對齊前端 | ✅ Done | 房號改為 `/^(H\|I\|G\|F[ABCDEF])[0-9]{1,4}(-[0-9]+)?$/i`、床號改為 `/^[0-9]$/`，修復後端原本比前端寬鬆、可被繞過的問題（BUG-ROOM-01、BUG-BED-01，2026-09-04 上線、本輪回補文件） |
+| 床號／房號格式描述全站修正（BUG-52、BUG-53） | ✅ Done | `README.md`、`AGENTS.md`、`doc/architecture.md`、`doc/data-model.md`、`doc/requirements.md`、`doc/project-memory.md` 共 6 份文件更新為正確格式與合法範例（如 `H0111`） |
+| 報修成功畫面過時描述修正（BUG-54） | ✅ Done | `doc/project-memory.md`「已確認業務規則」、`doc/requirements.md` §3.4、`doc/architecture.md` §4.3 三處與 v1.4.5（BUG-50）已移除的死碼描述矛盾，更正為「Modal 立即關閉＋聊天泡泡顯示成功訊息」的實際行為 |
+| 單元測試數量文件修正（BUG-55） | ✅ Done | `doc/architecture.md` §5.9、`doc/requirements.md` §4 由「53」更新為實測的「55」（新增 2 組去重迴歸測試） |
+| `index.html` 載入順序註解修正（BUG-56） | ✅ Done | 補上 v1.4.4 新增、但一直未列入註解的 `wifi-modal` |
+| `test/validation.test.js` 白名單同步修正（BUG-57） | ✅ Done | `VALID_INTENTS` 補上自 v1.4.0 就存在、但此檔案獨立副本一直漏列的 `BUTTON_QUERY`，並新增對應迴歸斷言 |
+| `doc/architecture.md` §5.5.3 查詢驗證程式碼片段修正（BUG-58） | ✅ Done | 改為與 `queryReport()` 實際邏輯一致的雙錯誤代碼寫法 |
+| 全站文件補上重複送出防護說明 | ✅ Done | `README.md`、`AGENTS.md`、`doc/architecture.md`（新增 §5.4.3）、`doc/data-model.md`、`doc/requirements.md`、`doc/project-memory.md` 補齊 |
+| 全站版本號對齊 v1.4.6 | ✅ Done | 所有 `.md`、`package.json`、`package-lock.json` 版本號統一為 v1.4.6 |
+| 單元測試增至 55 項全數通過 | ✅ Done | `npm test` 55 pass / 0 fail；`npm run lint` 0 error / 0 warning |
+| Gemini 模型清單時效性查核（資訊性，未變更程式碼） | ℹ️ Info | 網路查證確認現有 6 個模型皆仍有效運作；Google 已於 2026-08-13 發布 `gemini-3.7-flash`，是否納入備援清單屬產品決策，留待專案擁有者評估 |
 
 ---
 

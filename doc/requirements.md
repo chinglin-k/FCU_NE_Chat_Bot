@@ -1,9 +1,9 @@
 # 逢甲大學福星宿舍網路報修 Chatbot — 需求規格書
 # FCU Fuxing Dormitory Network Repair Assistant — Requirements Specification
 
-**版本 / Version**：v1.4.5  
+**版本 / Version**：v1.4.6  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-08-29 (v1.4.5: 補上 Wi-Fi 機設定教學需求說明)  
+**最後更新 / Last Updated**：2026-09-05 (v1.4.6: 補上重複送出防護需求說明；修正房號／床號驗證規則與報修成功畫面過時描述)  
 **專案倉庫 / Repository**：https://github.com/chinglin-k/FCU_NE_Chat_Bot
 
 ---
@@ -53,17 +53,19 @@ Chatbot 啟動後顯示四個主要選項按鈕，Header 右上角另有 Teams �
 
 ### 3.4 報修（通報）模組與反濫用 (Repair Submission & Anti-Abuse)
 
-收集以下資料，送出時經 reCAPTCHA v3 隱形驗證（風險分數 ≥ 0.5），成功後隱藏頂部標題列，僅保留「報修成功！」與進度條：
+收集以下資料，送出時經 reCAPTCHA v3 隱形驗證（風險分數 ≥ 0.5）與 120 秒重複送出防護（相同學號＋房號＋問題描述前 50 字視為重複，v1.4.6 新增）。送出成功後 Modal 立即關閉，於聊天區以訊息泡泡顯示「報修成功！」並附上「回主選單／報修」按鈕，頂部標題列全程不受影響：
 
 | 欄位 / Field | 說明 / Description | 驗證規則 / Validation |
 |---|---|---|
 | 姓名 / Name | 學生姓名 | 必填（最長 50 字）；v1.3.1 起前後端皆強制必填，後端不再僅做長度截斷 |
 | 學號 / Student ID | 學生學號 | 必填；前後端雙重強驗證 **1 位英文字母 + 7 位數字**（例：`D1234567`）|
-| 房號 / Room No. | 宿舍房號（例：A123） | 必填；前後端雙重強驗證（僅限英數字與連字號，最長 8 字）|
-| 床號 / Bed No. | 床位號碼（例：1） | 必填；前後端雙重強驗證 **1–3 位數字** |
+| 房號 / Room No. | 宿舍房號（例：H0111） | 必填；前後端雙重強驗證，**須以 H、I、G、FA~FF 開頭，後接 1–4 位數字，可選一個連字號再接數字**，最長 8 字（v1.4.6 起後端與前端規則完全一致，見 BUG-ROOM-01）|
+| 床號 / Bed No. | 床位號碼（例：1） | 必填；前後端雙重強驗證 **1 位數字**（v1.4.6 起後端與前端規則完全一致，見 BUG-BED-01）|
 | 手機 / Phone | 聯絡電話 | 必填；前後端雙重強驗證 **10 位數字** |
 | 可維修時間 / Repair Time | 本人需在場 | 必填；小時 0–23、分鐘 0–59 |
 | 問題描述 / Description | 網路或設備問題說明 | 必填（最長 200 字）；v1.3.1 起後端不再僅做長度截斷，未填一律拒絕 |
+
+- **重複送出防護（v1.4.6 新增）**：120 秒內偵測到相同「學號＋房號＋問題描述前 50 字」的請求（MD5 雜湊比對），直接拒絕並回傳 `DUPLICATE_REPORT`，避免使用者手滑重複點擊送出或腳本短時間內重複灌入相同案件
 
 ### 3.5 累積使用人數統計 (Usage Counter)
 
@@ -97,9 +99,9 @@ Chatbot 啟動後顯示四個主要選項按鈕，Header 右上角另有 Teams �
 
 | 項目 / Item | 要求 / Specifications |
 |---|---|
-| 安全性 / Security | Gemini Key 與 reCAPTCHA Secret 僅存於 GAS Script Properties；通訊全面採用 **POST Body** + **一次性 Token** + **Client ID 五組限流（classify/report/query/counter_get/counter_increment）** + **reCAPTCHA v3** + **Strict CSP**；後端例外一律回傳固定代碼，不外洩原始錯誤訊息（CWE-209 防護） |
+| 安全性 / Security | Gemini Key 與 reCAPTCHA Secret 僅存於 GAS Script Properties；通訊全面採用 **POST Body** + **一次性 Token** + **Client ID 五組限流（classify/report/query/counter_get/counter_increment）** + **reCAPTCHA v3** + **120 秒重複送出防護** + **Strict CSP**；後端例外一律回傳固定代碼，不外洩原始錯誤訊息（CWE-209 防護） |
 | 效能 / Performance | LLM 分類時顯示打字指示器，提升等待體驗 |
 | 相容性 / Compatibility | 支援桌機與手機瀏覽器，Viewport 允許無障礙縮放，使用 `100dvh` 行動版高度切齊 |
 | 語言 / Language | 介面全面提供繁體中文與英文對照 (Fully bilingual UI support)；v1.3.1 修正可維修時間 4 個欄位的 aria-label 中英文切換失效問題 |
-| 測試 / Testing | 原生 Node.js 測試框架與 `gas-mocks.js` 單元測試（53/53 Passing）與 ESLint 規範（0 error / 0 warning）|
+| 測試 / Testing | 原生 Node.js 測試框架與 `gas-mocks.js` 單元測試（55/55 Passing）與 ESLint 規範（0 error / 0 warning）|
 

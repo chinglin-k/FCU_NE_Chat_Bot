@@ -47,7 +47,11 @@ test('Bed number validation (1 digit only)', () => {
 });
 
 // ── 2. 白名單過濾機制測試 (Task 4: Defense in Depth) ──
-const VALID_INTENTS = ['BUTTON_TEACH', 'BUTTON_SETTING', 'BUTTON_REPORT', 'STICKER_PORT', 'NON_NETWORK', 'UNKNOWN'];
+// 修正（BUG-57／v1.4.6）：本陣列為獨立重新實作的驗證邏輯（未直接 require
+// js/intent.js 或 gas/Code.gs），自 v1.4.0 新增 BUTTON_QUERY 意圖後未同步更新，
+// 與 Intent.INTENTS（js/intent.js）及 VALID_INTENTS（gas/Code.gs classifyIntent()）
+// 實際的 7 項意圖代碼不一致，屬測試涵蓋率缺口。已補上 BUTTON_QUERY。
+const VALID_INTENTS = ['BUTTON_TEACH', 'BUTTON_SETTING', 'BUTTON_REPORT', 'BUTTON_QUERY', 'STICKER_PORT', 'NON_NETWORK', 'UNKNOWN'];
 const VALID_TOPICS  = ['ACCOUNT', 'ADAPTER', 'WIFI_SIGNAL', 'AC_BILLING', 'ALL', 'NONE'];
 
 function filterIntent(rawIntent) {
@@ -64,6 +68,7 @@ function filterTopic(intent, rawTopic) {
 test('Intent whitelist filter', () => {
   assert.equal(filterIntent('BUTTON_REPORT'), 'BUTTON_REPORT');
   assert.equal(filterIntent('button_teach'), 'BUTTON_TEACH');
+  assert.equal(filterIntent('BUTTON_QUERY'), 'BUTTON_QUERY', 'BUG-57: BUTTON_QUERY must pass the whitelist like the other five known intents');
   assert.equal(filterIntent('HACKED_INTENT'), 'UNKNOWN', 'Invalid intent fallback to UNKNOWN');
   assert.equal(filterIntent('<script>alert(1)</script>'), 'UNKNOWN', 'Malicious script payload fallback to UNKNOWN');
   assert.equal(filterIntent(null), 'UNKNOWN');
