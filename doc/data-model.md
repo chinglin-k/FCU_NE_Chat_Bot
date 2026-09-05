@@ -1,8 +1,8 @@
 # 資料模型文件 (Data Model Specification)
 
-**版本 / Version**：v1.4.5  
+**版本 / Version**：v1.4.6  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-08-29 (v1.4.5: 版本號對齊；本次稽核未變更資料模型)
+**最後更新 / Last Updated**：2026-09-05 (v1.4.6：修正房號／床號格式描述與範例，反映 BUG-ROOM-01／BUG-BED-01 後端驗證收緊)
 
 ---
 
@@ -16,7 +16,7 @@ erDiagram
         string student_id    "學號 (1字母+7數字)"
         string name          "姓名"
         string room_number   "房號"
-        string bed_number    "床號 (1-3數字)"
+        string bed_number    "床號 (1位數字)"
         string phone         "手機號碼 (10數字)"
         string repair_time   "可維修時間（純文字）"
         string description   "問題描述"
@@ -53,8 +53,8 @@ erDiagram
 | time           | String | 系統自動 | 通報時間 HH:mm:ss                                    |
 | student_id    | String | 學生填寫 | 必填；1 位英文字母 + 7 位數字（如 D1234567），前後端雙重 RegEx 驗證 |
 | name           | String | 學生填寫 | 必填；最長 50 字                                       |
-| room_number   | String | 學生填寫 | 必填，例：A123                                       |
-| bed_number    | String | 學生填寫 | 必填；1–3 位數字，前後端雙重 RegEx 驗證                      |
+| room_number   | String | 學生填寫 | 必填；`/^(H\|I\|G\|F[ABCDEF])[0-9]{1,4}(-[0-9]+)?$/i`（須以 H、I、G、FA~FF 開頭，如 H0111），前後端雙重 RegEx 驗證 |
+| bed_number    | String | 學生填寫 | 必填；1 位數字，前後端雙重 RegEx 驗證                      |
 | phone          | String | 學生填寫 | 必填；10 位數字，前後端雙重 RegEx 驗證                       |
 | repair_time   | String | 學生填寫 | 必填，純文字（如 18:00–21:00）                          |
 | description    | String | 學生填寫 | 必填；最長 200 字                                      |
@@ -98,13 +98,17 @@ erDiagram
 > （BUG-01 修復前，空字串會因 `field && !regex.test(field)` 的短路寫法
 > 整段跳過驗證，等同必填形同虛設；v1.3.1 已修正）。下表已對照 `gas/Code.gs`
 > 目前實際邏輯逐欄核實更新。
+>
+> ⚠️ **v1.4.6 修正（BUG-ROOM-01、BUG-BED-01）**：房號／床號的後端正則式原本比
+> 前端寬鬆（房號僅檢查英數字與連字號、床號允許 1–3 位數字），可被繞過前端直接
+> 送出格式不符的資料並成功寫入。現已收緊為前後端完全一致，下表同步更新。
 
-| 欄位 | 前端驗證 (RegEx / MaxLen) | GAS 後端驗證（v1.3.1：必填 → 格式 → 截斷） |
+| 欄位 | 前端驗證 (RegEx / MaxLen) | GAS 後端驗證（先必填 → 格式 → 截斷） |
 |---|---|---|
 | 姓名 | 不得為空（最長 50 字） | 必填（trim 後不得為空字串）+ 截斷 `slice(0, 50)` |
 | 學號 | 必填；`/^[a-zA-Z][0-9]{7}$/` (如 D1234567) | 必填 + 格式驗證 `!/^[a-zA-Z][0-9]{7}$/` + 截斷 8 字 |
-| 房號 | 必填（最長 8 字） | 必填 + 格式驗證 `!/^[A-Za-z0-9-]{1,8}$/`（僅限英數字與連字號）+ 截斷 8 字 |
-| 床號 | 必填；`/^[0-9]{1,3}$/` | 必填 + 格式驗證 `!/^[0-9]{1,3}$/` + 截斷 3 字 |
+| 房號 | 必填；`/^(H\|I\|G\|F[ABCDEF])[0-9]{1,4}(-[0-9]+)?$/i`（如 H0111） | 必填 + 格式驗證 `!/^(H\|I\|G\|F[ABCDEF])[0-9]{1,4}(-[0-9]+)?$/i`（須以 H、I、G、FA~FF 開頭）+ 截斷 8 字 |
+| 床號 | 必填；`/^[0-9]$/`（僅 1 位數字） | 必填 + 格式驗證 `!/^[0-9]$/` + 截斷 3 字 |
 | 手機 | 必填；`/^[0-9]{10}$/` | 必填 + 格式驗證 `!/^[0-9]{10}$/` + 截斷 10 字 |
 | 可維修時間 | 小時 0–23、分鐘 0–59 範圍驗證 | 截斷 `slice(0, 20)`（純文字欄位，後端無格式 RegEx，僅做長度防護）|
 | 問題描述 | 必填（最長 200 字） | 必填（trim 後不得為空字串）+ 截斷 `slice(0, 200)` |
@@ -113,7 +117,8 @@ erDiagram
 studentId / phone / bedNumber / roomNumber / name / description 皆為**空字串**
 的請求，後端會因為上述短路寫法的缺陷而**照樣寫入試算表**，等同後端「必填」
 從未真正生效過。此問題與試算表資料品質直接相關，故列於本文件而非僅列於
-`architecture.md`。
+`architecture.md`。同理，v1.4.6 之前房號／床號後端格式雖有檢查但比前端寬鬆，
+攻擊者可送出前端會擋下、但後端仍會放行的格式（如 3 位數床號），現已一併收緊。
 
 ---
 
@@ -121,6 +126,6 @@ studentId / phone / bedNumber / roomNumber / name / description 皆為**空字�
 
 | 資料 | 建立 | 更新 | 刪除 |
 |---|---|---|---|
-| 報修案件 | 使用者送出表單時（經 reCAPTCHA v3 + Token 驗證） | 網管人員手動更新試算表 | 不刪除（永久保存） |
+| 報修案件 | 使用者送出表單時（經 reCAPTCHA v3 + Token 驗證 + 120 秒重複送出防護，v1.4.6 新增，詳見 `architecture.md` §5.4.3） | 網管人員手動更新試算表 | 不刪除（永久保存） |
 | 累積計數器 | 首次呼叫 increment 時 | 每次新 session (Atomic LockService) | 不刪除 |
 

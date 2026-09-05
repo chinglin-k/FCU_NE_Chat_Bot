@@ -1,7 +1,7 @@
 # 架構設計文件 (Architecture Design Document)
 
-**版本 / Version**：v1.4.5  
-**最後更新 / Last Updated**：2026-08-29（v1.4.5: 新增 Wi-Fi 機設定教學模組、`WifiModal` ESLint 全域缺漏修復、全站版本號對齊）
+**版本 / Version**：v1.4.6  
+**最後更新 / Last Updated**：2026-09-05（v1.4.6：新增 120 秒重複送出防護、房號／床號後端驗證對齊前端，並修復 7 處文件與程式碼不一致之處，詳見 `CHANGELOG.md`）
 
 ---
 
@@ -20,7 +20,7 @@ graph TD
     GAS -->|"siteverify API (score >= 0.5)"| reCAPTCHA
     GAS -->|"REST API (6-Model Fallback)"| Gemini["Gemini API\n(六模型三層 RPM 備援)"]
     GAS -->|"19 語系關鍵字匹配"| RuleEngine["Rule-based 備援分類器\n(19-Language Classifier)"]
-    GAS -->|"報修：格式雙重強驗證 & 寫入 / 查詢：學號比對後讀取"| Sheet["Google 試算表\n(報修案件記錄)"]
+    GAS -->|"報修：格式雙重強驗證＋120秒去重防護 & 寫入 / 查詢：學號比對後讀取"| Sheet["Google 試算表\n(報修案件記錄)"]
     GAS -->|"讀寫計數器"| Props["Script Properties\n(USER_COUNT)"]
     Admin["👤 網管人員"] -->|"查看 / 更新狀態"| Sheet
 ```
@@ -125,17 +125,21 @@ graph TD
 ### 4.3 報修送出
 ```
 使用者填寫表單 → 點擊送出
-→ report.js 前端驗證（必填欄位 + 學號 1字母+7數字 + 手機10位數字 + 床號1–3位數字）
+→ report.js 前端驗證（必填欄位 + 學號 1字母+7數字 + 手機10位數字 +
+  床號1位數字 + 房號須以 H/I/G/FA~FF 開頭＋1–4位數字）
 → grecaptcha.execute() 取得 reCAPTCHA v3 一次性 token（隱形驗證，無需使用者互動）
 → POST GAS（Body: text/plain，內容：{action:"report", payload, token, clientId, recaptchaToken}，
   AbortController 30 秒 Timeout）
 → GAS doPost() 驗證 token → writeReport()：
   → 雙層流量限制（使用者 5/分鐘、全域 20/分鐘）
   → _verifyRecaptcha()：驗證 token、action、風險分數 ≥ 0.5
-  → 後端格式再次驗證（學號/手機/床號）
+  → 後端格式再次驗證（學號/手機/床號/房號，先必填、後格式、再截斷）
+  → 重複送出檢查：學號+房號+描述前50字 MD5 雜湊，120 秒內命中則回傳
+    DUPLICATE_REPORT（v1.4.6 新增，詳見 §5.4.3）
   → 寫入試算表（先設定儲存格為純文字格式，避免手機號碼開頭 0 被吃掉）
 → 回傳 {success:true}
-→ Modal 顯示成功畫面（2 秒進度條後自動關閉）
+→ report.js 立即關閉 Modal，於聊天區以 bot 訊息泡泡顯示「報修成功！」
+  並附上「回主選單／報修」後續按鈕（Header 標題列全程不受影響）
 ```
 
 ### 4.4 報修案件查詢
@@ -257,6 +261,27 @@ _consumeToken()   → CacheService.get()  → 驗證存在 → CacheService.remo
 - 隱形驗證，對真實使用者無任何操作負擔
 - reCAPTCHA Secret Key 僅存於 Script Properties，不外露
 
+#### 5.4.3 重複送出防護（v1.4.6 新增）
+
+**對應威脅**：CWE-841 Improper Enforcement of Behavioral Workflow（重複提交造成資料重複）
+
+```javascript
+const fingerprint = studentId + '|' + roomNumber + '|' + description.slice(0, 50);
+const hash = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, fingerprint);
+const cacheKey = 'dedup_' + Utilities.base64EncodeWebSafe(hash);
+if (CacheService.getScriptCache().get(cacheKey)) {
+  return { success: false, error: 'DUPLICATE_REPORT' };
+}
+// ...格式驗證通過、reCAPTCHA 通過、寫入試算表成功後：
+CacheService.getScriptCache().put(cacheKey, '1', 120); // 120 秒內視為重複
+```
+
+- 指紋組成：**學號 + 房號 + 問題描述前 50 字**，取 MD5 雜湊後編碼為 CacheService key
+- 僅在「格式驗證通過 **且** 實際寫入試算表成功」後才存入快取，避免驗證失敗的請求誤佔用去重配額、或誤擋合法的後續重試
+- 有效期 120 秒，與 Session Token 相同時窗，過期後允許再次送出（例如網管要求補件重送）
+- 防止使用者手滑重複點擊「送出」按鈕，或腳本在短時間內重複灌入相同案件造成試算表資料重複
+- 與 §5.4.1 的頻率限制彼此獨立、互不取代：頻率限制防止「大量不同內容」的濫用，本機制防止「內容幾乎相同」的重複
+
 ---
 
 ### 5.5 輸入驗證 (Input Validation)
@@ -282,20 +307,23 @@ Gemini Prompt 中以「」符號明確隔離使用者輸入，標示為「純文
 |---|---|---|---|
 | 姓名 | ✅ | 無（僅非空字串） | 50 字 |
 | 學號 | ✅ | `/^[a-zA-Z][0-9]{7}$/` | 8 字 |
-| 房號 | ✅ | `/^[A-Za-z0-9-]{1,8}$/` | 8 字 |
-| 床號 | ✅ | `/^[0-9]{1,3}$/` | 3 字 |
+| 房號 | ✅ | `/^(H\|I\|G\|F[ABCDEF])[0-9]{1,4}(-[0-9]+)?$/i`（須以 H、I、G、FA~FF 開頭） | 8 字 |
+| 床號 | ✅ | `/^[0-9]$/`（僅 1 位數字） | 3 字 |
 | 手機 | ✅ | `/^[0-9]{10}$/` | 10 字 |
 | 可維修時間 | ✅（前端） | 小時 0–23、分鐘 0–59 | 20 字（後端） |
 | 問題描述 | ✅ | 無（僅非空字串） | 200 字 |
 
-> **注意**：舊版後端使用 `field && !regex.test(field)` 寫法，空字串因短路求值整段跳過驗證，等同必填形同虛設。v1.3.1 已修正為「先 `trim()` 後判斷空字串，通過才進入格式正則驗證」（BUG-01）。
+> **注意**：舊版後端使用 `field && !regex.test(field)` 寫法，空字串因短路求值整段跳過驗證，等同必填形同虛設。v1.3.1 已修正為「先 `trim()` 後判斷空字串，通過才進入格式正則驗證」（BUG-01）。v1.4.6 進一步修正房號／床號後端正則式原本比前端寬鬆的問題，收緊為與前端完全一致（BUG-ROOM-01、BUG-BED-01）；「長度截斷」欄位維持原有截斷長度（房號 8 字、床號 3 字）不變——即使格式規則已收緊，截斷仍作為格式驗證失敗後的最後一道防線，避免未來格式規則再度放寬時欄位無上限。
 
 #### 5.5.3 查詢學號驗證（`queryReport`）
 
 ```javascript
-const sid = studentId.trim().toUpperCase();
-if (!sid || !/^[A-Z][0-9]{7}$/.test(sid)) {
-  return { success: false, error: '學號格式錯誤' };
+const sid = String(studentId || '').trim().toUpperCase();
+if (!sid) {
+  return { success: false, error: 'VALIDATION_QUERY_STUDENT_ID_REQUIRED' };
+}
+if (!/^[A-Z][0-9]{7}$/.test(sid)) {
+  return { success: false, error: 'VALIDATION_QUERY_STUDENT_ID_FORMAT' };
 }
 ```
 
@@ -392,7 +420,7 @@ finally { lock.releaseLock(); }
 
 | 測試項目 | 工具 / 方法 | 覆蓋範圍 |
 |---|---|---|
-| 單元測試（53 項） | Node.js `node --test` + `gas-mocks.js` | `_checkRateLimit`（雙層限流）、`_verifyRecaptcha`（三項條件）、`writeReport`（必填/格式/截斷迴歸）、`queryReport`（學號驗證/欄位安全/限流）、`_ruleBasedClassify`、`doGet`/`doPost` 路由 |
+| 單元測試（55 項） | Node.js `node --test` + `gas-mocks.js` | `_checkRateLimit`（雙層限流）、`_verifyRecaptcha`（三項條件）、`writeReport`（必填/格式/截斷/重複送出防護迴歸）、`queryReport`（學號驗證/欄位安全/限流）、`_ruleBasedClassify`、`doGet`/`doPost` 路由 |
 | 靜態程式碼分析 | ESLint（`eslint.config.js`，0 error / 0 warning） | JS 語法錯誤、未使用變數、未聲明全域等 |
 | CI/CD 自動化 | GitHub Actions（`.github/workflows/test.yml`） | 每次 push 自動執行 `npm test`，確保安全修復不回歸 |
 
@@ -405,7 +433,7 @@ finally { lock.releaseLock(); }
 | A01 Broken Access Control | 一次性 Token（120s）+ 雙層限流；`queryReport` 僅回傳本人案件的安全欄位 |
 | A02 Cryptographic Failures | 機密僅存 Script Properties；全程 HTTPS；無明文硬編碼 |
 | A03 Injection | Prompt Injection 防護（截斷+控制字元移除+引號隔離）；公式注入防護（`_sanitizeForSpreadsheet`）；HTML 轉義防 XSS（`_esc`）；學號格式正則驗證 |
-| A04 Insecure Design | 雙層限流（5 個 action × 使用者+全域）；reCAPTCHA v3 隱形驗證；個資最小化原則 |
+| A04 Insecure Design | 雙層限流（5 個 action × 使用者+全域）；reCAPTCHA v3 隱形驗證；120 秒重複送出防護（§5.4.3）；個資最小化原則 |
 | A05 Security Misconfiguration | `doGet` 明確拒絕 classify/report；GAS 部署設定文件化；ESLint 0 warning 基準 |
 | A06 Vulnerable Components | 生產環境無外部套件依賴（純 Vanilla JS + GAS）；開發依賴（ESLint）定期更新 |
 | A07 Auth Failures | 一次性 UUID Token；Token 即用即廢；前端 Token 存記憶體而非 localStorage |

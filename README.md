@@ -4,12 +4,12 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 [![Run Validation Unit Tests](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml/badge.svg)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-v1.4.5-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.4.6-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**版本 / Version**：v1.4.5
+**版本 / Version**：v1.4.6
 
-**最後更新 / Last Updated**：2026-08-29
+**最後更新 / Last Updated**：2026-09-05
 
 ---
 
@@ -18,7 +18,7 @@
 - 📚 **網路教學**：提供 Windows / Mac 宿舍網路設定 PDF 教學，另有站內 **Wi-Fi 機設定教學 Modal**（4 步驟圖文說明，v1.4.4 新增）
 - ⚙️ **常見問題**：轉接器驅動程式、WiFi 帳號密碼、寢室 WiFi 訊號、冷氣電費儲值等常見問題解答
   * 🎯 支援「子主題精準回覆」：問轉接器只顯示轉接器卡片、問帳密只顯示帳密卡片
-- 🔧 **線上報修通報**：填寫報修表單自動寫入 Google 試算表（前後端雙重格式驗證：學號 1 字母+7 數字、手機 10 位數字、床號 1–3 位數字）
+- 🔧 **線上報修通報**：填寫報修表單自動寫入 Google 試算表（前後端雙重格式驗證：學號 1 字母+7 數字、手機 10 位數字、床號 1 位數字、房號 H/I/G/FA~FF 開頭＋1–4 位數字）；120 秒內偵測到相同學號＋房號＋問題描述的重複送出會自動攔截，避免試算表出現重複案件
 - 🔍 **報修案件查詢**：學生輸入學號即可查詢自己的報修案件狀態（僅顯示安全欄位，不含手機號碼等敏感資訊）
 - 🤖 **LLM 語意分析**：透過 Gemini API 三層 RPM 分級、共 6 個模型自動備援機制判斷使用者意圖
   * 支援「理解失敗」 vs 「系統錯誤」兩層 fallback 訊息區分
@@ -157,7 +157,8 @@ GitHub → Settings → Pages → Source: **main** / **(root)**
 | 請求授權 | 一次性 Session Token（120 秒有效、用一次即失效），配合裝置級 Client ID 做流量限制 |
 | 流量防護 | 五組雙層（使用者級＋全域級）CacheService 限流：`classify` 使用者 12/分鐘、全域 60/分鐘；`report` 使用者 5/分鐘、全域 20/分鐘；`query` 使用者 10/分鐘、全域 40/分鐘；`counter_get` 使用者 30/分鐘、全域 120/分鐘；`counter_increment` 使用者 3/分鐘、全域 500/分鐘（v1.3.1：修復原本使用者級上限 999999 形同不限制的缺陷，並將全域上限由 30 調升為 500，避免新生入住等尖峰時段誤擋合法計數）|
 | 濫用防護（報修表單） | reCAPTCHA v3 隱形驗證（風險分數門檻 0.5），防止 GAS_URL 外洩後遭腳本大量送出假報修單 |
-| 學號 / 手機 / 床號 / 房號格式 | 前端與 GAS 端雙重驗證，且後端一律「先必填、後格式」（學號：1 字母+7 數字；手機：10 位數字；床號：1–3 位數字；房號：僅限英數字與連字號）。v1.3.1 修復：舊版後端寫法在欄位為空字串時會整段跳過驗證，等同必填形同虛設，現已修正 |
+| 學號 / 手機 / 床號 / 房號格式 | 前端與 GAS 端雙重驗證，且後端一律「先必填、後格式」（學號：1 字母+7 數字；手機：10 位數字；床號：**1 位數字**；房號：**須以 H、I、G、FA~FF 開頭，後接 1–4 位數字，可選一個連字號再接數字**）。v1.3.1 修復：舊版後端寫法在欄位為空字串時會整段跳過驗證，等同必填形同虛設，現已修正。v1.4.6：床號／房號後端格式已收緊為與前端完全一致（BUG-BED-01、BUG-ROOM-01），修復前後端寬鬆度不一致、可被繞過前端直接送出不合規格資料的問題 |
+| 重複送出防護（報修表單） | 120 秒內偵測到相同「學號＋房號＋問題描述前 50 字」的請求（MD5 雜湊比對）直接拒絕並回傳 `DUPLICATE_REPORT`，防止使用者手滑或腳本在短時間內重複寫入相同案件（v1.4.6 / BUG-DUP-01） |
 | Prompt Injection | 輸入截斷 500 字、移除控制字元、Zero-Width 字元、引號隔離輸入 |
 | XSS | 使用者輸入經 `_escapeHTML` 處理（含 `"` `'` 轉義）；Bot 訊息來自內部常數，僅供內部常數使用 Markdown 渲染 |
 | 後端欄位驗證 | GAS `writeReport()` 先檢查必填（trim 後不得為空）、再檢查格式、最後截斷長度，三階段皆通過才寫入試算表（v1.3.1 修復必填繞過問題） |
