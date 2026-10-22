@@ -402,6 +402,27 @@ test('classifyIntent：空白訊息回傳錯誤', () => {
   }
 });
 
+test('classifyIntent：Gemini API Key 以 x-goog-api-key header 傳送，不出現在 URL', () => {
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { GEMINI_API_KEY: 'secret-key' } });
+  try {
+    const calls = [];
+    mocks.__setFetchImpl((url, options) => {
+      calls.push({ url, options });
+      return {
+        getResponseCode: () => 200,
+        getContentText:  () => JSON.stringify({ candidates: [{ content: { parts: [{ text: 'BUTTON_REPORT|0.9|NONE' }] } }] })
+      };
+    });
+    const result = exported.classifyIntent('網路壞了', 'user-h');
+    assert.equal(result.intent, 'BUTTON_REPORT');
+    assert.equal(calls.length, 1);
+    assert.doesNotMatch(calls[0].url, /secret-key|[?&]key=/);
+    assert.equal(calls[0].options.headers['x-goog-api-key'], 'secret-key');
+  } finally {
+    restore();
+  }
+});
+
 // ══════════════════════════════════════════════
 // 5. _ruleBasedClassify：多語言關鍵字備援分類器
 // ══════════════════════════════════════════════
@@ -564,10 +585,17 @@ test('doPost：合法 token 搭配未知 action 時回傳明確錯誤', () => {
 // ══════════════════════════════════════════════
 // 7. 報修案件查詢（queryReport）
 // ══════════════════════════════════════════════
+function mockPassingQueryRecaptcha(mocks) {
+  mocks.__setFetchImpl(() => ({
+    getResponseCode: () => 200,
+    getContentText: () => JSON.stringify({ success: true, action: 'query_report', score: 0.9 })
+  }));
+}
+
 test('queryReport：學號格式驗證 — 空字串時回傳錯誤', () => {
-  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
   try {
-    const result = exported.queryReport('', 'test-client');
+    const result = exported.queryReport('', '5678', 'test-client', 'rc');
     assert.equal(result.success, false);
     assert.match(result.error, /VALIDATION_QUERY_STUDENT_ID_REQUIRED/);
   } finally {
@@ -576,9 +604,9 @@ test('queryReport：學號格式驗證 — 空字串時回傳錯誤', () => {
 });
 
 test('queryReport：學號格式驗證 — 格式錯誤時回傳錯誤', () => {
-  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
   try {
-    const result = exported.queryReport('12345678', 'test-client');
+    const result = exported.queryReport('12345678', '5678', 'test-client', 'rc');
     assert.equal(result.success, false);
     assert.match(result.error, /VALIDATION_QUERY_STUDENT_ID_FORMAT/);
   } finally {
@@ -587,13 +615,14 @@ test('queryReport：學號格式驗證 — 格式錯誤時回傳錯誤', () => {
 });
 
 test('queryReport：空試算表查詢回傳空陣列', () => {
-  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
   try {
     // 空表只有標題列
+    mockPassingQueryRecaptcha(mocks);
     const sheet = mocks._internal.mockSheet;
     sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
 
-    const result = exported.queryReport('D1234567', 'test-client');
+    const result = exported.queryReport('D1234567', '5678', 'test-client', 'rc');
     assert.equal(result.success, true);
     assert.deepEqual(result.cases, []);
     assert.ok(result.message);
@@ -603,8 +632,9 @@ test('queryReport：空試算表查詢回傳空陣列', () => {
 });
 
 test('queryReport：有匹配案件時回傳正確資料', () => {
-  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
   try {
+    mockPassingQueryRecaptcha(mocks);
     const sheet = mocks._internal.mockSheet;
     // 標題列
     sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
@@ -613,7 +643,7 @@ test('queryReport：有匹配案件時回傳正確資料', () => {
     // 不匹配資料列
     sheet._rows.push(['2026/08/21', '10:00:00', 'D7654321', '李小花', 'B202', '2', '0987654321', '18:00-21:00', 'IP 貼紙缺漏', '', '', '']);
 
-    const result = exported.queryReport('D1234567', 'test-client');
+    const result = exported.queryReport('D1234567', '5678', 'test-client', 'rc');
     assert.equal(result.success, true);
     assert.equal(result.cases.length, 1);
     assert.equal(result.cases[0].date, '2026/08/20');
@@ -627,13 +657,14 @@ test('queryReport：有匹配案件時回傳正確資料', () => {
 });
 
 test('queryReport：回傳欄位安全性 — 不含手機號碼與姓名', () => {
-  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
   try {
+    mockPassingQueryRecaptcha(mocks);
     const sheet = mocks._internal.mockSheet;
     sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
     sheet._rows.push(['2026/08/20', '14:30:00', 'D1234567', '王小明', 'A101', '1', '0912345678', '18:00-21:00', '網路斷線', '', '', '']);
 
-    const result = exported.queryReport('D1234567', 'test-client');
+    const result = exported.queryReport('D1234567', '5678', 'test-client', 'rc');
     assert.equal(result.success, true);
     assert.equal(result.cases.length, 1);
 
@@ -653,13 +684,13 @@ test('queryReport：回傳欄位安全性 — 不含手機號碼與姓名', () =
 });
 
 test('queryReport：頻率限制 — 超過限制時回傳錯誤', () => {
-  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
   try {
     // queryReport 的使用者級上限是 10 次/分鐘
     for (let i = 0; i < 10; i++) {
-      exported.queryReport('D1234567', 'rate-test-user');
+      exported.queryReport('D1234567', '5678', 'rate-test-user', 'rc');
     }
-    const result = exported.queryReport('D1234567', 'rate-test-user');
+    const result = exported.queryReport('D1234567', '5678', 'rate-test-user', 'rc');
     assert.equal(result.success, false);
     assert.match(result.error, /RATE_LIMITED/);
   } finally {
@@ -668,13 +699,14 @@ test('queryReport：頻率限制 — 超過限制時回傳錯誤', () => {
 });
 
 test('queryReport：學號大小寫不敏感 — 小寫輸入也能匹配', () => {
-  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
   try {
+    mockPassingQueryRecaptcha(mocks);
     const sheet = mocks._internal.mockSheet;
     sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
     sheet._rows.push(['2026/08/20', '14:30:00', 'D1234567', '王小明', 'A101', '1', '0912345678', '18:00-21:00', '網路斷線', '', '', '']);
 
-    const result = exported.queryReport('d1234567', 'test-client');
+    const result = exported.queryReport('d1234567', '5678', 'test-client', 'rc');
     assert.equal(result.success, true);
     assert.equal(result.cases.length, 1);
   } finally {
@@ -683,9 +715,10 @@ test('queryReport：學號大小寫不敏感 — 小寫輸入也能匹配', () =
 });
 
 test('doPost：query action 路由正常運作', () => {
-  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet' } });
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
   try {
     // 先準備試算表資料
+    mockPassingQueryRecaptcha(mocks);
     const sheet = mocks._internal.mockSheet;
     sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
     sheet._rows.push(['2026/08/20', '14:30:00', 'D1234567', '王小明', 'A101', '1', '0912345678', '18:00-21:00', '網路斷線', '是', '是', '已修復']);
@@ -694,10 +727,72 @@ test('doPost：query action 路由正常運作', () => {
     const token = callDoGet(exported, { action: 'get_token' }).token;
 
     // 透過 doPost 查詢
-    const data = callDoPost(exported, { action: 'query', studentId: 'D1234567', token });
+    const data = callDoPost(exported, { action: 'query', studentId: 'D1234567', phoneLast4: '5678', token, recaptchaToken: 'rc' });
     assert.equal(data.success, true);
     assert.equal(data.cases.length, 1);
     assert.equal(data.cases[0].completed, '是');
+  } finally {
+    restore();
+  }
+});
+
+
+test('queryReport：手機末 4 碼格式驗證 — 缺漏或非 4 位數字時回傳錯誤', () => {
+  const { exported, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
+  try {
+    for (const bad of ['', '123', '12a4', '12345']) {
+      const result = exported.queryReport('D1234567', bad, 'test-client', 'rc');
+      assert.equal(result.success, false);
+      assert.equal(result.error, 'VALIDATION_QUERY_PHONE_LAST4_FORMAT', `輸入「${bad}」應被拒絕`);
+    }
+  } finally {
+    restore();
+  }
+});
+
+test('queryReport：SEC-QUERY-01 — 學號正確但手機末 4 碼不符時，不回傳任何案件', () => {
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
+  try {
+    mockPassingQueryRecaptcha(mocks);
+    const sheet = mocks._internal.mockSheet;
+    sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
+    sheet._rows.push(['2026/08/20', '14:30:00', 'D1234567', '王小明', 'A101', '1', '0912345678', '18:00-21:00', '網路斷線', '', '', '']);
+
+    const wrong = exported.queryReport('D1234567', '0000', 'test-client', 'rc');
+    const noSid = exported.queryReport('D9999999', '0000', 'test-client', 'rc');
+    assert.equal(wrong.success, true);
+    assert.deepEqual(wrong.cases, []);
+    // 末 4 碼不符與學號不存在的回應必須完全相同，不得洩漏學號是否存在
+    assert.deepEqual(wrong, noSid);
+  } finally {
+    restore();
+  }
+});
+
+test('queryReport：SEC-QUERY-01 — reCAPTCHA 未通過時不讀取試算表', () => {
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
+  try {
+    const sheet = mocks._internal.mockSheet;
+    sheet._rows.push(['日期', '時間', '學號', '姓名', '房號', '床號', '手機', '可維修時間', '問題描述', '是否派人', '是否完成', '備註']);
+    sheet._rows.push(['2026/08/20', '14:30:00', 'D1234567', '王小明', 'A101', '1', '0912345678', '18:00-21:00', '網路斷線', '', '', '']);
+
+    // 預設 fetchImpl 回傳 HTTP 500 → siteverify 視為失敗
+    const result = exported.queryReport('D1234567', '5678', 'test-client', 'rc');
+    assert.equal(result.success, false);
+    assert.equal(result.error, 'RECAPTCHA_VERIFY_FAILED');
+    assert.equal(result.cases, undefined);
+  } finally {
+    restore();
+  }
+});
+
+test('queryReport：reCAPTCHA action 必須為 query_report（不可挪用報修表單的 token）', () => {
+  const { exported, mocks, restore } = loadGasCode({ scriptProperties: { SPREADSHEET_ID: 'test-sheet', RECAPTCHA_SECRET_KEY: 'secret' } });
+  try {
+    mockPassingRecaptcha(mocks); // action: submit_report
+    const result = exported.queryReport('D1234567', '5678', 'test-client', 'rc');
+    assert.equal(result.success, false);
+    assert.equal(result.error, 'RECAPTCHA_VERIFY_FAILED');
   } finally {
     restore();
   }

@@ -13,12 +13,12 @@ graph TD
     GHP -->|"fetch GET ?action=get_token"| GAS["Google Apps Script\nWeb App (doGet / doPost)"]
     GHP -->|"fetch POST body {action:'classify', token, clientId, msg}\n(Content-Type: text/plain)"| GAS
     GHP -->|"fetch POST body {action:'report', token, clientId, recaptchaToken, payload}\n(Content-Type: text/plain)"| GAS
-    GHP -->|"fetch POST body {action:'query', token, clientId, studentId}\n(Content-Type: text/plain)"| GAS
+    GHP -->|"fetch POST body {action:'query', token, clientId, studentId, phoneLast4, recaptchaToken}\n(Content-Type: text/plain)"| GAS
     GHP -->|"fetch GET ?action=counter_*"| GAS
     GHP -->|"grecaptcha.execute()"| reCAPTCHA["Google reCAPTCHA v3\n隱形驗證服務"]
     GAS -->|"雙層限流 (User & Global)"| RateLimit["Rate Limiter\n(CacheService)"]
     GAS -->|"siteverify API (score >= 0.5)"| reCAPTCHA
-    GAS -->|"REST API (6-Model Fallback)"| Gemini["Gemini API\n(六模型三層 RPM 備援)"]
+    GAS -->|"REST API (5-Model Fallback)"| Gemini["Gemini API\n(五模型三層 RPM 備援)"]
     GAS -->|"19 語系關鍵字匹配"| RuleEngine["Rule-based 備援分類器\n(19-Language Classifier)"]
     GAS -->|"報修：格式雙重強驗證＋120秒去重防護 & 寫入 / 查詢：學號比對後讀取"| Sheet["Google 試算表\n(報修案件記錄)"]
     GAS -->|"讀寫計數器"| Props["Script Properties\n(USER_COUNT)"]
@@ -33,7 +33,7 @@ graph TD
 |---|---|---|
 | 前端 / Frontend | HTML5 + Vanilla CSS + Vanilla JS | 無框架依賴，輕量且高速 / Lightweight & Zero dependencies |
 | 部署 / Deployment | GitHub Pages | 免費靜態托管，自動 CI/CD / Free static hosting |
-| LLM | Gemini API 六模型三層 RPM 分級自動備援 | 透過 GAS 代理，API Key 不外露；429 時自動重試切換下一個模型 |
+| LLM | Gemini API 五模型三層 RPM 分級自動備援 | 透過 GAS 代理，API Key 不外露；429 時自動重試切換下一個模型 |
 | 備援 / Fallback | 19 語系 Rule-based 關鍵字分類器 | Gemini 全部失敗時降級使用，支援 19 種語言/地區語言 |
 | 反濫用 / Anti-Abuse | reCAPTCHA v3（僅報修表單） | 隱形驗證，風險分數門檻 0.5，防止 GAS_URL 外洩後遭腳本濫用 |
 | 後端 / Backend | Google Apps Script (GAS Web App) | 無伺服器架構，`doGet` / `doPost` 路由 / Serverless |
@@ -67,14 +67,19 @@ graph TD
 | `_verifyRecaptcha(token, action)` | 呼叫 Google siteverify API 驗證 reCAPTCHA v3 token、action 及風險分數 (score ≥ 0.5) |
 | `classifyIntent(msg, clientId)` | 依序呼叫 6 個 Gemini 模型，若配額用盡自動降級至 19 語系 Rule-based 備援分類器 |
 | `writeReport(data, clientId, recaptchaToken)` | reCAPTCHA 驗證、後端「先必填、後格式」二階段驗證（姓名/學號/房號/床號/手機/問題描述皆為必填，未填一律拒絕，非僅格式檢查）、長度截斷寫入試算表 |
-| `queryReport(studentId, clientId)` | 學生輸入學號查詢自己的報修案件；僅回傳安全欄位（日期/時間/房號/床號/問題描述/是否派人/是否完成/備註），不含手機、姓名等敏感個資 |
+| `queryReport(studentId, phoneLast4, clientId, recaptchaToken)` | 學生輸入學號＋報修時填寫的手機末 4 碼查詢自己的報修案件（需通過 reCAPTCHA `query_report`）；僅回傳安全欄位（日期/時間/房號/床號/問題描述/是否派人/是否完成/備註），不含手機、姓名等敏感個資 |
 | `getCounter() / incrementCounter()` | Atomic LockService 防競態寫入計數器 |
 
 > ⚠️ **v1.3.1**：所有函式的 `catch` 區塊已統一改為僅回傳固定代碼 `'INTERNAL_ERROR'`
 > 給前端，例外的完整內容改記錄於 `Logger.log()`，避免內部實作細節透過錯誤
 > 訊息外洩給呼叫端（詳見 §5 安全性設計）。
 
-### 3.3 Gemini 備援模型清單（依 RPM 配額分三層，共 6 個模型）
+### 3.3 Gemini 備援模型清單（依 RPM 配額分三層，共 5 個模型）
+
+> 🔄 **2026-10 模型清單更新**：依 Google 官方 deprecations 頁面，移除已棄用的
+> `gemini-3.5-flash`（API 請求已自動導向 `gemini-3.6-flash`）與 `gemini-3-flash-preview`
+> （官方建議改用 `gemini-3.6-flash`），新增 Stable 模型 `gemini-3.8-flash`。
+> `gemini-3.1-flash-lite` 官方預告 2027-05-07 下架，屆時需自清單移除。
 
 > ⚠️ **v1.3.1 文件修正**：本節原本描述「9 個模型、含 gemini-2.5-flash-lite／gemini-2.5-flash／
 > gemini-2.0-flash／gemini-2.0-flash-lite 共 4 個額外模型」，與 `gas/Code.gs` 實際的
@@ -86,11 +91,11 @@ graph TD
 | 層級 | RPM | 模型 |
 |---|---|---|
 | 最高 | 15 | gemini-3.5-flash-lite、gemini-3.1-flash-lite |
-| 標準 | 5 | gemini-3.6-flash、gemini-3.5-flash |
-| 預覽版（文字對話補齊，未標示 RPM） | — | gemini-3.1-pro-preview、gemini-3-flash-preview |
+| 標準（實際 RPM 以 AI Studio 為準） | 5 | gemini-3.8-flash、gemini-3.6-flash |
+| 預覽版（文字對話補齊，未標示 RPM） | — | gemini-3.1-pro-preview |
 
 遇 HTTP 429（額度超限）：同一模型重試最多 2 次（間隔 1.5 秒）後切換下一個模型；
-遇其他錯誤碼（400/403/404）直接跳下一個模型。6 個模型全部失敗時，降級至
+遇其他錯誤碼（400/403/404）直接跳下一個模型。5 個模型全部失敗時，降級至
 `_ruleBasedClassify()`（19 語系關鍵字備援分類器）。
 
 ---
@@ -146,17 +151,21 @@ graph TD
 ```
 使用者點擊「🔍 查詢案件」按鈕（或 AI 辨識為 BUTTON_QUERY 意圖）
 → chat.js 開啟 query Modal（QueryCase.open()）
-→ 學生輸入學號，query.js 前端驗證（非空 + 格式 1字母+7數字）
-→ POST GAS（Body: text/plain，內容：{action:"query", studentId, token, clientId}，
+→ 學生輸入學號與手機末 4 碼，query.js 前端驗證（學號 1字母+7數字、末 4 碼 4 位數字）
+→ grecaptcha.execute({ action: 'query_report' }) 取得 reCAPTCHA token
+→ POST GAS（Body: text/plain，內容：{action:"query", studentId, phoneLast4, token, clientId, recaptchaToken}，
   AbortController 15 秒 Timeout）
 → GAS doPost() 驗證 token → queryReport()：
   → 雙層流量限制（使用者 10/分鐘、全域 40/分鐘）
-  → 學號格式驗證（toUpperCase + /^[A-Z][0-9]{7}$/）
-  → 讀取試算表全部資料列，篩選匹配學號的列
+  → 學號格式驗證（toUpperCase + /^[A-Z][0-9]{7}$/）、末 4 碼格式驗證（/^[0-9]{4}$/）
+  → reCAPTCHA v3 驗證（action 必須為 query_report）
+  → 讀取試算表全部資料列，篩選「學號相符且手機末 4 碼相符」的列
+    （學號不存在與末 4 碼不符回傳相同的空結果，不洩漏學號是否存在；SEC-QUERY-01）
   → 僅回傳安全欄位（日期/時間/房號/床號/問題描述/是否派人/是否完成/備註）
   → 不回傳手機號碼、姓名（防第三方惡意按學號試探取得他人個資）
 → 回傳 { success: true, cases: [...] }
-→ query.js 關閉 Modal，在聊天區渲染案件卡片（所有欄位已 HTML 轉義防 XSS）
+→ query.js 關閉 Modal，在聊天區渲染案件卡片（所有欄位已 HTML 轉義防 XSS，
+  並轉義 Markdown 字元 [ ] ( ) * _ 防止描述欄被渲染成釣魚連結；SEC-QUERY-02）
 ```
 
 ---
@@ -327,7 +336,15 @@ if (!/^[A-Z][0-9]{7}$/.test(sid)) {
 }
 ```
 
+```javascript
+const last4 = String(phoneLast4 || '').trim();
+if (!/^[0-9]{4}$/.test(last4)) {
+  return { success: false, error: 'VALIDATION_QUERY_PHONE_LAST4_FORMAT' };
+}
+```
+
 前端（`query.js`）與後端（`queryReport()`）各自驗證，且分拆空值與格式兩種錯誤訊息（BUG-12 修正）。
+手機末 4 碼為 SEC-QUERY-01 新增：學號格式可預測，僅憑學號查詢會讓任何人列舉他人的房號、床號與問題描述。
 
 #### 5.5.4 Google Sheets 公式注入防護（`_sanitizeForSpreadsheet`）
 
@@ -376,7 +393,8 @@ function _esc(str) {
 
 #### 查詢結果的個資最小化
 
-`queryReport()` 回傳欄位刻意排除姓名與手機號碼，防止惡意使用者以他人學號試探取得敏感個資：
+`queryReport()` 須同時比對學號與手機末 4 碼並通過 reCAPTCHA 才回傳案件（SEC-QUERY-01），
+且回傳欄位刻意排除姓名與手機號碼，防止惡意使用者以他人學號試探取得敏感個資：
 
 ```javascript
 cases.push({
@@ -420,7 +438,7 @@ finally { lock.releaseLock(); }
 
 | 測試項目 | 工具 / 方法 | 覆蓋範圍 |
 |---|---|---|
-| 單元測試（55 項） | Node.js `node --test` + `gas-mocks.js` | `_checkRateLimit`（雙層限流）、`_verifyRecaptcha`（三項條件）、`writeReport`（必填/格式/截斷/重複送出防護迴歸）、`queryReport`（學號驗證/欄位安全/限流）、`_ruleBasedClassify`、`doGet`/`doPost` 路由 |
+| 單元測試（60 項） | Node.js `node --test` + `gas-mocks.js` | `_checkRateLimit`（雙層限流）、`_verifyRecaptcha`（三項條件）、`writeReport`（必填/格式/截斷/重複送出防護迴歸）、`queryReport`（學號與末 4 碼驗證/reCAPTCHA/欄位安全/限流）、`_ruleBasedClassify`、`doGet`/`doPost` 路由 |
 | 靜態程式碼分析 | ESLint（`eslint.config.js`，0 error / 0 warning） | JS 語法錯誤、未使用變數、未聲明全域等 |
 | CI/CD 自動化 | GitHub Actions（`.github/workflows/test.yml`） | 每次 push 自動執行 `npm test`，確保安全修復不回歸 |
 
@@ -430,7 +448,7 @@ finally { lock.releaseLock(); }
 
 | OWASP Top 10 (2021) | 本系統對應控制 |
 |---|---|
-| A01 Broken Access Control | 一次性 Token（120s）+ 雙層限流；`queryReport` 僅回傳本人案件的安全欄位 |
+| A01 Broken Access Control | 一次性 Token（120s）+ 雙層限流；`queryReport` 須學號＋手機末 4 碼＋reCAPTCHA，僅回傳本人案件的安全欄位 |
 | A02 Cryptographic Failures | 機密僅存 Script Properties；全程 HTTPS；無明文硬編碼 |
 | A03 Injection | Prompt Injection 防護（截斷+控制字元移除+引號隔離）；公式注入防護（`_sanitizeForSpreadsheet`）；HTML 轉義防 XSS（`_esc`）；學號格式正則驗證 |
 | A04 Insecure Design | 雙層限流（5 個 action × 使用者+全域）；reCAPTCHA v3 隱形驗證；120 秒重複送出防護（§5.4.3）；個資最小化原則 |

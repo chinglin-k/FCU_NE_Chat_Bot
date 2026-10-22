@@ -13,7 +13,7 @@
 | P0 | 報修表單收集與驗證 | ✅ Done | 七欄位 + 時間純文字提示 |
 | P0 | GAS 試算表寫入 | ✅ Done | `writeReport()` |
 | P0 | Google Apps Script 部署 | ✅ Done | GAS_URL 已填入 |
-| P1 | LLM 語意分析（Gemini） | ✅ Done | `classifyIntent()` 六模型自動備援 |
+| P1 | LLM 語意分析（Gemini） | ✅ Done | `classifyIntent()` 五模型自動備援 |
 | P1 | 意圖分類串接前端 | ✅ Done | `intent.js` |
 | P1 | 教學文件回覆 | ✅ Done | Windows / Mac PDF 連結 |
 | P1 | 常見問題回覆 | ✅ Done | 轉接器韌體建議、WiFi 帳號密碼等常見問題 |

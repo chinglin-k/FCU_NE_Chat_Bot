@@ -14,7 +14,7 @@
 | ---- | --------------------------------- |
 | 前端 | HTML5 + Vanilla CSS + Vanilla JS |
 | 部署 | GitHub Pages（靜態，root 目錄） |
-| LLM | Gemini API 六模型三層 RPM 分級自動備援（透過 GAS 代理） |
+| LLM | Gemini API 五模型三層 RPM 分級自動備援（透過 GAS 代理） |
 | 反濫用 | reCAPTCHA v3（僅報修表單） |
 | 後端 | Google Apps Script（`gas/Code.gs`） |
 | 資料儲存 | Google 試算表 + Script Properties |
@@ -131,7 +131,7 @@ FCU_NE_Chat_Bot/
   取 MD5 雜湊後作為 `CacheService` key，120 秒內命中相同指紋直接回傳
   `DUPLICATE_REPORT`（僅於格式驗證通過、寫入成功後才存入快取）。防止使用者
   手滑重複點擊送出或腳本短時間內重複灌入相同案件（v1.4.6 BUG-DUP-01 新增）。
-- **Gemini 備援**：`GEMINI_MODELS_FALLBACK` 依 RPM 配額分三層、共 6 個模型，
+- **Gemini 備援**：`GEMINI_MODELS_FALLBACK` 依 RPM 配額分三層、共 5 個模型，
   遇 429 自動重試切換下一個模型；全部失敗降級至 `_ruleBasedClassify()`
   （19 語系關鍵字比對）。修改此陣列後，務必同步更新
   `doc/architecture.md` §3.3 的模型表格，避免文件與程式碼再次脫節。

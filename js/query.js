@@ -1,6 +1,6 @@
 /* ============================================================
    query.js — 報修案件查詢模組
-   ── 學生輸入學號查詢自己的報修案件狀態
+   ── 學生輸入學號＋報修時填寫的手機末 4 碼查詢自己的報修案件狀態
    ── 透過 GAS 後端 queryReport() 查詢試算表資料
    ============================================================ */
 /* exported QueryCase */
@@ -15,6 +15,7 @@ const QueryCase = (() => {
   const submitBtn = document.getElementById('query-submit-btn');
   const errorMsg  = document.getElementById('query-error-msg');
   const inputEl   = document.getElementById('query-student-id');
+  const phoneEl   = document.getElementById('query-phone-last4');
 
   function _R() { return CONFIG.RESPONSES[I18N.getLang()]; }
 
@@ -74,6 +75,14 @@ const QueryCase = (() => {
     if (!/^[a-zA-Z][0-9]{7}$/.test(sid)) {
       return V.QUERY_STUDENT_ID_FORMAT;
     }
+    // SEC-QUERY-01：須同時提供報修時填寫的手機末 4 碼，避免他人僅憑學號查詢案件
+    const last4 = (phoneEl.value || '').trim();
+    if (!last4) {
+      return V.QUERY_PHONE_LAST4_REQUIRED;
+    }
+    if (!/^[0-9]{4}$/.test(last4)) {
+      return V.QUERY_PHONE_LAST4_FORMAT;
+    }
     return null;
   }
 
@@ -100,6 +109,10 @@ const QueryCase = (() => {
    * 傳給 addBotMessage()（內部走 _renderMarkdown，不做 HTML 轉義），
    * 惡意輸入（如 <script>、javascript: URL）可造成 XSS。
    * 修正方式：所有試算表欄位值在嵌入 template string 前先做 HTML 轉義。
+   * ⚠️ SEC-QUERY-02：另需轉義 Markdown 語法字元（[ ] ( ) * _），否則描述欄
+   * 填入「[點我](https://釣魚網站)」會被 _renderMarkdown 轉成可點擊連結，
+   * 偽裝成機器人訊息誘導點擊。轉為 HTML entity 後 Markdown 正則不再匹配，
+   * 瀏覽器仍顯示原字元。
    * @param {string} str
    * @returns {string}
    */
@@ -109,7 +122,13 @@ const QueryCase = (() => {
       .replace(/</g,  '&lt;')
       .replace(/>/g,  '&gt;')
       .replace(/"/g, '&quot;')
-      .replace(/'/g,  '&#39;');
+      .replace(/'/g,  '&#39;')
+      .replace(/\[/g, '&#91;')
+      .replace(/\]/g, '&#93;')
+      .replace(/\(/g, '&#40;')
+      .replace(/\)/g, '&#41;')
+      .replace(/\*/g, '&#42;')
+      .replace(/_/g,  '&#95;');
   }
 
   /**
@@ -167,9 +186,25 @@ const QueryCase = (() => {
     _setLoading(true);
     _hideError();
 
-    const sid = (inputEl.value || '').trim().toUpperCase();
+    const sid   = (inputEl.value || '').trim().toUpperCase();
+    const last4 = (phoneEl.value || '').trim();
 
     try {
+      // reCAPTCHA v3：與報修表單相同機制，後端驗證 action 必須為 query_report
+      let recaptchaToken = '';
+      if (typeof grecaptcha !== 'undefined' && CONFIG.RECAPTCHA_SITE_KEY) {
+        recaptchaToken = await new Promise((resolve) => {
+          grecaptcha.ready(() => {
+            grecaptcha.execute(CONFIG.RECAPTCHA_SITE_KEY, { action: 'query_report' })
+              .then(resolve)
+              .catch((err) => {
+                console.warn('reCAPTCHA execution error:', err);
+                resolve('');
+              });
+          });
+        });
+      }
+
       let token = Chat.getToken();
       if (!token) {
         token = await Chat.refreshToken();
@@ -179,10 +214,12 @@ const QueryCase = (() => {
       const timeoutId  = setTimeout(() => controller.abort(), 15000);
 
       const payloadData = {
-        action:   'query',
-        studentId: sid,
-        token:    token,
-        clientId: Chat.getClientId()
+        action:         'query',
+        studentId:      sid,
+        phoneLast4:     last4,
+        token:          token,
+        clientId:       Chat.getClientId(),
+        recaptchaToken: recaptchaToken
       };
 
       let response = await fetch(CONFIG.GAS_URL, {
