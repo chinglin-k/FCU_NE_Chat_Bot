@@ -1,7 +1,7 @@
 # 開發待辦清單（todo.md）
 
-**版本 / Version**：v1.4.6  
-**最後更新 / Last Updated**：2026-09-05
+**版本 / Version**：v1.4.7  
+**最後更新 / Last Updated**：2026-10-22
 
 ---
 
@@ -137,9 +137,8 @@
 | 全站版本號對齊 v1.4.5 | ✅ Done | 所有 `.md`、`package.json` 版本號統一為 v1.4.5 |
 | 單元測試維持 53 項全數通過 | ✅ Done | `npm test` 53 pass / 0 fail；`npm run lint` 0 error / 0 warning（修復 BUG-44 後恢復綠燈） |
 
-> ⚠️ **待人工確認（未動作）**：`doc/project-memory.md` 內記載一組已輪替失效的
-> Spreadsheet ID 明碼，與 `AGENTS.md` 規範 5「不得硬編碼於任何文件」字面上牴觸；
-> 是否要改為遮蔽格式（如 `1BUnG_...79uI`），待專案擁有者確認後再處理。
+> ✅ **已解決（v1.4.5）**：`doc/project-memory.md` 內原記載的已輪替 Spreadsheet ID 明碼，
+> 已改為遮蔽格式（`1BUnG_...79uI`），符合 `AGENTS.md` 規範 5。
 
 ---
 
@@ -159,6 +158,24 @@
 | 全站版本號對齊 v1.4.6 | ✅ Done | 所有 `.md`、`package.json`、`package-lock.json` 版本號統一為 v1.4.6 |
 | 單元測試增至 55 項全數通過 | ✅ Done | `npm test` 55 pass / 0 fail；`npm run lint` 0 error / 0 warning |
 | Gemini 模型清單時效性查核（資訊性，未變更程式碼） | ℹ️ Info | 網路查證確認現有 6 個模型皆仍有效運作；Google 已於 2026-08-13 發布 `gemini-3.7-flash`，是否納入備援清單屬產品決策，留待專案擁有者評估 |
+
+---
+
+## K 輪：查詢存取控制、Gemini 模型更新、依賴弱點修補與文件稽核（2026-10-22 / v1.4.7）
+
+| 功能 | 狀態 | 說明 |
+|---|---|---|
+| 案件查詢須學號＋手機末 4 碼＋reCAPTCHA（SEC-QUERY-01） | ✅ Done | 修復僅憑可預測學號即可列舉他人房號／床號／問題描述的個資外洩；末 4 碼不符與學號不存在回傳相同空結果 |
+| 查詢結果 Markdown 連結注入修正（SEC-QUERY-02） | ✅ Done | `js/query.js` `_esc()` 另轉義 `[ ] ( ) * _` |
+| Gemini API Key 改以 header 傳送（SEC-GEMINI-01） | ✅ Done | `x-goog-api-key` header 取代 `?key=` URL 參數 |
+| Gemini 模型清單更新 | ✅ Done | 移除已棄用的 `gemini-3.5-flash`、`gemini-3-flash-preview`，新增 `gemini-3.8-flash`（6 → 5 個） |
+| 開發依賴弱點修補 | ✅ Done | `npm audit fix`：`brace-expansion` 1.1.21、`js-yaml` 4.3.2，`npm audit` 0 vulnerabilities |
+| 全站文件與程式碼一致性稽核 | ✅ Done | 修正 reCAPTCHA 適用範圍、模型數、測試數、`UNKNOWN` 子主題、去重程式碼片段、CI 觸發條件、部署方式、`Code.gs` 部署步驟缺漏 `RECAPTCHA_SECRET_KEY`、`wifi-modal.js` 關閉方式數量、`css/style.css` 最後更新日期等過時描述；README 新增測試章節 |
+| 移除過時檔案 | ✅ Done | `VIBECODING_PROMPT_v1.4.6.md`、`RELEASE_NOTES_v1.4.6.md` |
+| 全站版本號對齊 v1.4.7 | ✅ Done | 所有 `.md`、`package.json`、`package-lock.json` |
+| 單元測試增至 60 項全數通過 | ✅ Done | `npm test` 60 pass / 0 fail；`npm run lint` 0 error / 0 warning |
+| `gemini-3.1-flash-lite` 下架前移除 | ⏳ Todo | 官方預告 2027-05-07 下架，屆時自 `GEMINI_MODELS_FALLBACK` 移除 |
+| 低信心確認按鈕補上「查詢案件」 | 💡 Idea | 目前低信心提示僅附教學／常見問題／報修三顆按鈕，主選單則有四顆；是否補上屬產品決策 |
 
 ---
 

@@ -3,8 +3,8 @@
 > 僅在確認新決策、修改既有決策或發現重要限制時更新。
 > 每次更新須記錄日期、原因與影響範圍。
 
-**版本 / Version**：v1.4.6  
-**最後更新 / Last Updated**：2026-09-05
+**版本 / Version**：v1.4.7  
+**最後更新 / Last Updated**：2026-10-22
 
 ---
 
@@ -86,3 +86,14 @@
 | 2026-09-05 | 全站文件稽核修復（BUG-52~58，詳見 `CHANGELOG.md` v1.4.6） | 上述兩項 2026-09-04 的修復合併上線後未同步更新文件；例行稽核另發現床號／房號格式描述、報修成功畫面描述、測試數量、`index.html` 載入順序註解、`test/validation.test.js` 白名單、`doc/architecture.md` 查詢驗證程式碼片段共 7 處過時或自相矛盾內容，其中「已確認業務規則」章節的報修成功畫面描述與本文件自身下方 v1.4.4/v1.4.5 決策記錄直接矛盾 | `README.md`、`AGENTS.md`、`doc/architecture.md`、`doc/data-model.md`、`doc/requirements.md`、`doc/todo.md`、`doc/project-memory.md`（本檔）、`test/validation.test.js`、`index.html` |
 | 2026-09-05 | 全站版本號統一升級為 v1.4.6 | 例行版本發布，涵蓋上述兩項功能與本次文件稽核 | `package.json`、`package-lock.json`、`README.md`、`CHANGELOG.md`、`AGENTS.md`、`doc/*.md` |
 
+---
+
+## v1.4.7 決策記錄（2026-10-22）
+
+| 日期 | 決策 | 理由 | 影響檔案 |
+|---|---|---|---|
+| 2026-10-22 | 案件查詢改為須「學號＋報修時填寫的手機末 4 碼」並通過 reCAPTCHA（SEC-QUERY-01） | 學號格式可預測，且限流依據的 `clientId` 由前端產生可任意偽造，舊版僅憑學號即可列舉他人的房號、床號與問題描述；選用手機末 4 碼是因為它是報修時已收集的欄位，不需新增資料或帳號系統。學號不存在與末 4 碼不符回傳相同空結果，避免成為「學號是否存在」的查詢介面 | `gas/Code.gs`、`js/query.js`、`js/config.js`、`js/i18n.js`、`index.html`、`test/gas-code.test.js` |
+| 2026-10-22 | 查詢結果 `_esc()` 另轉義 Markdown 字元（SEC-QUERY-02） | 查詢結果仍經 `_renderMarkdown()` 渲染，報修描述中的 `[文字](https://…)` 會變成機器人訊息中的可點擊連結，可被用於釣魚 | `js/query.js` |
+| 2026-10-22 | Gemini API Key 改以 `x-goog-api-key` header 傳送 | URL 參數可能被代理或存取記錄留存，header 為官方支援的傳送方式 | `gas/Code.gs` |
+| 2026-10-22 | Gemini 備援清單由 6 個改為 5 個模型 | 依官方 deprecations 頁面：`gemini-3.5-flash` 已棄用並自動導向 `gemini-3.6-flash`（留著只會重複呼叫）、`gemini-3-flash-preview` 官方建議改用 `gemini-3.6-flash`；新增 Stable 的 `gemini-3.8-flash`。旗艦 `gemini-4-argon` 未納入，因意圖分類不需要也不符成本 | `gas/Code.gs`、`doc/architecture.md` |
+| 2026-10-22 | 移除 `VIBECODING_PROMPT_v1.4.6.md`、`RELEASE_NOTES_v1.4.6.md` | 前者為一次性 LLM 操作說明（檔案內文即註明不需加入 repo），後者內容已發布於 GitHub Release 頁面並收錄於 `CHANGELOG.md`；版本發布說明改以 GitHub Release 為唯一來源 | repo 根目錄 |

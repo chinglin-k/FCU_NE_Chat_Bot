@@ -6,6 +6,7 @@
 //   2. 點「專案設定」→「指令碼屬性」，新增以下屬性：
 //      GEMINI_API_KEY  = 你的 Gemini API Key
 //      SPREADSHEET_ID  = 你的 Google 試算表 ID
+//      RECAPTCHA_SECRET_KEY = 你的 reCAPTCHA v3 Secret Key（報修與查詢皆需要）
 //   3. 部署 → 新的部署 → 類型：「網頁應用程式」
 //      執行身分：「我自己」/ 誰可以存取：「所有人」
 //   4. 複製產生的 Web App URL，貼到 js/config.js 的 GAS_URL

@@ -1,9 +1,9 @@
 # 逢甲大學福星宿舍網路報修 Chatbot — 需求規格書
 # FCU Fuxing Dormitory Network Repair Assistant — Requirements Specification
 
-**版本 / Version**：v1.4.6  
+**版本 / Version**：v1.4.7  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-09-05 (v1.4.6: 補上重複送出防護需求說明；修正房號／床號驗證規則與報修成功畫面過時描述)  
+**最後更新 / Last Updated**：2026-10-22 (v1.4.7: 案件查詢須學號＋手機末 4 碼＋reCAPTCHA；Gemini 模型清單更新；測試數更新)  
 **專案倉庫 / Repository**：https://github.com/chinglin-k/FCU_NE_Chat_Bot
 
 ---
@@ -33,7 +33,7 @@ Chatbot 啟動後顯示四個主要選項按鈕，Header 右上角另有 Teams �
 |---|---|
 | 📚 教學 / Tutorials | 顯示 Windows / Mac / Wi-Fi 機三個系統選擇；Windows、Mac 提供 PDF 教學文件連結，Wi-Fi 機顯示站內 4 步驟設定教學 Modal（v1.4.4 新增） |
 | ⚙️ 常見問題 / FAQ | 常見問題一覽：WiFi 帳號密碼、轉接器驅動程式、寢室 WiFi 訊號、冷氣電費儲值等 |
-| 🔍 查詢案件 / Check My Cases | 開啟查詢 Modal，輸入學號與手機末 4 碼查詢報修案件狀態（v1.4.0 新增；手機末 4 碼於 2026-10 SEC-QUERY-01 新增） |
+| 🔍 查詢案件 / Check My Cases | 開啟查詢 Modal，輸入學號與手機末 4 碼查詢報修案件狀態（v1.4.0 新增；手機末 4 碼於 v1.4.7 / SEC-QUERY-01 新增） |
 | 🔧 我要實體協助、報修 / Request On-site Help | 開啟報修表單 Modal |
 | 👤 聯絡我們 / Contact Us（Header 常駐） | 開啟 Teams chat 深連結，聯絡「福星宿舍網路報修平台」帳號 |
 
@@ -61,7 +61,7 @@ Chatbot 啟動後顯示四個主要選項按鈕，Header 右上角另有 Teams �
 | 學號 / Student ID | 學生學號 | 必填；前後端雙重強驗證 **1 位英文字母 + 7 位數字**（例：`D1234567`）|
 | 房號 / Room No. | 宿舍房號（例：H0111） | 必填；前後端雙重強驗證，**須以 H、I、G、FA~FF 開頭，後接 1–4 位數字，可選一個連字號再接數字**，最長 8 字（v1.4.6 起後端與前端規則完全一致，見 BUG-ROOM-01）|
 | 床號 / Bed No. | 床位號碼（例：1） | 必填；前後端雙重強驗證 **1 位數字**（v1.4.6 起後端與前端規則完全一致，見 BUG-BED-01）|
-| 手機 / Phone | 聯絡電話 | 必填；前後端雙重強驗證 **10 位數字** |
+| 手機 / Phone | 聯絡電話（末 4 碼兼作日後查詢案件的本人驗證） | 必填；前後端雙重強驗證 **10 位數字** |
 | 可維修時間 / Repair Time | 本人需在場 | 必填；小時 0–23、分鐘 0–59 |
 | 問題描述 / Description | 網路或設備問題說明 | 必填（最長 200 字）；v1.3.1 起後端不再僅做長度截斷，未填一律拒絕 |
 
@@ -78,8 +78,10 @@ Chatbot 啟動後顯示四個主要選項按鈕，Header 右上角另有 Teams �
 
 - 學生輸入學號與報修時填寫的手機末 4 碼即可查詢自己的報修案件狀態
 - 前後端皆獨立驗證學號格式（1 位英文字母 + 7 位數字），且分拆「空學號」與「格式錯誤」兩種錯誤訊息
+- 須同時輸入報修時填寫的**手機末 4 碼**（4 位數字），僅回傳學號與末 4 碼皆相符的案件；學號不存在與末 4 碼不符顯示相同的「查無案件」訊息，不洩漏學號是否存在（v1.4.7 / SEC-QUERY-01）
+- 送出時經 reCAPTCHA v3 隱形驗證（action `query_report`，風險分數 ≥ 0.5）
 - 回傳欄位刻意排除姓名與手機號碼（個資最小化），防止惡意使用者以他人學號試探取得敏感個資
-- 所有欄位值在前端渲染前均做 HTML 轉義（`_esc()`），防止試算表資料觸發 XSS
+- 所有欄位值在前端渲染前均做 HTML 與 Markdown 字元轉義（`_esc()`），防止試算表資料觸發 XSS 或被渲染成釣魚連結（v1.4.7 / SEC-QUERY-02）
 - 已加入頻率限制：依 clientId 每人每分鐘最多 10 次，全體使用者每分鐘總計最多 40 次
 - 管理者操作：在試算表的「是否派人」/「是否完成」/「備註」欄位填寫內容，學生即可透過查詢功能看到進度
 
@@ -99,9 +101,9 @@ Chatbot 啟動後顯示四個主要選項按鈕，Header 右上角另有 Teams �
 
 | 項目 / Item | 要求 / Specifications |
 |---|---|
-| 安全性 / Security | Gemini Key 與 reCAPTCHA Secret 僅存於 GAS Script Properties；通訊全面採用 **POST Body** + **一次性 Token** + **Client ID 五組限流（classify/report/query/counter_get/counter_increment）** + **reCAPTCHA v3** + **120 秒重複送出防護** + **Strict CSP**；後端例外一律回傳固定代碼，不外洩原始錯誤訊息（CWE-209 防護） |
+| 安全性 / Security | Gemini Key 與 reCAPTCHA Secret 僅存於 GAS Script Properties；通訊全面採用 **POST Body** + **一次性 Token** + **Client ID 五組限流（classify/report/query/counter_get/counter_increment）** + **reCAPTCHA v3（報修與查詢）** + **查詢須學號＋手機末 4 碼** + **120 秒重複送出防護** + **Strict CSP**；後端例外一律回傳固定代碼，不外洩原始錯誤訊息（CWE-209 防護） |
 | 效能 / Performance | LLM 分類時顯示打字指示器，提升等待體驗 |
 | 相容性 / Compatibility | 支援桌機與手機瀏覽器，Viewport 允許無障礙縮放，使用 `100dvh` 行動版高度切齊 |
 | 語言 / Language | 介面全面提供繁體中文與英文對照 (Fully bilingual UI support)；v1.3.1 修正可維修時間 4 個欄位的 aria-label 中英文切換失效問題 |
-| 測試 / Testing | 原生 Node.js 測試框架與 `gas-mocks.js` 單元測試（55/55 Passing）與 ESLint 規範（0 error / 0 warning）|
+| 測試 / Testing | 原生 Node.js 測試框架與 `gas-mocks.js` 單元測試（60/60 Passing）與 ESLint 規範（0 error / 0 warning）|
 

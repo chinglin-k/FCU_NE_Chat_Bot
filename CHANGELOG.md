@@ -1,11 +1,11 @@
 # 更新日誌 (Changelog)
 
-**版本 / Version**：v1.4.6  
-**最後更新 / Last Updated**：2026-09-05
+**版本 / Version**：v1.4.7  
+**最後更新 / Last Updated**：2026-10-22
 
 ---
 
-## [Unreleased] - 2026-10-22
+## [v1.4.7] - 2026-10-22 (Case-Lookup Access Control, Gemini Model Refresh & Documentation Audit / 案件查詢存取控制、Gemini 模型更新與文件稽核)
 
 ### 繁體中文
 
@@ -15,6 +15,9 @@
 - **[SEC-GEMINI-01] Gemini API Key 改以 header 傳送**：`classifyIntent()` 原本將 API Key 放在 URL `?key=` 參數，可能被代理或存取記錄留存；現改用 `x-goog-api-key` header。
 - 測試由 55 項增為 60 項（末 4 碼驗證、末 4 碼不符不洩漏、reCAPTCHA 失敗與 action 不符、API Key 不出現在 URL）。
 - **開發依賴安全性更新**：`npm audit fix` 修補 eslint 間接依賴的 2 個 high 等級弱點——`brace-expansion` 1.1.20 → 1.1.21（GHSA-q2hr-2g5m-vwhr、GHSA-qhr7-859c-m2p7、GHSA-6j4f-fj2g-mc7p，DoS）與 `js-yaml` 4.3.1 → 4.3.2（GHSA-2883-xcg3-v3hh，DoS）。兩者僅用於開發／CI 的 lint 流程，不會部署至 GitHub Pages 或 GAS。
+- **文件與程式碼一致性稽核**：修正 `AGENTS.md`、`README.md`、`doc/*.md` 中 reCAPTCHA 適用範圍（原寫「僅報修表單」）、Gemini 模型數（殘留「6 個」）、`doc/data-model.md` 的 `UNKNOWN` 子主題（原寫 `ALL`，程式實際為 `NONE`）、`doc/architecture.md` §5.4.3 去重程式碼片段（指紋分隔符號與變數名稱與 `Code.gs` 不符）、§5.9 CI 觸發條件、README 部署方式（原寫 gh-pages，實際為 `main` 根目錄）；`gas/Code.gs` 開頭部署步驟補上 `RECAPTCHA_SECRET_KEY`；`js/wifi-modal.js` 註解更正為四種關閉方式（含 ESC）；`css/style.css` 最後更新日期更正；`doc/todo.md` F 輪已於 v1.4.5 解決的待確認事項標為已解決。README 新增「測試」章節，列出各測試檔項數與涵蓋範圍。
+- **移除過時檔案**：`VIBECODING_PROMPT_v1.4.6.md`（一次性 LLM 操作說明，內文即註明不需加入 repo）、`RELEASE_NOTES_v1.4.6.md`（已發布於 GitHub Release 並收錄於本檔）。
+- **全站版本號統一升級為 v1.4.7**。
 
 ### English
 
@@ -24,6 +27,9 @@
 - **[SEC-GEMINI-01] Gemini API key moved from the `?key=` URL parameter to the `x-goog-api-key` header.**
 - Tests: 55 → 60.
 - **Dev-dependency security update**: `npm audit fix` resolves 2 high-severity advisories in eslint's transitive deps (`brace-expansion` 1.1.21, `js-yaml` 4.3.2). Dev/CI only; not shipped.
+- **Documentation/code consistency audit**: fixed stale reCAPTCHA scope, model count, `UNKNOWN` topic (`NONE`, not `ALL`), dedup code snippet, CI triggers and Pages deployment description; added `RECAPTCHA_SECRET_KEY` to the `Code.gs` deployment steps; README gains a Testing section with per-file counts.
+- **Removed obsolete files**: `VIBECODING_PROMPT_v1.4.6.md`, `RELEASE_NOTES_v1.4.6.md`.
+- **Version bumped to v1.4.7 across all files.**
 
 ---
 

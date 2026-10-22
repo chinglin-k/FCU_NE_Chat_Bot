@@ -2,9 +2,9 @@
 
 > 所有 AI 工具與開發者均須遵守此規範
 
-**版本 / Version**：v1.4.6  
+**版本 / Version**：v1.4.7  
 
-**最後更新 / Last Updated**：2026-09-05
+**最後更新 / Last Updated**：2026-10-22
 
 ---
 
@@ -15,7 +15,7 @@
 | 前端 | HTML5 + Vanilla CSS + Vanilla JS |
 | 部署 | GitHub Pages（靜態，root 目錄） |
 | LLM | Gemini API 五模型三層 RPM 分級自動備援（透過 GAS 代理） |
-| 反濫用 | reCAPTCHA v3（僅報修表單） |
+| 反濫用 | reCAPTCHA v3（報修表單 `submit_report`、案件查詢 `query_report`） |
 | 後端 | Google Apps Script（`gas/Code.gs`） |
 | 資料儲存 | Google 試算表 + Script Properties |
 | 測試 | Node.js `node --test`（`gas/Code.gs` 純函式以 CommonJS `module.exports` 方式匯出供測試） |
@@ -47,16 +47,18 @@ FCU_NE_Chat_Bot/
 │   ├── chat.js            ← 主控制器（最後載入）；管理 Session Token 與 Client ID
 │   ├── intent.js          ← 意圖分類（回傳 {intent, confidence, needsConfirmation, isSystemError, topic})
 │   ├── report.js          ← 報修表單（含前端格式驗證、reCAPTCHA token 取得）
-│   ├── query.js           ← 報修查詢（Modal 介面與查詢結果渲染）
+│   ├── query.js           ← 報修查詢（學號＋手機末 4 碼、reCAPTCHA、結果渲染與轉義）
 │   ├── counter.js         ← 計數器
 │   ├── teams.js           ← Teams 聯絡功能（chat 深連結 + 平台備援 + 複製）
 │   └── wifi-modal.js      ← Wi-Fi 機設定教學 Modal（開/關/ESC，v1.4.4 新增）
 ├── gas/Code.gs            ← GAS 原始碼（不部署至 Pages），尾端含 module.exports 供 Node 測試
 ├── test/                  ← Node.js 單元測試（含 gas-mocks.js，模擬 GAS 全域物件）
+├── .github/workflows/test.yml ← CI：push／PR 至 main 時執行 npm test 與 npm run lint
 ├── package.json           ← npm test / npm run lint 腳本
 ├── eslint.config.js       ← ESLint 設定
 ├── .env.example           ← 環境變數範本（不含真實機密值）
-└── doc/                   ← 專案文件
+├── README.md / CHANGELOG.md
+└── doc/                   ← 專案文件（architecture / data-model / requirements / project-memory / todo）
 ```
 
 ---
@@ -97,7 +99,7 @@ FCU_NE_Chat_Bot/
   > Access Log 與代理伺服器紀錄。
 
 - **一次性 Token**：`doGet(?action=get_token)` 發放（120 秒有效、用一次即失效），
-  `classify`／`report` 的 POST body 須帶入有效 token，經 `_consumeToken()` 驗證。
+  `classify`／`report`／`query` 的 POST body 須帶入有效 token，經 `_consumeToken()` 驗證。
   Token 存於前端記憶體變數（非 localStorage），頁面重整後會重新取得。
 - **Client ID**：前端產生的前端亂數字串（Math.random 基底 36 進位），存於 `localStorage`（key: `fcu_chat_client_id`），
   非個資、非身分驗證，僅用於「依使用者區分」的流量限制識別。
@@ -106,14 +108,18 @@ FCU_NE_Chat_Bot/
   - `classify`：使用者級 12 次/分鐘、全域級 60 次/分鐘
   - `report`：使用者級 5 次/分鐘、全域級 20 次/分鐘
   - `query`：使用者級 10 次/分鐘、全域級 40 次/分鐘
-    （v1.4.0 新增：學號查詢端點，不需 reCAPTCHA，依 clientId 個別限流）
+    （v1.4.0 新增；v1.4.7 起另需手機末 4 碼與 reCAPTCHA，見下方 SEC-QUERY-01）
   - `counter_get`：使用者級 30 次/分鐘、全域級 120 次/分鐘
   - `counter_increment`：使用者級 3 次/分鐘、全域級 500 次/分鐘
     （v1.3.1 修復：原本使用者級上限為 999999、識別碼固定為 `'anonymous'`，
     等同不限制且無法個別追蹤；全域上限原訂 30 次/分鐘，因於尖峰時段容易
     誤擋合法計數，已調升為 500 次/分鐘）
-- **reCAPTCHA v3**：僅 `report` 需要，`_verifyRecaptcha()` 驗證 token 有效性、
-  action 是否相符（`submit_report`）、風險分數是否 ≥ 0.5。
+- **reCAPTCHA v3**：`report` 與 `query` 需要，`_verifyRecaptcha()` 驗證 token 有效性、
+  action 是否相符（報修 `submit_report`／查詢 `query_report`，不可互相挪用）、風險分數是否 ≥ 0.5。
+- **案件查詢存取控制（v1.4.7 / SEC-QUERY-01）**：`queryReport()` 須同時比對學號與
+  手機末 4 碼（試算表第 7 欄），學號不存在與末 4 碼不符**必須**回傳相同的空結果，
+  不得洩漏學號是否存在；查詢結果前端以 `_esc()` 轉義 HTML 與 Markdown 字元
+  （SEC-QUERY-02），新增可渲染欄位時須沿用。
 - **後端格式驗證**（防止繞過前端直接打 API）：一律「先必填、後格式、再截斷」
   三階段進行，**不得**使用 `field && !regex.test(field)` 這類寫法（空字串為
   falsy，會整段跳過驗證，等同必填形同虛設，此為 v1.3.1 BUG-01 的根因）。
@@ -132,9 +138,11 @@ FCU_NE_Chat_Bot/
   `DUPLICATE_REPORT`（僅於格式驗證通過、寫入成功後才存入快取）。防止使用者
   手滑重複點擊送出或腳本短時間內重複灌入相同案件（v1.4.6 BUG-DUP-01 新增）。
 - **Gemini 備援**：`GEMINI_MODELS_FALLBACK` 依 RPM 配額分三層、共 5 個模型，
-  遇 429 自動重試切換下一個模型；全部失敗降級至 `_ruleBasedClassify()`
+  遇 429 自動重試切換下一個模型；API Key 一律以 `x-goog-api-key` header 傳送，
+  **禁止**放回 URL 的 `?key=` 參數；全部失敗降級至 `_ruleBasedClassify()`
   （19 語系關鍵字比對）。修改此陣列後，務必同步更新
-  `doc/architecture.md` §3.3 的模型表格，避免文件與程式碼再次脫節。
+  `doc/architecture.md` §3.3 的模型表格，避免文件與程式碼再次脫節；並以 Google 官方
+  deprecations 頁面確認無已棄用或已自動導向其他版本的模型。
 - 其餘操作（counter 相關）維持 `doGet(e)` 處理即可（不涉及個資）。
 - **錯誤處理慣例**：`catch` 區塊一律用 `Logger.log()` 記錄完整例外內容，
   回傳給前端的 `error` 欄位**禁止**包含 `err.toString()` 等原始例外訊息，

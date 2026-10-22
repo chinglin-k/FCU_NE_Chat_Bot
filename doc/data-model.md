@@ -1,8 +1,8 @@
 # 資料模型文件 (Data Model Specification)
 
-**版本 / Version**：v1.4.6  
+**版本 / Version**：v1.4.7  
 **建立日期 / Created**：2026-07-17  
-**最後更新 / Last Updated**：2026-09-05 (v1.4.6：修正房號／床號格式描述與範例，反映 BUG-ROOM-01／BUG-BED-01 後端驗證收緊)
+**最後更新 / Last Updated**：2026-10-22 (v1.4.7：手機欄位兼作案件查詢的本人比對依據；修正 UNKNOWN 意圖子主題為 NONE)
 
 ---
 
@@ -55,7 +55,7 @@ erDiagram
 | name           | String | 學生填寫 | 必填；最長 50 字                                       |
 | room_number   | String | 學生填寫 | 必填；`/^(H\|I\|G\|F[ABCDEF])[0-9]{1,4}(-[0-9]+)?$/i`（須以 H、I、G、FA~FF 開頭，如 H0111），前後端雙重 RegEx 驗證 |
 | bed_number    | String | 學生填寫 | 必填；1 位數字，前後端雙重 RegEx 驗證                      |
-| phone          | String | 學生填寫 | 必填；10 位數字，前後端雙重 RegEx 驗證                       |
+| phone          | String | 學生填寫 | 必填；10 位數字，前後端雙重 RegEx 驗證；末 4 碼兼作案件查詢的本人比對依據（v1.4.7），不回傳給前端 |
 | repair_time   | String | 學生填寫 | 必填，純文字（如 18:00–21:00）                          |
 | description    | String | 學生填寫 | 必填；最長 200 字                                      |
 | is_dispatched | String | 網管填寫 | 空白預設，由網管手動更新                                     |
@@ -87,7 +87,7 @@ erDiagram
 | BUTTON_QUERY | 報修案件查詢（v1.4.0 新增） | NONE |
 | STICKER_PORT | IP 貼紙缺漏 / 網路孔故障 | NONE |
 | NON_NETWORK | 非網管業務 | NONE |
-| UNKNOWN | 無法判斷 | ALL |
+| UNKNOWN | 無法判斷 | NONE |
 
 ---
 
@@ -128,4 +128,7 @@ studentId / phone / bedNumber / roomNumber / name / description 皆為**空字�
 |---|---|---|---|
 | 報修案件 | 使用者送出表單時（經 reCAPTCHA v3 + Token 驗證 + 120 秒重複送出防護，v1.4.6 新增，詳見 `architecture.md` §5.4.3） | 網管人員手動更新試算表 | 不刪除（永久保存） |
 | 累積計數器 | 首次呼叫 increment 時 | 每次新 session (Atomic LockService) | 不刪除 |
+
+> **讀取（案件查詢）**：學生須同時提供學號與手機末 4 碼並通過 reCAPTCHA（`query_report`），
+> 後端僅回傳兩者皆相符之案件的安全欄位（不含姓名、手機），詳見 `architecture.md` §4.4。
 

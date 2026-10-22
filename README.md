@@ -4,12 +4,12 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://chinglin-k.github.io/FCU_NE_Chat_Bot/)
 [![Run Validation Unit Tests](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml/badge.svg)](https://github.com/chinglin-k/FCU_NE_Chat_Bot/actions/workflows/test.yml)
-[![Version](https://img.shields.io/badge/version-v1.4.6-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.4.7-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**版本 / Version**：v1.4.6
+**版本 / Version**：v1.4.7
 
-**最後更新 / Last Updated**：2026-09-05
+**最後更新 / Last Updated**：2026-10-22
 
 ---
 
@@ -30,10 +30,11 @@
   * 個資與使用者輸入一律透過 POST Body 傳送，不暴露於瀏覽器網址列或伺服器 Log
   * 一次性 Session Token（120 秒有效、用一次即失效）防止偽造請求
   * 裝置級 Client ID (`localStorage`) + 全域級雙層流量限制（CacheService，涵蓋 classify / report / query / counter_get / counter_increment 五個端點）
-  * reCAPTCHA v3 隱形驗證，防止 GAS Web App URL 外洩後遭腳本大量濫用
+  * reCAPTCHA v3 隱形驗證（報修與查詢），防止 GAS Web App URL 外洩後遭腳本大量濫用
+  * 案件查詢須學號＋報修時填寫的手機末 4 碼雙重比對，防止他人列舉學號取得個資
   * Prompt Injection 防護（長度截斷 500 字、控制字元 / Zero-Width 字元清除、引號隔離）
   * 學號 / 手機 / 床號 / 房號前後端雙重格式驗證，後端一律先必填、後格式
-  * XSS 防禦（使用者輸入以 `_escapeHTML` 轉義 `& < > " '`，Bot 訊息來自內部常數）
+  * XSS 防禦（使用者輸入以 `_escapeHTML` 轉義 `& < > " '`；查詢結果另轉義 Markdown 字元防連結注入；Bot 訊息來自內部常數）
   * 後端例外一律回傳固定錯誤代碼，不外洩原始例外訊息（CWE-209 防護）
 
 ---
@@ -75,7 +76,7 @@
 | 層次 | 技術 | 說明 |
 |---|---|---|
 | 前端 | HTML5 + Vanilla CSS + Vanilla JS | 無依賴框架，高效原生效能 |
-| 部署 | GitHub Pages | 自動部署至 gh-pages 服務 |
+| 部署 | GitHub Pages | 由 `main` 分支根目錄自動部署（合併 PR 即上線） |
 | LLM | Gemini API 五模型三層 RPM 分級自動備援 | 透過 GAS 代理，Key 不外露；429 時自動重試切換下一個模型 |
 | 備援 | 19 語系 Rule-based 關鍵字分類器 | Gemini 全部失敗時降級使用 |
 | 反濫用 | reCAPTCHA v3 + 一次性 Token + 雙層限流 | 隱形驗證（門檻 0.5），防範 GAS_URL 外洩遭腳本大量發送假報修單 |
@@ -128,6 +129,18 @@ GitHub → Settings → Pages → Source: **main** / **(root)**
 
 ---
 
+## 測試 (Testing)
+
+`npm test` 以 Node.js 原生 `node --test` 執行，共 **60 項**；`npm run lint` 基準為 **0 error / 0 warning**。GitHub Actions（`.github/workflows/test.yml`）於 push 至 `main` 與對 `main` 開 PR 時自動執行兩者。
+
+| 測試檔 | 項數 | 涵蓋範圍 |
+|---|---|---|
+| `test/gas-code.test.js` | 49 | 透過 `test/gas-mocks.js` 模擬 GAS 全域服務，測試 `gas/Code.gs`：雙層限流、`_sanitizeIdentifier`、`_sanitizeForSpreadsheet`、一次性 Token、`_verifyRecaptcha`（success／action／score）、`writeReport`（必填、格式、截斷、120 秒去重、reCAPTCHA）、`classifyIntent`（未設定 Key、Gemini 失敗降級、限流、API Key 以 header 傳送）、`_ruleBasedClassify`（多語系）、`queryReport`（學號與末 4 碼驗證、末 4 碼不符不洩漏、reCAPTCHA 與 action 檢查、欄位最小化、限流、大小寫）、`doGet`／`doPost` 路由 |
+| `test/validation.test.js` | 6 | 前端格式規則（學號、手機、床號、房號）與意圖／子主題白名單 |
+| `test/i18n.test.js` | 5 | `js/i18n.js` 中英字典鍵值一致性與 DOM 套用 |
+
+---
+
 ## 試算表格式
 
 報修案件自動寫入以下欄位：
@@ -151,16 +164,17 @@ GitHub → Settings → Pages → Source: **main** / **(root)**
 
 | 項目 | 說明 |
 |---|---|
-| Gemini API Key | 僅儲存於 GAS Script Properties，不寫入程式碼 |
+| Gemini API Key | 僅儲存於 GAS Script Properties，不寫入程式碼；呼叫 Gemini 時以 `x-goog-api-key` header 傳送，不出現在 URL（v1.4.7） |
 | reCAPTCHA Secret | 僅儲存於 GAS Script Properties，不寫入程式碼；前端僅持有公開的 Site Key |
 | 報修個資傳輸 | 全面採 **POST Body (text/plain)** 傳送，不暴露於瀏覽器網址列或伺服器 Access Log |
 | 請求授權 | 一次性 Session Token（120 秒有效、用一次即失效），配合裝置級 Client ID 做流量限制 |
 | 流量防護 | 五組雙層（使用者級＋全域級）CacheService 限流：`classify` 使用者 12/分鐘、全域 60/分鐘；`report` 使用者 5/分鐘、全域 20/分鐘；`query` 使用者 10/分鐘、全域 40/分鐘；`counter_get` 使用者 30/分鐘、全域 120/分鐘；`counter_increment` 使用者 3/分鐘、全域 500/分鐘（v1.3.1：修復原本使用者級上限 999999 形同不限制的缺陷，並將全域上限由 30 調升為 500，避免新生入住等尖峰時段誤擋合法計數）|
-| 濫用防護（報修表單） | reCAPTCHA v3 隱形驗證（風險分數門檻 0.5），防止 GAS_URL 外洩後遭腳本大量送出假報修單 |
+| 濫用防護（報修／查詢） | reCAPTCHA v3 隱形驗證（風險分數門檻 0.5；報修 action `submit_report`、查詢 action `query_report`），防止 GAS_URL 外洩後遭腳本大量送出假報修單或列舉查詢 |
+| 案件查詢存取控制 | 須同時提供學號與報修時填寫的手機末 4 碼才回傳案件；學號不存在與末 4 碼不符回傳相同空結果，不洩漏學號是否存在（v1.4.7 / SEC-QUERY-01） |
 | 學號 / 手機 / 床號 / 房號格式 | 前端與 GAS 端雙重驗證，且後端一律「先必填、後格式」（學號：1 字母+7 數字；手機：10 位數字；床號：**1 位數字**；房號：**須以 H、I、G、FA~FF 開頭，後接 1–4 位數字，可選一個連字號再接數字**）。v1.3.1 修復：舊版後端寫法在欄位為空字串時會整段跳過驗證，等同必填形同虛設，現已修正。v1.4.6：床號／房號後端格式已收緊為與前端完全一致（BUG-BED-01、BUG-ROOM-01），修復前後端寬鬆度不一致、可被繞過前端直接送出不合規格資料的問題 |
 | 重複送出防護（報修表單） | 120 秒內偵測到相同「學號＋房號＋問題描述前 50 字」的請求（MD5 雜湊比對）直接拒絕並回傳 `DUPLICATE_REPORT`，防止使用者手滑或腳本在短時間內重複寫入相同案件（v1.4.6 / BUG-DUP-01） |
 | Prompt Injection | 輸入截斷 500 字、移除控制字元、Zero-Width 字元、引號隔離輸入 |
-| XSS | 使用者輸入經 `_escapeHTML` 處理（含 `"` `'` 轉義）；Bot 訊息來自內部常數，僅供內部常數使用 Markdown 渲染 |
+| XSS | 使用者輸入經 `_escapeHTML` 處理（含 `"` `'` 轉義）；查詢結果經 `_esc()` 轉義 HTML 與 Markdown 字元 `[ ] ( ) * _`，防止報修描述被渲染成釣魚連結（v1.4.7 / SEC-QUERY-02）；Bot 訊息來自內部常數，僅供內部常數使用 Markdown 渲染 |
 | 後端欄位驗證 | GAS `writeReport()` 先檢查必填（trim 後不得為空）、再檢查格式、最後截斷長度，三階段皆通過才寫入試算表（v1.3.1 修復必填繞過問題） |
 | 錯誤訊息資訊揭露 | 所有後端例外一律回傳固定代碼 `INTERNAL_ERROR`，不回傳原始例外內容給前端，避免內部實作細節外洩（CWE-209，v1.3.1 修復） |
 | Git 歷史機密殘留 | ✅ 已解除：舊版 commit 曾寫死真實 Spreadsheet ID。`main`／tag 歷史已用 `git-filter-repo` 於獨立沙盒環境清除並驗證，已由專案擁有者 force push 完成。該 ID 目前仍可透過 GitHub `refs/pull/*/head`（已關閉／已合併 PR 的參照）查得——這是 `git-filter-repo` + force push 的已知限制，無法觸及 PR ref——**但專案擁有者已確認完成 Spreadsheet ID 輪替，舊 ID 已失效，故該殘留參照已無實質風險**。建議仍可洽 GitHub Support 清除 PR ref 快取以求乾淨，但非急迫項目 |
