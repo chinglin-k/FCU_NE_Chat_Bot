@@ -1,7 +1,35 @@
 # 更新日誌 (Changelog)
 
-**版本 / Version**：v1.4.6  
-**最後更新 / Last Updated**：2026-09-05
+**版本 / Version**：v1.4.7  
+**最後更新 / Last Updated**：2026-10-22
+
+---
+
+## [v1.4.7] - 2026-10-22 (Case-Lookup Access Control, Gemini Model Refresh & Documentation Audit / 案件查詢存取控制、Gemini 模型更新與文件稽核)
+
+### 繁體中文
+
+- **Gemini 備援模型清單更新**：依 Google 官方 deprecations 頁面（2026-10）調整 `GEMINI_MODELS_FALLBACK`，由 6 個改為 5 個模型——移除已棄用的 `gemini-3.5-flash`（API 請求已被自動導向 `gemini-3.6-flash`，留在清單中只會重複呼叫同一模型）與 `gemini-3-flash-preview`（官方建議改用 `gemini-3.6-flash`），新增 Stable 模型 `gemini-3.8-flash`。`gemini-3.1-flash-lite` 官方預告 2027-05-07 下架，暫時保留。已同步更新 `README.md`、`AGENTS.md`、`doc/*.md` 的模型數量與 `doc/architecture.md` §3.3 表格。
+- **[SEC-QUERY-01] 修正僅憑學號即可查詢他人案件（IDOR / 個資外洩）**：學號格式可預測（1 英文字母 + 7 位數字），舊版 `queryReport()` 只要學號即回傳房號、床號、問題描述與備註，且限流依據的 `clientId` 由前端產生可任意偽造，可被腳本大量列舉。現改為須同時提供報修時填寫的**手機末 4 碼**，且比照報修表單加上 **reCAPTCHA v3**（action `query_report`）。學號不存在與末 4 碼不符回傳完全相同的空結果，不洩漏學號是否存在。前端查詢 Modal 新增「手機末 4 碼」欄位與中英文錯誤訊息。⚠️ 需同時重新部署 GAS 與前端，舊版前端將無法查詢。
+- **[SEC-QUERY-02] 修正查詢結果的 Markdown 連結注入**：報修描述欄是使用者可控資料，`_esc()` 雖已轉義 HTML，但 `[文字](https://…)` 仍會被 `_renderMarkdown()` 轉成可點擊連結，以機器人訊息的外觀出現（可被用於釣魚）。`js/query.js` 的 `_esc()` 現另轉義 `[ ] ( ) * _` 為 HTML entity。
+- **[SEC-GEMINI-01] Gemini API Key 改以 header 傳送**：`classifyIntent()` 原本將 API Key 放在 URL `?key=` 參數，可能被代理或存取記錄留存；現改用 `x-goog-api-key` header。
+- 測試由 55 項增為 60 項（末 4 碼驗證、末 4 碼不符不洩漏、reCAPTCHA 失敗與 action 不符、API Key 不出現在 URL）。
+- **開發依賴安全性更新**：`npm audit fix` 修補 eslint 間接依賴的 2 個 high 等級弱點——`brace-expansion` 1.1.20 → 1.1.21（GHSA-q2hr-2g5m-vwhr、GHSA-qhr7-859c-m2p7、GHSA-6j4f-fj2g-mc7p，DoS）與 `js-yaml` 4.3.1 → 4.3.2（GHSA-2883-xcg3-v3hh，DoS）。兩者僅用於開發／CI 的 lint 流程，不會部署至 GitHub Pages 或 GAS。
+- **文件與程式碼一致性稽核**：修正 `AGENTS.md`、`README.md`、`doc/*.md` 中 reCAPTCHA 適用範圍（原寫「僅報修表單」）、Gemini 模型數（殘留「6 個」）、`doc/data-model.md` 的 `UNKNOWN` 子主題（原寫 `ALL`，程式實際為 `NONE`）、`doc/architecture.md` §5.4.3 去重程式碼片段（指紋分隔符號與變數名稱與 `Code.gs` 不符）、§5.9 CI 觸發條件、README 部署方式（原寫 gh-pages，實際為 `main` 根目錄）；`gas/Code.gs` 開頭部署步驟補上 `RECAPTCHA_SECRET_KEY`；`js/wifi-modal.js` 註解更正為四種關閉方式（含 ESC）；`css/style.css` 最後更新日期更正；`doc/todo.md` F 輪已於 v1.4.5 解決的待確認事項標為已解決。README 新增「測試」章節，列出各測試檔項數與涵蓋範圍。
+- **移除過時檔案**：`VIBECODING_PROMPT_v1.4.6.md`（一次性 LLM 操作說明，內文即註明不需加入 repo）、`RELEASE_NOTES_v1.4.6.md`（已發布於 GitHub Release 並收錄於本檔）。
+- **全站版本號統一升級為 v1.4.7**。
+
+### English
+
+- **Gemini fallback model list refresh**: per Google's deprecations page (Oct 2026), `GEMINI_MODELS_FALLBACK` goes from 6 to 5 models — removed deprecated `gemini-3.5-flash` (now auto-routed to `gemini-3.6-flash`) and `gemini-3-flash-preview` (replacement: `gemini-3.6-flash`), added stable `gemini-3.8-flash`. `gemini-3.1-flash-lite` (shutdown announced for 2027-05-07) is kept for now. Docs updated accordingly.
+- **[SEC-QUERY-01] Case lookup no longer works with a student ID alone**: student IDs are predictable and `clientId` rate limiting is client-controlled, so anyone could enumerate other students' room/bed/issue details. `queryReport()` now also requires the last 4 digits of the mobile number on the report plus reCAPTCHA v3 (`query_report`); a wrong last-4 and an unknown ID return the identical empty result. Redeploy both GAS and the frontend together.
+- **[SEC-QUERY-02] Markdown link injection in query results fixed**: `_esc()` in `js/query.js` now also escapes `[ ] ( ) * _`, so a report description can no longer render as a clickable (phishing) link in a bot bubble.
+- **[SEC-GEMINI-01] Gemini API key moved from the `?key=` URL parameter to the `x-goog-api-key` header.**
+- Tests: 55 → 60.
+- **Dev-dependency security update**: `npm audit fix` resolves 2 high-severity advisories in eslint's transitive deps (`brace-expansion` 1.1.21, `js-yaml` 4.3.2). Dev/CI only; not shipped.
+- **Documentation/code consistency audit**: fixed stale reCAPTCHA scope, model count, `UNKNOWN` topic (`NONE`, not `ALL`), dedup code snippet, CI triggers and Pages deployment description; added `RECAPTCHA_SECRET_KEY` to the `Code.gs` deployment steps; README gains a Testing section with per-file counts.
+- **Removed obsolete files**: `VIBECODING_PROMPT_v1.4.6.md`, `RELEASE_NOTES_v1.4.6.md`.
+- **Version bumped to v1.4.7 across all files.**
 
 ---
 

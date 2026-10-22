@@ -1,7 +1,7 @@
 # 架構設計文件 (Architecture Design Document)
 
-**版本 / Version**：v1.4.6  
-**最後更新 / Last Updated**：2026-09-05（v1.4.6：新增 120 秒重複送出防護、房號／床號後端驗證對齊前端，並修復 7 處文件與程式碼不一致之處，詳見 `CHANGELOG.md`）
+**版本 / Version**：v1.4.7  
+**最後更新 / Last Updated**：2026-10-22（v1.4.7：案件查詢改為學號＋手機末 4 碼＋reCAPTCHA、查詢結果 Markdown 連結注入修正、Gemini API Key 改以 header 傳送、模型清單更新，詳見 `CHANGELOG.md`）
 
 ---
 
@@ -13,14 +13,14 @@ graph TD
     GHP -->|"fetch GET ?action=get_token"| GAS["Google Apps Script\nWeb App (doGet / doPost)"]
     GHP -->|"fetch POST body {action:'classify', token, clientId, msg}\n(Content-Type: text/plain)"| GAS
     GHP -->|"fetch POST body {action:'report', token, clientId, recaptchaToken, payload}\n(Content-Type: text/plain)"| GAS
-    GHP -->|"fetch POST body {action:'query', token, clientId, studentId}\n(Content-Type: text/plain)"| GAS
+    GHP -->|"fetch POST body {action:'query', token, clientId, studentId, phoneLast4, recaptchaToken}\n(Content-Type: text/plain)"| GAS
     GHP -->|"fetch GET ?action=counter_*"| GAS
     GHP -->|"grecaptcha.execute()"| reCAPTCHA["Google reCAPTCHA v3\n隱形驗證服務"]
     GAS -->|"雙層限流 (User & Global)"| RateLimit["Rate Limiter\n(CacheService)"]
     GAS -->|"siteverify API (score >= 0.5)"| reCAPTCHA
-    GAS -->|"REST API (6-Model Fallback)"| Gemini["Gemini API\n(六模型三層 RPM 備援)"]
+    GAS -->|"REST API (5-Model Fallback)"| Gemini["Gemini API\n(五模型三層 RPM 備援)"]
     GAS -->|"19 語系關鍵字匹配"| RuleEngine["Rule-based 備援分類器\n(19-Language Classifier)"]
-    GAS -->|"報修：格式雙重強驗證＋120秒去重防護 & 寫入 / 查詢：學號比對後讀取"| Sheet["Google 試算表\n(報修案件記錄)"]
+    GAS -->|"報修：格式雙重強驗證＋120秒去重防護 & 寫入 / 查詢：學號＋手機末 4 碼比對後讀取"| Sheet["Google 試算表\n(報修案件記錄)"]
     GAS -->|"讀寫計數器"| Props["Script Properties\n(USER_COUNT)"]
     Admin["👤 網管人員"] -->|"查看 / 更新狀態"| Sheet
 ```
@@ -32,10 +32,10 @@ graph TD
 | 層次 / Layer | 技術 / Tech | 說明 / Description |
 |---|---|---|
 | 前端 / Frontend | HTML5 + Vanilla CSS + Vanilla JS | 無框架依賴，輕量且高速 / Lightweight & Zero dependencies |
-| 部署 / Deployment | GitHub Pages | 免費靜態托管，自動 CI/CD / Free static hosting |
-| LLM | Gemini API 六模型三層 RPM 分級自動備援 | 透過 GAS 代理，API Key 不外露；429 時自動重試切換下一個模型 |
+| 部署 / Deployment | GitHub Pages（`main` 分支根目錄） | 免費靜態托管，合併至 main 即自動部署 / Free static hosting, auto-deployed from main |
+| LLM | Gemini API 五模型三層 RPM 分級自動備援 | 透過 GAS 代理，API Key 不外露；429 時自動重試切換下一個模型 |
 | 備援 / Fallback | 19 語系 Rule-based 關鍵字分類器 | Gemini 全部失敗時降級使用，支援 19 種語言/地區語言 |
-| 反濫用 / Anti-Abuse | reCAPTCHA v3（僅報修表單） | 隱形驗證，風險分數門檻 0.5，防止 GAS_URL 外洩後遭腳本濫用 |
+| 反濫用 / Anti-Abuse | reCAPTCHA v3（報修表單與案件查詢） | 隱形驗證，風險分數門檻 0.5，防止 GAS_URL 外洩後遭腳本濫用 |
 | 後端 / Backend | Google Apps Script (GAS Web App) | 無伺服器架構，`doGet` / `doPost` 路由 / Serverless |
 | 資料儲存 / Data | Google 試算表 / Script Properties | 儲存通報案件與計數器 / Form data & Usage Counter |
 | 測試 / Testing | Node.js `node --test` + ESLint | 純 Node 原生測試框架，透過 `gas-mocks.js` 單元測試 GAS 邏輯 |
@@ -52,7 +52,7 @@ graph TD
 | `chat.js` | 對話流程控制、Token 初始化管理 (`_fetchToken`, `getToken`, `refreshToken`)、Client ID 管理 (`getClientId`) |
 | `intent.js` | 發送 POST Body (含 Token + Client ID) 呼叫 GAS 進行意圖分類，支援 25s Timeout 與 Token 重試 |
 | `report.js` | 報修表單 Modal 開關、學號/電話/床號前端格式強驗證、reCAPTCHA token 取得、POST Body 送出 |
-| `query.js` | 報修案件查詢 Modal 開關、學號前端格式驗證、POST Body 送出、查詢結果渲染（含 `_esc()` HTML 轉義防 XSS） |
+| `query.js` | 報修案件查詢 Modal 開關、學號與手機末 4 碼前端格式驗證、reCAPTCHA token 取得（`query_report`）、POST Body 送出、查詢結果渲染（`_esc()` 轉義 HTML 與 Markdown 字元，防 XSS 與連結注入） |
 | `counter.js` | 讀取 / 累加使用人數，更新 Header 雙語數字 |
 | `teams.js` | 開啟 Teams chat 深連結、平台備援跳轉、一鍵複製帳號名稱 |
 | `wifi-modal.js` | Wi-Fi 機設定教學 Modal 開關（X 按鈕／關閉按鈕／遮罩點擊／ESC 四種關閉方式），純靜態步驟說明，不呼叫 GAS（v1.4.4 新增） |
@@ -65,32 +65,37 @@ graph TD
 | `doPost(e)` | 解析 `text/plain` POST Body，執行 `_consumeToken` 驗證，路由至 `classify` / `report` / `query` |
 | `_checkRateLimit(action, limitPerMin, id, globalLimit)` | 雙層每分鐘請求速率限制（`classify`: 使用者 12/min・全域 60/min；`report`: 使用者 5/min・全域 20/min；`query`: 使用者 10/min・全域 40/min；`counter_get`: 使用者 30/min・全域 120/min；`counter_increment`: 使用者 3/min・全域 500/min）|
 | `_verifyRecaptcha(token, action)` | 呼叫 Google siteverify API 驗證 reCAPTCHA v3 token、action 及風險分數 (score ≥ 0.5) |
-| `classifyIntent(msg, clientId)` | 依序呼叫 6 個 Gemini 模型，若配額用盡自動降級至 19 語系 Rule-based 備援分類器 |
+| `classifyIntent(msg, clientId)` | 依序呼叫 5 個 Gemini 模型（API Key 以 `x-goog-api-key` header 傳送），若配額用盡自動降級至 19 語系 Rule-based 備援分類器 |
 | `writeReport(data, clientId, recaptchaToken)` | reCAPTCHA 驗證、後端「先必填、後格式」二階段驗證（姓名/學號/房號/床號/手機/問題描述皆為必填，未填一律拒絕，非僅格式檢查）、長度截斷寫入試算表 |
-| `queryReport(studentId, clientId)` | 學生輸入學號查詢自己的報修案件；僅回傳安全欄位（日期/時間/房號/床號/問題描述/是否派人/是否完成/備註），不含手機、姓名等敏感個資 |
+| `queryReport(studentId, phoneLast4, clientId, recaptchaToken)` | 學生輸入學號＋報修時填寫的手機末 4 碼查詢自己的報修案件（需通過 reCAPTCHA `query_report`）；僅回傳安全欄位（日期/時間/房號/床號/問題描述/是否派人/是否完成/備註），不含手機、姓名等敏感個資 |
 | `getCounter() / incrementCounter()` | Atomic LockService 防競態寫入計數器 |
 
 > ⚠️ **v1.3.1**：所有函式的 `catch` 區塊已統一改為僅回傳固定代碼 `'INTERNAL_ERROR'`
 > 給前端，例外的完整內容改記錄於 `Logger.log()`，避免內部實作細節透過錯誤
 > 訊息外洩給呼叫端（詳見 §5 安全性設計）。
 
-### 3.3 Gemini 備援模型清單（依 RPM 配額分三層，共 6 個模型）
+### 3.3 Gemini 備援模型清單（依 RPM 配額分三層，共 5 個模型）
+
+> 🔄 **2026-10 模型清單更新**：依 Google 官方 deprecations 頁面，移除已棄用的
+> `gemini-3.5-flash`（API 請求已自動導向 `gemini-3.6-flash`）與 `gemini-3-flash-preview`
+> （官方建議改用 `gemini-3.6-flash`），新增 Stable 模型 `gemini-3.8-flash`。
+> `gemini-3.1-flash-lite` 官方預告 2027-05-07 下架，屆時需自清單移除。
 
 > ⚠️ **v1.3.1 文件修正**：本節原本描述「9 個模型、含 gemini-2.5-flash-lite／gemini-2.5-flash／
 > gemini-2.0-flash／gemini-2.0-flash-lite 共 4 個額外模型」，與 `gas/Code.gs` 實際的
 > `GEMINI_MODELS_FALLBACK` 陣列不符——這 4 個模型其實從未存在於目前的陣列中，
 > 且 gemini-2.0 系列已由 Google 官方於 2026-06-01 正式關閉（程式碼註解「⚠️ 棄用模型
 > （gemini-2.0-flash 等）已根據官方最新文件移除」與此一致）。以下表格已對照
-> 原始碼逐一核實，改為實際存在的 6 個模型。
+> 原始碼逐一核實，改為實際存在的 6 個模型（v1.4.7 再調整為 5 個，見上方說明）。
 
 | 層級 | RPM | 模型 |
 |---|---|---|
 | 最高 | 15 | gemini-3.5-flash-lite、gemini-3.1-flash-lite |
-| 標準 | 5 | gemini-3.6-flash、gemini-3.5-flash |
-| 預覽版（文字對話補齊，未標示 RPM） | — | gemini-3.1-pro-preview、gemini-3-flash-preview |
+| 標準（實際 RPM 以 AI Studio 為準） | 5 | gemini-3.8-flash、gemini-3.6-flash |
+| 預覽版（文字對話補齊，未標示 RPM） | — | gemini-3.1-pro-preview |
 
 遇 HTTP 429（額度超限）：同一模型重試最多 2 次（間隔 1.5 秒）後切換下一個模型；
-遇其他錯誤碼（400/403/404）直接跳下一個模型。6 個模型全部失敗時，降級至
+遇其他錯誤碼（400/403/404）直接跳下一個模型。5 個模型全部失敗時，降級至
 `_ruleBasedClassify()`（19 語系關鍵字備援分類器）。
 
 ---
@@ -115,7 +120,7 @@ graph TD
 → POST GAS（Body: text/plain，內容：{action:"classify", msg, token, clientId}）
 → GAS doPost() 驗證 token（_consumeToken）
 → classifyIntent()：雙層流量限制（使用者 12/分鐘、全域 60/分鐘）
-→ 依序嘗試 6 個 Gemini 模型（429 自動重試切換）
+→ 依序嘗試 5 個 Gemini 模型（429 自動重試切換；API Key 以 header 傳送）
 → 全部失敗 → 降級 _ruleBasedClassify()（19 語系關鍵字比對）
 → 回傳 { intent, confidence, needsConfirmation, topic }
 → token 失效（INVALID_TOKEN）時前端自動重取 token 並重試一次
@@ -146,17 +151,21 @@ graph TD
 ```
 使用者點擊「🔍 查詢案件」按鈕（或 AI 辨識為 BUTTON_QUERY 意圖）
 → chat.js 開啟 query Modal（QueryCase.open()）
-→ 學生輸入學號，query.js 前端驗證（非空 + 格式 1字母+7數字）
-→ POST GAS（Body: text/plain，內容：{action:"query", studentId, token, clientId}，
+→ 學生輸入學號與手機末 4 碼，query.js 前端驗證（學號 1字母+7數字、末 4 碼 4 位數字）
+→ grecaptcha.execute({ action: 'query_report' }) 取得 reCAPTCHA token
+→ POST GAS（Body: text/plain，內容：{action:"query", studentId, phoneLast4, token, clientId, recaptchaToken}，
   AbortController 15 秒 Timeout）
 → GAS doPost() 驗證 token → queryReport()：
   → 雙層流量限制（使用者 10/分鐘、全域 40/分鐘）
-  → 學號格式驗證（toUpperCase + /^[A-Z][0-9]{7}$/）
-  → 讀取試算表全部資料列，篩選匹配學號的列
+  → 學號格式驗證（toUpperCase + /^[A-Z][0-9]{7}$/）、末 4 碼格式驗證（/^[0-9]{4}$/）
+  → reCAPTCHA v3 驗證（action 必須為 query_report）
+  → 讀取試算表全部資料列，篩選「學號相符且手機末 4 碼相符」的列
+    （學號不存在與末 4 碼不符回傳相同的空結果，不洩漏學號是否存在；SEC-QUERY-01）
   → 僅回傳安全欄位（日期/時間/房號/床號/問題描述/是否派人/是否完成/備註）
   → 不回傳手機號碼、姓名（防第三方惡意按學號試探取得他人個資）
 → 回傳 { success: true, cases: [...] }
-→ query.js 關閉 Modal，在聊天區渲染案件卡片（所有欄位已 HTML 轉義防 XSS）
+→ query.js 關閉 Modal，在聊天區渲染案件卡片（所有欄位已 HTML 轉義防 XSS，
+  並轉義 Markdown 字元 [ ] ( ) * _ 防止描述欄被渲染成釣魚連結；SEC-QUERY-02）
 ```
 
 ---
@@ -174,7 +183,7 @@ graph TD
 
 | 機密資料項目 | 儲存位置 | 存取方式 |
 |---|---|---|
-| Gemini API Key | GAS Script Properties（`GEMINI_API_KEY`） | `PropertiesService.getScriptProperties().getProperty()` |
+| Gemini API Key | GAS Script Properties（`GEMINI_API_KEY`） | `PropertiesService.getScriptProperties().getProperty()`；呼叫 Gemini 時以 `x-goog-api-key` header 傳送，不放入 URL（v1.4.7） |
 | reCAPTCHA Secret Key | GAS Script Properties（`RECAPTCHA_SECRET_KEY`） | 同上，僅於 `_verifyRecaptcha()` 內部讀取 |
 | Google 試算表 ID | GAS Script Properties（`SPREADSHEET_ID`） | `_getSpreadsheetId()` 統一存取，若未設定則拋出例外而非 silent fail |
 | reCAPTCHA Site Key | `js/config.js`（公開） | Site Key 為設計上公開的金鑰，不屬機密 |
@@ -246,15 +255,16 @@ _consumeToken()   → CacheService.get()  → 驗證存在 → CacheService.remo
 
 #### 5.4.2 reCAPTCHA v3 隱形驗證
 
-僅報修表單（`report` action）需要，防止 GAS_URL 外洩後遭腳本大量送出假報修單：
+報修表單（`report`，action `submit_report`）與案件查詢（`query`，action `query_report`，v1.4.7 新增）需要，
+防止 GAS_URL 外洩後遭腳本大量送出假報修單或暴力嘗試查詢：
 
 ```
-前端 grecaptcha.execute(SITE_KEY, {action:'submit_report'})
+前端 grecaptcha.execute(SITE_KEY, {action:'submit_report' | 'query_report'})
 → 回傳一次性 recaptchaToken
 → POST 至 GAS，GAS 呼叫 Google siteverify API
 → _verifyRecaptcha() 驗證三個條件：
   ① success = true（Google 確認 token 有效）
-  ② action = 'submit_report'（防止重播其他頁面的 token）
+  ② action 與呼叫端相符（防止把報修表單的 token 挪用到查詢，反之亦然）
   ③ score ≥ 0.5（機器人風險分數低於門檻）
 ```
 
@@ -266,14 +276,15 @@ _consumeToken()   → CacheService.get()  → 驗證存在 → CacheService.remo
 **對應威脅**：CWE-841 Improper Enforcement of Behavioral Workflow（重複提交造成資料重複）
 
 ```javascript
-const fingerprint = studentId + '|' + roomNumber + '|' + description.slice(0, 50);
-const hash = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, fingerprint);
-const cacheKey = 'dedup_' + Utilities.base64EncodeWebSafe(hash);
-if (CacheService.getScriptCache().get(cacheKey)) {
+const _dupCache = CacheService.getScriptCache();
+const _dupRaw   = `${studentId}_${roomNumber}_${description.substring(0, 50)}`;
+const _dupBytes = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, _dupRaw);
+const _dupKey   = 'dedup_' + Utilities.base64EncodeWebSafe(_dupBytes);
+if (_dupCache.get(_dupKey)) {
   return { success: false, error: 'DUPLICATE_REPORT' };
 }
-// ...格式驗證通過、reCAPTCHA 通過、寫入試算表成功後：
-CacheService.getScriptCache().put(cacheKey, '1', 120); // 120 秒內視為重複
+// ...reCAPTCHA 通過、格式驗證通過、寫入試算表成功後：
+_dupCache.put(_dupKey, '1', 120); // 120 秒內視為重複
 ```
 
 - 指紋組成：**學號 + 房號 + 問題描述前 50 字**，取 MD5 雜湊後編碼為 CacheService key
@@ -327,7 +338,15 @@ if (!/^[A-Z][0-9]{7}$/.test(sid)) {
 }
 ```
 
+```javascript
+const last4 = String(phoneLast4 || '').trim();
+if (!/^[0-9]{4}$/.test(last4)) {
+  return { success: false, error: 'VALIDATION_QUERY_PHONE_LAST4_FORMAT' };
+}
+```
+
 前端（`query.js`）與後端（`queryReport()`）各自驗證，且分拆空值與格式兩種錯誤訊息（BUG-12 修正）。
+手機末 4 碼為 SEC-QUERY-01 新增：學號格式可預測，僅憑學號查詢會讓任何人列舉他人的房號、床號與問題描述。
 
 #### 5.5.4 Google Sheets 公式注入防護（`_sanitizeForSpreadsheet`）
 
@@ -349,11 +368,19 @@ function _esc(str) {
     .replace(/</g,  '&lt;')
     .replace(/>/g,  '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g,  '&#39;');
+    .replace(/'/g,  '&#39;')
+    .replace(/\[/g, '&#91;')
+    .replace(/\]/g, '&#93;')
+    .replace(/\(/g, '&#40;')
+    .replace(/\)/g, '&#41;')
+    .replace(/\*/g, '&#42;')
+    .replace(/_/g,  '&#95;');
 }
 ```
 
 試算表欄位為使用者填寫的可控資料（如問題描述可能含 HTML 標籤）。在渲染為聊天訊息前，所有欄位值均先通過 `_esc()` HTML 轉義，防止跨網站指令碼攻擊（XSS，CWE-79 / BUG-13 修正）。
+由於查詢結果仍經 `addBotMessage()` → `_renderMarkdown()` 渲染，v1.4.7 另將 Markdown 語法字元轉為 HTML entity，
+避免描述欄的 `[文字](https://…)` 被轉成可點擊的釣魚連結（SEC-QUERY-02）。
 
 ---
 
@@ -376,7 +403,8 @@ function _esc(str) {
 
 #### 查詢結果的個資最小化
 
-`queryReport()` 回傳欄位刻意排除姓名與手機號碼，防止惡意使用者以他人學號試探取得敏感個資：
+`queryReport()` 須同時比對學號與手機末 4 碼並通過 reCAPTCHA 才回傳案件（SEC-QUERY-01），
+且回傳欄位刻意排除姓名與手機號碼，防止惡意使用者以他人學號試探取得敏感個資：
 
 ```javascript
 cases.push({
@@ -420,9 +448,9 @@ finally { lock.releaseLock(); }
 
 | 測試項目 | 工具 / 方法 | 覆蓋範圍 |
 |---|---|---|
-| 單元測試（55 項） | Node.js `node --test` + `gas-mocks.js` | `_checkRateLimit`（雙層限流）、`_verifyRecaptcha`（三項條件）、`writeReport`（必填/格式/截斷/重複送出防護迴歸）、`queryReport`（學號驗證/欄位安全/限流）、`_ruleBasedClassify`、`doGet`/`doPost` 路由 |
+| 單元測試（60 項） | Node.js `node --test` + `gas-mocks.js` | `_checkRateLimit`（雙層限流）、`_verifyRecaptcha`（三項條件）、`writeReport`（必填/格式/截斷/重複送出防護迴歸）、`queryReport`（學號與末 4 碼驗證/reCAPTCHA/欄位安全/限流）、`_ruleBasedClassify`、`doGet`/`doPost` 路由 |
 | 靜態程式碼分析 | ESLint（`eslint.config.js`，0 error / 0 warning） | JS 語法錯誤、未使用變數、未聲明全域等 |
-| CI/CD 自動化 | GitHub Actions（`.github/workflows/test.yml`） | 每次 push 自動執行 `npm test`，確保安全修復不回歸 |
+| CI/CD 自動化 | GitHub Actions（`.github/workflows/test.yml`） | push 至 `main` 與對 `main` 開 PR 時自動執行 `npm test` 與 `npm run lint`，確保安全修復不回歸 |
 
 ---
 
@@ -430,12 +458,12 @@ finally { lock.releaseLock(); }
 
 | OWASP Top 10 (2021) | 本系統對應控制 |
 |---|---|
-| A01 Broken Access Control | 一次性 Token（120s）+ 雙層限流；`queryReport` 僅回傳本人案件的安全欄位 |
+| A01 Broken Access Control | 一次性 Token（120s）+ 雙層限流；`queryReport` 須學號＋手機末 4 碼＋reCAPTCHA，僅回傳本人案件的安全欄位 |
 | A02 Cryptographic Failures | 機密僅存 Script Properties；全程 HTTPS；無明文硬編碼 |
 | A03 Injection | Prompt Injection 防護（截斷+控制字元移除+引號隔離）；公式注入防護（`_sanitizeForSpreadsheet`）；HTML 轉義防 XSS（`_esc`）；學號格式正則驗證 |
 | A04 Insecure Design | 雙層限流（5 個 action × 使用者+全域）；reCAPTCHA v3 隱形驗證；120 秒重複送出防護（§5.4.3）；個資最小化原則 |
 | A05 Security Misconfiguration | `doGet` 明確拒絕 classify/report；GAS 部署設定文件化；ESLint 0 warning 基準 |
-| A06 Vulnerable Components | 生產環境無外部套件依賴（純 Vanilla JS + GAS）；開發依賴（ESLint）定期更新 |
+| A06 Vulnerable Components | 生產環境無外部套件依賴（純 Vanilla JS + GAS）；開發依賴（ESLint）以 `npm audit` 定期檢查（v1.4.7：0 vulnerabilities）；Gemini 模型依官方 deprecations 頁面定期汰換 |
 | A07 Auth Failures | 一次性 UUID Token；Token 即用即廢；前端 Token 存記憶體而非 localStorage |
 | A08 Software Integrity Failures | GitHub Actions CI 自動化測試；所有部署透過 git push 觸發，可追蹤 |
 | A09 Logging Monitoring | 例外完整記錄於 GAS Logger；前端只收固定代碼（CWE-209 防護） |

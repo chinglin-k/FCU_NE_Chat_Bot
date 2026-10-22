@@ -206,7 +206,7 @@
         <div class="modal-header">
           <div>
             <h2 class="modal-title" id="query-modal-title" data-i18n="query.modal.title">🔍 查詢報修案件</h2>
-            <p class="modal-subtitle" data-i18n="query.modal.subtitle">請輸入學號以查詢您的報修進度。</p>
+            <p class="modal-subtitle" data-i18n="query.modal.subtitle">請輸入學號與報修時填寫的手機末 4 碼以查詢您的報修進度。</p>
           </div>
           <button class="modal-close" id="query-modal-close-btn" data-i18n-aria-label="query.modal.close.aria" aria-label="關閉查詢視窗">✕</button>
         </div>
@@ -215,6 +215,10 @@
           <div class="form-group">
             <label for="query-student-id"><span data-i18n="query.studentId.label">學號</span> <span class="required" aria-label="必填">*</span></label>
             <input type="text" id="query-student-id" name="queryStudentId" data-i18n-placeholder="query.studentId.placeholder" placeholder="例：D1234567" required maxlength="8" pattern="[A-Za-z][0-9]{7}" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="query-phone-last4"><span data-i18n="query.phoneLast4.label">手機末 4 碼</span> <span class="required" aria-label="必填">*</span></label>
+            <input type="text" id="query-phone-last4" name="queryPhoneLast4" data-i18n-placeholder="query.phoneLast4.placeholder" placeholder="報修時填寫的手機號碼末 4 碼" required maxlength="4" pattern="[0-9]{4}" inputmode="numeric" autocomplete="off">
           </div>
 
           <div id="query-error-msg" class="form-error" role="alert" hidden></div>

@@ -6,6 +6,7 @@
 //   2. 點「專案設定」→「指令碼屬性」，新增以下屬性：
 //      GEMINI_API_KEY  = 你的 Gemini API Key
 //      SPREADSHEET_ID  = 你的 Google 試算表 ID
+//      RECAPTCHA_SECRET_KEY = 你的 reCAPTCHA v3 Secret Key（報修與查詢皆需要）
 //   3. 部署 → 新的部署 → 類型：「網頁應用程式」
 //      執行身分：「我自己」/ 誰可以存取：「所有人」
 //   4. 複製產生的 Web App URL，貼到 js/config.js 的 GAS_URL
@@ -20,14 +21,15 @@ const MAX_MSG_LEN      = 500; // 使用者輸入最大長度（防止 Prompt Inj
 const GEMINI_MODELS_FALLBACK = [
   // ── RPM 最高（15/min）：優先使用，配額最充裕 ──
   'gemini-3.5-flash-lite',  // RPM 15：Gemini 3.5 輕量版
-  'gemini-3.1-flash-lite',  // RPM 15：Gemini 3.1 輕量版
-  // ── RPM 標準（5/min）：最新世代強效版 ──
-  'gemini-3.6-flash',       // RPM 5：最新 Gemini 3.6
-  'gemini-3.5-flash',       // RPM 5：Gemini 3.5
+  'gemini-3.1-flash-lite',  // RPM 15：Gemini 3.1 輕量版（官方預告 2027-05-07 下架，屆時移除）
+  // ── 標準 Flash：最新世代強效版（實際 RPM 以 Google AI Studio 顯示為準）──
+  'gemini-3.8-flash',       // 最新 Gemini 3.8（2026-10 為 Stable）
+  'gemini-3.6-flash',       // RPM 5：Gemini 3.6
   // ── 預覽版文字對話模型（補齊） ──
   'gemini-3.1-pro-preview',
-  'gemini-3-flash-preview',
-  // ⚠️ 棄用模型（gemini-2.0-flash 等）已根據官方最新文件移除
+  // ⚠️ 棄用模型已根據官方文件（2026-10）移除：
+  //    gemini-2.0-flash 系列（已關閉）、gemini-3.5-flash（已棄用，自動導向 3.6-flash）、
+  //    gemini-3-flash-preview（官方建議改用 3.6-flash）
 ];
 
 // ──────────────────────────────────────────────
@@ -206,10 +208,11 @@ function doGet(e) {
  * POST body 格式（Content-Type: text/plain;charset=utf-8）：
  *   { "action": "classify", "msg": "...", "token": "uuid", "clientId": "uuid" }
  *   { "action": "report",   "payload": {...}, "token": "uuid", "clientId": "uuid", "recaptchaToken": "..." }
+ *   { "action": "query",    "studentId": "D1234567", "phoneLast4": "5678", "token": "uuid", "clientId": "uuid", "recaptchaToken": "..." }
  *
  * clientId：前端產生並存於 localStorage 的隨機裝置識別碼（非個資、非可還原真實身分），
  *           僅用於依使用者區分頻率限制，缺漏時視為 'anonymous' 共用同一額度
- * recaptchaToken：reCAPTCHA v3 一次性 token，僅 report 需要，用於防止 GAS_URL 外洩後遭腳本濫用
+ * recaptchaToken：reCAPTCHA v3 一次性 token，report 與 query 需要，用於防止 GAS_URL 外洩後遭腳本濫用
  *
  * @param {GoogleAppsScript.Events.DoPost} e
  * @returns {GoogleAppsScript.Content.TextOutput}
@@ -226,7 +229,7 @@ function doPost(e) {
       const token         = (data.token           || '').toString().trim();
       // clientId：前端產生的隨機識別碼（非個資），僅用於「依使用者區分」的頻率限制
       const clientId      = (data.clientId        || '').toString().trim();
-      // recaptchaToken：reCAPTCHA v3 執行後取得的一次性 token，僅 report 需要
+      // recaptchaToken：reCAPTCHA v3 執行後取得的一次性 token，report 與 query 需要
       const recaptchaToken = (data.recaptchaToken || '').toString().trim();
 
       // ── Token 驗證（classify、report、query 皆須帶合法 token）──
@@ -237,7 +240,7 @@ function doPost(e) {
       } else if (action === 'report') {
         result = writeReport(data.payload || {}, clientId, recaptchaToken);
       } else if (action === 'query') {
-        result = queryReport(data.studentId || '', clientId);
+        result = queryReport(data.studentId || '', data.phoneLast4 || '', clientId, recaptchaToken);
       } else {
         result = { success: false, error: `doPost 不支援 action: ${action}` };
       }
@@ -324,7 +327,8 @@ function classifyIntent(message, clientId) {
     let responseData = null;
 
     for (const model of GEMINI_MODELS_FALLBACK) {
-      const apiUrl = `${GEMINI_API_BASE}/${model}:generateContent?key=${apiKey}`;
+      // API Key 改以 x-goog-api-key header 傳送，避免出現在 URL 而被代理／存取記錄留存
+      const apiUrl = `${GEMINI_API_BASE}/${model}:generateContent`;
       
       for (let attempt = 0; attempt < 2; attempt++) {
         if (attempt > 0) {
@@ -334,6 +338,7 @@ function classifyIntent(message, clientId) {
         const response = UrlFetchApp.fetch(apiUrl, {
           method:      'POST',
           contentType: 'application/json',
+          headers:     { 'x-goog-api-key': apiKey },
           payload: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
@@ -615,15 +620,25 @@ function writeReport(reportData, clientId, recaptchaToken) {
 }
 
 /**
- * 報修案件查詢：學生輸入學號查詢自己的案件狀態
+ * 報修案件查詢：學生輸入學號＋報修時填寫的手機末 4 碼查詢自己的案件狀態
  * 僅回傳安全欄位（不含手機號碼、姓名），避免個資外洩
  * 已加入頻率限制：依 clientId 每人每分鐘最多 10 次，全體使用者每分鐘總計最多 40 次
  *
- * @param {string} studentId  - 學號
- * @param {string} [clientId] - 前端產生的裝置識別碼（非個資），用於依使用者區分限流
+ * ⚠️ 修正（SEC-QUERY-01）：舊版只憑學號即可查詢，學號格式可預測（1 英文字母 + 7 位數字），
+ * 任何人都能逐一列舉學號取得他人的房號、床號與問題描述（IDOR / 個資外洩）。
+ * 現改為：
+ *   ① 必須同時提供該案件報修時填寫的手機末 4 碼，僅回傳兩者皆相符的案件；
+ *      學號不存在與末 4 碼不符一律回傳相同的「查無案件」結果，不洩漏學號是否存在。
+ *   ② 比照 writeReport 加上 reCAPTCHA v3 驗證（action: query_report），
+ *      防止腳本繞過 clientId 限流暴力嘗試末 4 碼。
+ *
+ * @param {string} studentId        - 學號
+ * @param {string} phoneLast4       - 報修時填寫之手機號碼末 4 碼
+ * @param {string} [clientId]       - 前端產生的裝置識別碼（非個資），用於依使用者區分限流
+ * @param {string} [recaptchaToken] - reCAPTCHA v3 token
  * @returns {{ success: boolean, cases?: Array, message?: string, error?: string }}
  */
-function queryReport(studentId, clientId) {
+function queryReport(studentId, phoneLast4, clientId, recaptchaToken) {
   // 頻率限制：單一使用者每分鐘 10 次／全體使用者每分鐘 40 次
   if (!_checkRateLimit('query', 10, clientId, 40)) {
     return { success: false, error: 'RATE_LIMITED' };
@@ -636,6 +651,16 @@ function queryReport(studentId, clientId) {
   }
   if (!/^[A-Z][0-9]{7}$/.test(sid)) {
     return { success: false, error: 'VALIDATION_QUERY_STUDENT_ID_FORMAT' };
+  }
+  const last4 = String(phoneLast4 || '').trim();
+  if (!/^[0-9]{4}$/.test(last4)) {
+    return { success: false, error: 'VALIDATION_QUERY_PHONE_LAST4_FORMAT' };
+  }
+
+  const captcha = _verifyRecaptcha(recaptchaToken, 'query_report');
+  if (!captcha.success) {
+    Logger.log(`[queryReport] reCAPTCHA 未通過: ${captcha.error}`);
+    return { success: false, error: 'RECAPTCHA_VERIFY_FAILED' };
   }
 
   try {
@@ -662,7 +687,9 @@ function queryReport(studentId, clientId) {
     const matched = [];
     for (let i = 0; i < allRows.length; i++) {
       const rowStudentId = String(allRows[i][2] || '').trim().toUpperCase();
-      if (rowStudentId === sid) {
+      // 第 7 欄 = index 6 = 手機；學號與手機末 4 碼皆相符才視為本人案件
+      const rowLast4     = String(allRows[i][6] || '').trim().slice(-4);
+      if (rowStudentId === sid && rowLast4 === last4) {
         matched.push({
           date:        String(allRows[i][0] || ''),
           time:        String(allRows[i][1] || ''),
